@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumo de almuerzo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 45%, #93c5fd 100%);
+            padding: 24px;
+        }
+
+        .contenedor {
+            width: 100%;
+            max-width: 560px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 22px;
+            padding: 34px 32px;
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.18);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 30px;
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .subtitulo {
+            color: #475569;
+            margin-bottom: 24px;
+        }
+
+        .tarjeta {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .mensaje {
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #eff6ff;
+            border-left: 5px solid #60a5fa;
+            color: #1e3a8a;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        p {
+            color: #1e293b;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Consumo de almuerzo</h1>
+        <div class="subtitulo">Registro rápido mediante código QR</div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mensaje">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="tarjeta">
+            <p><strong>Empleado:</strong> {{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}</p>
+            <p><strong>Usuario:</strong> {{ empleado.usuario.username }}</p>
+            <p><strong>Fecha:</strong> {{ fecha }}</p>
+        </div>
+    </div>
+</body>
+</html>

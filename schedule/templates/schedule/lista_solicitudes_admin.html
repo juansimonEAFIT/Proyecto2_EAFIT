@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitudes al administrador</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f8fafc;
+        }
+
+        .barra {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        .menu {
+            display: flex;
+            gap: 18px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .contenedor {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.1);
+        }
+
+        h1 {
+            color: #dc2626;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <div class="barra">
+        <div class="logo">LunchFlow</div>
+        <div class="menu">
+            <a href="/">Inicio</a>
+            <a href="/tiquetes/solicitar/">Solicitar tiquete</a>
+        </div>
+    </div>
+
+    <div class="contenedor">
+        <h1>Solicitudes de tiquete</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Tipo de tiquete</th>
+                    <th>Estado</th>
+                    <th>Fecha de solicitud</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudes %}
+                    <tr>
+                        <td>{{ solicitud.empleado.usuario.first_name }} {{ solicitud.empleado.usuario.last_name }}</td>
+                        <td>{{ solicitud.get_tipo_tiquete_display }}</td>
+                        <td>{{ solicitud.get_estado_display }}</td>
+                        <td>{{ solicitud.fecha_solicitud }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">No hay solicitudes registradas.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
