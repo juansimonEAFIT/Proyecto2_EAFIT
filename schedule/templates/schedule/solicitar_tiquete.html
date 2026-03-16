@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitar tiquete</title>
+    <title>Solicitudes al administrador</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -81,7 +81,7 @@
             position: absolute;
             right: 0;
             top: 62px;
-            min-width: 240px;
+            min-width: 260px;
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
             border-radius: 18px;
@@ -110,92 +110,38 @@
 
         .contenedor-principal {
             flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 40px 20px;
         }
 
         .contenedor {
-            width: 100%;
-            max-width: 560px;
+            max-width: 1100px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.96);
+            padding: 30px;
             border-radius: 22px;
-            padding: 34px 32px;
-            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.18);
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
         }
 
         h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
             color: #dc2626;
-            text-align: center;
+            margin: 0 0 20px;
+            font-size: 32px;
         }
 
-        .subtitulo {
-            text-align: center;
-            color: #475569;
-            margin-bottom: 24px;
-        }
-
-        .mensaje {
-            margin-bottom: 18px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: #eff6ff;
-            border-left: 5px solid #60a5fa;
-            color: #1e3a8a;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        form p {
-            margin: 0 0 16px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 7px;
-            color: #1e293b;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        select,
-        input {
+        table {
             width: 100%;
-            padding: 13px 14px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14px;
-            background-color: #f8fafc;
-            outline: none;
+            border-collapse: collapse;
         }
 
-        select:focus,
-        input:focus {
-            border-color: #60a5fa;
-            background-color: #ffffff;
-            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
-        }
-
-        .boton {
-            width: 100%;
-            margin-top: 10px;
+        th, td {
+            text-align: left;
             padding: 14px;
-            border: none;
-            border-radius: 14px;
-            background: #93c5fd;
-            color: #0f172a;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s ease;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .boton:hover {
-            background: #60a5fa;
-            color: white;
+        th {
+            color: #1d4ed8;
+            font-weight: 700;
         }
 
         @media (max-width: 900px) {
@@ -208,7 +154,16 @@
             }
 
             .contenedor {
-                padding: 28px 20px;
+                padding: 22px 16px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 14px;
             }
         }
     </style>
@@ -227,7 +182,8 @@
                         <a href="/">Inicio</a>
                         <a href="/tiquetes/solicitar/">Pedir tiquete de almuerzo</a>
                         <a href="/empleados/crear/">Registrar empleado</a>
-                        <a href="/admin/solicitudes/">Ver solicitudes</a>
+                        <a href="/empleados/1/estado-cuenta/">Consultar estado de cuenta</a>
+                        <a href="/solicitudes-admin/">Ver solicitudes</a>
                     </div>
                 </div>
             </div>
@@ -235,24 +191,32 @@
 
         <div class="contenedor-principal">
             <div class="contenedor">
-                <h1>Solicitar tiquete</h1>
-                <div class="subtitulo">
-                    Elige si deseas el tiquete físico o a través de código QR.
-                </div>
+                <h1>Solicitudes de tiquete</h1>
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="mensaje">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <form method="POST">
-                    {% csrf_token %}
-                    {{ formulario.as_p }}
-                    <button type="submit" class="boton">Enviar solicitud</button>
-                </form>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Tipo de tiquete</th>
+                            <th>Estado</th>
+                            <th>Fecha de solicitud</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes %}
+                            <tr>
+                                <td>{{ solicitud.empleado.usuario.first_name }} {{ solicitud.empleado.usuario.last_name }}</td>
+                                <td>{{ solicitud.get_tipo_tiquete_display }}</td>
+                                <td>{{ solicitud.get_estado_display }}</td>
+                                <td>{{ solicitud.fecha_solicitud }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">No hay solicitudes registradas.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

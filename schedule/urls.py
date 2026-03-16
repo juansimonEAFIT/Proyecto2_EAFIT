@@ -9,6 +9,6 @@ from .views import (
 urlpatterns = [
     path("almuerzo/consumir/<uuid:codigo_qr>/", consumir_almuerzo_qr, name="consumir_almuerzo_qr"),
     path("tiquetes/solicitar/", solicitar_tiquete, name="solicitar_tiquete"),
-    path("admin/solicitudes/", lista_solicitudes_admin, name="lista_solicitudes_admin"),
+    path("solicitudes-admin/", lista_solicitudes_admin, name="lista_solicitudes_admin"),
     path("empleados/<int:empleado_id>/estado-cuenta/", consultar_estado_cuenta, name="consultar_estado_cuenta"),
 ]
