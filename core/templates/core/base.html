@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LunchFlow{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="pantalla">
+        <div class="barra-superior">
+            <a href="/" class="logo">LunchFlow</a>
+
+            <div class="acciones-superiores">
+                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
+
+                <div class="menu-desplegable">
+                    <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
+                    <div class="contenido-menu" id="contenido-menu">
+                        <a href="/">Inicio</a>
+                        <a href="/tiquetes/solicitar/">Pedir tiquete de almuerzo</a>
+                        <a href="/empleados/crear/">Registrar empleado</a>
+                        <a href="/empleados/1/estado-cuenta/">Consultar estado de cuenta</a>
+                        <a href="/solicitudes-admin/">Ver solicitudes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="{% block main_container_class %}contenido-principal{% endblock %}">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        const botonMenu = document.getElementById("boton-menu");
+        const contenidoMenu = document.getElementById("contenido-menu");
+
+        if (botonMenu && contenidoMenu) {
+            botonMenu.addEventListener("click", function (event) {
+                event.stopPropagation();
+                contenidoMenu.classList.toggle("mostrar");
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
+                    contenidoMenu.classList.remove("mostrar");
+                }
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,311 +1,62 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estado de cuenta</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+{% extends 'core/base.html' %}
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+{% block title %}Estado de cuenta{% endblock %}
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 45%, #93c5fd 100%);
-            color: #1e293b;
-        }
-
-        .pantalla {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .barra-superior {
-            width: 100%;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 34px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-        }
-
-        .logo {
-            color: #dc2626;
-            font-size: 34px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .acciones-superiores {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .boton-icono,
-        .boton-menu {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 16px;
-            background: #f8fafc;
-            color: #dc2626;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.10);
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .boton-icono:hover,
-        .boton-menu:hover {
-            transform: translateY(-2px);
-            background: #ffffff;
-        }
-
-        .menu-desplegable {
-            position: relative;
-        }
-
-        .contenido-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 62px;
-            min-width: 260px;
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 18px;
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
-            overflow: hidden;
-            z-index: 20;
-        }
-
-        .contenido-menu.mostrar {
-            display: block;
-        }
-
-        .contenido-menu a {
-            display: block;
-            padding: 14px 18px;
-            text-decoration: none;
-            color: #1e293b;
-            font-weight: 500;
-        }
-
-        .contenido-menu a:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .contenedor-principal {
-            flex: 1;
-            padding: 40px 20px;
-        }
-
-        .contenedor {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .encabezado {
-            margin-bottom: 24px;
-        }
-
-        h1 {
-            margin: 0 0 8px;
-            font-size: 32px;
-            color: #dc2626;
-        }
-
-        .subtitulo {
-            color: #475569;
-        }
-
-        .resumen {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
-        }
-
-        .tarjeta {
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: 22px;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
-        }
-
-        .etiqueta {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .valor-principal {
-            color: #dc2626;
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        .valor-secundario {
-            color: #1e293b;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .tabla-contenedor {
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: 22px;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 14px 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            color: #1d4ed8;
-            font-weight: 700;
-        }
-
-        .actualizacion {
-            margin-top: 16px;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        @media (max-width: 900px) {
-            .logo {
-                font-size: 28px;
-            }
-
-            .barra-superior {
-                padding: 18px 20px;
-            }
-
-            h1 {
-                font-size: 28px;
-            }
-
-            .valor-principal {
-                font-size: 26px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="pantalla">
-        <div class="barra-superior">
-            <div class="logo">LunchFlow</div>
-
-            <div class="acciones-superiores">
-                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
-
-                <div class="menu-desplegable">
-                    <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
-                    <div class="contenido-menu" id="contenido-menu">
-                        <a href="/">Inicio</a>
-                        <a href="/tiquetes/solicitar/">Pedir tiquete de almuerzo</a>
-                        <a href="/empleados/crear/">Registrar empleado</a>
-                        <a href="/empleados/1/estado-cuenta/">Consultar estado de cuenta</a>
-                        <a href="/admin/solicitudes/">Ver solicitudes</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="contenedor-principal">
-            <div class="contenedor">
-                <div class="encabezado">
-                    <h1>Estado de cuenta</h1>
-                    <div class="subtitulo">
-                        Consulta el saldo acumulado pendiente del empleado {{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}.
-                    </div>
-                </div>
-
-                <div class="resumen">
-                    <div class="tarjeta">
-                        <div class="etiqueta">Saldo pendiente</div>
-                        <div class="valor-principal">$ {{ saldo_pendiente }}</div>
-                    </div>
-
-                    <div class="tarjeta">
-                        <div class="etiqueta">Consumos pendientes</div>
-                        <div class="valor-secundario">{{ total_consumos_pendientes }}</div>
-                    </div>
-
-                    <div class="tarjeta">
-                        <div class="etiqueta">Empleado</div>
-                        <div class="valor-secundario">{{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}</div>
-                    </div>
-                </div>
-
-                <div class="tabla-contenedor">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Hora de registro</th>
-                                <th>Valor</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for consumo in consumos_pendientes %}
-                                <tr>
-                                    <td>{{ consumo.fecha }}</td>
-                                    <td>{{ consumo.hora_registro }}</td>
-                                    <td>$ {{ consumo.valor_almuerzo }}</td>
-                                    <td>Pendiente</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="4">No hay consumos pendientes de pago.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-
-                    <div class="actualizacion">
-                        Última actualización: {{ ultima_actualizacion }}
-                    </div>
-                </div>
-            </div>
+{% block content %}
+<div class="contenedor-interior">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Estado de cuenta</h1>
+        <div class="subtitulo">
+            Consulta el saldo acumulado pendiente del empleado {{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}.
         </div>
     </div>
 
-    <script>
-        const botonMenu = document.getElementById("boton-menu");
-        const contenidoMenu = document.getElementById("contenido-menu");
+    <div class="resumen">
+        <div class="tarjeta">
+            <div class="etiqueta">Saldo pendiente</div>
+            <div class="valor-principal">$ {{ saldo_pendiente }}</div>
+        </div>
 
-        botonMenu.addEventListener("click", function (event) {
-            event.stopPropagation();
-            contenidoMenu.classList.toggle("mostrar");
-        });
+        <div class="tarjeta">
+            <div class="etiqueta">Consumos pendientes</div>
+            <div class="valor-secundario">{{ total_consumos_pendientes }}</div>
+        </div>
 
-        document.addEventListener("click", function (event) {
-            if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
-                contenidoMenu.classList.remove("mostrar");
-            }
-        });
-    </script>
-</body>
-</html>
+        <div class="tarjeta">
+            <div class="etiqueta">Empleado</div>
+            <div class="valor-secundario">{{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}</div>
+        </div>
+    </div>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora de registro</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consumo in consumos_pendientes %}
+                    <tr>
+                        <td>{{ consumo.fecha }}</td>
+                        <td>{{ consumo.hora_registro }}</td>
+                        <td>$ {{ consumo.valor_almuerzo }}</td>
+                        <td>Pendiente</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">No hay consumos pendientes de pago.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="actualizacion">
+            Última actualización: {{ ultima_actualizacion }}
+        </div>
+    </div>
+</div>
+{% endblock %}

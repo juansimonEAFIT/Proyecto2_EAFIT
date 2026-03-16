@@ -1,306 +1,53 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio - LunchFlow</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+{% extends 'core/base.html' %}
+{% load static %}
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+{% block title %}Inicio - LunchFlow{% endblock %}
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 45%, #93c5fd 100%);
-            color: #1e293b;
-        }
+{% block content %}
+<div class="encabezado">
+    <div class="subtexto">Gestión ágil, moderna y organizada del servicio de almuerzos</div>
+    <h1 class="titulo-principal">Bienvenido a LunchFlow</h1>
+</div>
 
-        .pantalla {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .barra-superior {
-            width: 100%;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 34px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-        }
-
-        .logo {
-            color: #dc2626;
-            font-size: 34px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .acciones-superiores {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .boton-icono,
-        .boton-menu {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 16px;
-            background: #f8fafc;
-            color: #dc2626;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.10);
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .boton-icono:hover,
-        .boton-menu:hover {
-            transform: translateY(-2px);
-            background: #ffffff;
-        }
-
-        .menu-desplegable {
-            position: relative;
-        }
-
-        .contenido-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 62px;
-            min-width: 260px;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
-            overflow: hidden;
-            z-index: 20;
-        }
-
-        .contenido-menu.mostrar {
-            display: block;
-        }
-
-        .contenido-menu a {
-            display: block;
-            padding: 14px 18px;
-            text-decoration: none;
-            color: #1e293b;
-            font-weight: 500;
-            transition: background 0.2s ease, color 0.2s ease;
-        }
-
-        .contenido-menu a:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .contenido-principal {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 50px 70px 60px;
-        }
-
-        .encabezado {
-            margin-bottom: 48px;
-        }
-
-        .subtexto {
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 15px;
-            font-weight: 500;
-            letter-spacing: 0.2px;
-            margin-bottom: 12px;
-        }
-
-        .titulo-principal {
-            color: #ffffff;
-            font-size: 48px;
-            font-weight: 700;
-            line-height: 1.1;
-            max-width: 700px;
-            margin: 0;
-            text-shadow: 0 10px 30px rgba(59, 130, 246, 0.18);
-        }
-
-        .tarjetas {
-            display: flex;
-            gap: 28px;
-            flex-wrap: wrap;
-        }
-
-        .tarjeta-opcion {
-            width: 260px;
-            min-height: 270px;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(10px);
-            border-radius: 28px;
-            padding: 28px 24px;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 18px 38px rgba(59, 130, 246, 0.15);
-            transition: transform 0.22s ease, box-shadow 0.22s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .tarjeta-opcion:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 24px 42px rgba(59, 130, 246, 0.2);
-        }
-
-        .icono-tarjeta {
-            width: 82px;
-            height: 82px;
-            border-radius: 22px;
-            background: #eff6ff;
-            color: #dc2626;
-            font-size: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 26px;
-        }
-
-        .titulo-tarjeta {
-            color: #dc2626;
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.15;
-            margin-bottom: 12px;
-        }
-
-        .descripcion-tarjeta {
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 900px) {
-            .contenido-principal {
-                padding: 36px 24px 40px;
-            }
-
-            .titulo-principal {
-                font-size: 34px;
-            }
-
-            .logo {
-                font-size: 28px;
-            }
-
-            .barra-superior {
-                padding: 18px 20px;
-            }
-
-            .tarjeta-opcion {
-                width: 100%;
-                min-height: 220px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="pantalla">
-        <div class="barra-superior">
-            <div class="logo">LunchFlow</div>
-
-            <div class="acciones-superiores">
-                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
-
-                <div class="menu-desplegable">
-                    <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
-                    <div class="contenido-menu" id="contenido-menu">
-                        <a href="/">Inicio</a>
-                        <a href="/tiquetes/solicitar/">Pedir tiquete de almuerzo</a>
-                        <a href="/empleados/crear/">Registrar empleado</a>
-                        <a href="/empleados/1/estado-cuenta/">Consultar estado de cuenta</a>
-                        <a href="/solicitudes-admin/">Ver solicitudes</a>
-                    </div>
-                </div>
-            </div>
+<div class="tarjetas">
+    <a href="/tiquetes/solicitar/" class="tarjeta-opcion">
+        <div>
+            <div class="icono-tarjeta">🎟️</div>
+            <div class="titulo-tarjeta">Pedir tiquete de almuerzo</div>
         </div>
-
-        <div class="contenido-principal">
-            <div class="encabezado">
-                <div class="subtexto">Gestión ágil, moderna y organizada del servicio de almuerzos</div>
-                <h1 class="titulo-principal">Bienvenido a LunchFlow</h1>
-            </div>
-
-            <div class="tarjetas">
-                <a href="/tiquetes/solicitar/" class="tarjeta-opcion">
-                    <div>
-                        <div class="icono-tarjeta">🎟️</div>
-                        <div class="titulo-tarjeta">Pedir tiquete de almuerzo</div>
-                    </div>
-                    <div class="descripcion-tarjeta">
-                        Solicita tu tiquete desde la aplicación y elige si lo deseas físico o mediante código QR.
-                    </div>
-                </a>
-
-                <a href="/empleados/crear/" class="tarjeta-opcion">
-                    <div>
-                        <div class="icono-tarjeta">👤</div>
-                        <div class="titulo-tarjeta">Registrar empleado</div>
-                    </div>
-                    <div class="descripcion-tarjeta">
-                        Agrega nuevos empleados al sistema para habilitar el acceso al servicio de almuerzos.
-                    </div>
-                </a>
-
-                <a href="/empleados/1/estado-cuenta/" class="tarjeta-opcion">
-                    <div>
-                        <div class="icono-tarjeta">💳</div>
-                        <div class="titulo-tarjeta">Consultar estado de cuenta</div>
-                    </div>
-                    <div class="descripcion-tarjeta">
-                        Revisa el valor acumulado pendiente y consulta el detalle de tus consumos registrados.
-                    </div>
-                </a>
-
-                <a href="/solicitudes-admin/" class="tarjeta-opcion">
-                    <div>
-                        <div class="icono-tarjeta">📋</div>
-                        <div class="titulo-tarjeta">Ver solicitudes</div>
-                    </div>
-                    <div class="descripcion-tarjeta">
-                        Consulta todas las solicitudes de tiquete registradas y revisa su estado actual.
-                    </div>
-                </a>
-            </div>
+        <div class="descripcion-tarjeta">
+            Solicita tu tiquete desde la aplicación y elige si lo deseas físico o mediante código QR.
         </div>
-    </div>
+    </a>
 
-    <script>
-        const botonMenu = document.getElementById("boton-menu");
-        const contenidoMenu = document.getElementById("contenido-menu");
+    <a href="/empleados/crear/" class="tarjeta-opcion">
+        <div>
+            <div class="icono-tarjeta">👤</div>
+            <div class="titulo-tarjeta">Registrar empleado</div>
+        </div>
+        <div class="descripcion-tarjeta">
+            Agrega nuevos empleados al sistema para habilitar el acceso al servicio de almuerzos.
+        </div>
+    </a>
 
-        botonMenu.addEventListener("click", function (event) {
-            event.stopPropagation();
-            contenidoMenu.classList.toggle("mostrar");
-        });
+    <a href="/empleados/1/estado-cuenta/" class="tarjeta-opcion">
+        <div>
+            <div class="icono-tarjeta">💳</div>
+            <div class="titulo-tarjeta">Consultar estado de cuenta</div>
+        </div>
+        <div class="descripcion-tarjeta">
+            Revisa el valor acumulado pendiente y consulta el detalle de tus consumos registrados.
+        </div>
+    </a>
 
-        document.addEventListener("click", function (event) {
-            if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
-                contenidoMenu.classList.remove("mostrar");
-            }
-        });
-    </script>
-</body>
-</html>
+    <a href="/solicitudes-admin/" class="tarjeta-opcion">
+        <div>
+            <div class="icono-tarjeta">📋</div>
+            <div class="titulo-tarjeta">Ver solicitudes</div>
+        </div>
+        <div class="descripcion-tarjeta">
+            Consulta todas las solicitudes de tiquete registradas y revisa su estado actual.
+        </div>
+    </a>
+</div>
+{% endblock %}
