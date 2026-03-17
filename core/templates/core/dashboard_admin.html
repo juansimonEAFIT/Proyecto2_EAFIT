@@ -1,0 +1,197 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard Administrador - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Gestión Humana</h1>
+        <p class="subtitulo">Administración de inventario, solicitudes y pagos.</p>
+    </div>
+
+    <div class="resumen">
+        <div class="tarjeta">
+            <div class="etiqueta">Inventario Actual</div>
+            <div class="valor-principal">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
+            <div class="subtitulo" style="text-align: left; margin: 5px 0 0;">Límite emp: {{ inventario.max_tiquetes_por_empleado|default:20 }} tks</div>
+        </div>
+        <div class="tarjeta">
+            <div class="etiqueta">Solicitudes Pendientes</div>
+            <div class="valor-secundario">{{ solicitudes_pendientes.count }}</div>
+        </div>
+        <div class="tarjeta">
+            <div class="etiqueta">Pagos por Validar</div>
+            <div class="valor-secundario">{{ pagos_pendientes.count }}</div>
+        </div>
+    </div>
+
+    <div class="tarjetas" style="margin-bottom: 30px; display: flex; gap: 20px;">
+        <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; max-width: 300px;">
+            <div class="icono-tarjeta">👤</div>
+            <div>
+                <div class="titulo-tarjeta">Registrar Usuario</div>
+                <p class="descripcion-tarjeta">Crea un nuevo usuario y su perfil (Empleado o Restaurante).</p>
+            </div>
+        </a>
+        <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; max-width: 300px;">
+            <div class="icono-tarjeta">⚙️</div>
+            <div>
+                <div class="titulo-tarjeta">Configurar Inventario</div>
+                <p class="descripcion-tarjeta">Define stock total y límite máx. por empleado.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="tabla-contenedor" style="margin-bottom: 40px;">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Solicitudes de Tiquetes Pendientes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Tipo</th>
+                    <th>Cant.</th>
+                    <th>Fecha Reclamo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudes_pendientes %}
+                <tr>
+                    <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
+                    <td>{{ solicitud.get_tipo_tiquete_display }}</td>
+                    <td>{{ solicitud.cantidad }}</td>
+                    <td>{{ solicitud.fecha_reclamo|default:"---" }}</td>
+                    <td>
+                        <a href="{% url 'gestionar_solicitud' solicitud.id 'aprobar' %}" class="insignia" style="background: #dcfce7; color: #166534; text-decoration: none;">Aprobar</a>
+                        <a href="{% url 'gestionar_solicitud' solicitud.id 'rechazar' %}" class="insignia" style="background: #fee2e2; color: #991b1b; text-decoration: none;">Rechazar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No hay solicitudes pendientes.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tabla-contenedor" style="margin-bottom: 40px;">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Solicitudes (Recientes)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Empleado</th>
+                    <th>Tipo</th>
+                    <th>Cant.</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudes_historial %}
+                <tr>
+                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                    <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
+                    <td>{{ solicitud.get_tipo_tiquete_display }}</td>
+                    <td>{{ solicitud.cantidad }}</td>
+                    <td>
+                        {% if solicitud.estado == 'aprobado' %}
+                            <span class="insignia" style="background: #dcfce7; color: #166534;">Aprobado</span>
+                        {% elif solicitud.estado == 'rechazado' %}
+                            <span class="insignia" style="background: #fee2e2; color: #991b1b;">Rechazado</span>
+                        {% else %}
+                            <span class="insignia" style="background: #f1f5f9; color: #475569;">{{ solicitud.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No hay historial de solicitudes.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tabla-contenedor">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Validación de Pagos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Valor</th>
+                    <th>Comprobante</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos_pendientes %}
+                <tr>
+                    <td>{{ pago.empleado.usuario.get_full_name }}</td>
+                    <td>${{ pago.valor_pagado }}</td>
+                    <td>{{ pago.comprobante }}</td>
+                    <td>
+                        <a href="{% url 'gestionar_pago' pago.id %}" class="insignia" style="background: #dbeafe; color: #1d4ed8; text-decoration: none;">Validar Pago</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">No hay pagos pendientes de validación.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tabla-contenedor" style="margin-top: 40px;">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Gestión de Personal (Empleados y Restaurante)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Info. Adicional</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in personal %}
+                <tr>
+                    <td>{{ p.get_full_name|default:p.username }}</td>
+                    <td>{{ p.username }}</td>
+                    <td>
+                        <span class="insignia" style="background: #f1f5f9; color: #475569;">{{ p.get_role_display }}</span>
+                    </td>
+                    <td>
+                        {% if p.role == 'empleado' %}
+                            <small>{{ p.perfil_empleado.numero_documento }} | {{ p.perfil_empleado.departamento|default:"---" }}</small>
+                        {% elif p.role == 'restaurante' %}
+                            <small>{{ p.perfil_restaurante.nombre_sede }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'cambiar_estado_usuario' p.id %}" style="text-decoration: none;">
+                            {% if p.is_active %}
+                                <span class="insignia" style="background: #dcfce7; color: #166534;" title="Clic para desactivar">Activo</span>
+                            {% else %}
+                                <span class="insignia" style="background: #fee2e2; color: #991b1b;" title="Clic para activar">Inactivo</span>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>
+                        {# Usaremos el ID del usuario para la gestión unificada #}
+                        <a href="{% url 'editar_personal' p.id %}" class="insignia" style="background: #f1f5f9; color: #475569; text-decoration: none;">Editar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center;">No hay personal registrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

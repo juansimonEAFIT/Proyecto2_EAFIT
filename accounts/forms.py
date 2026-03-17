@@ -1,38 +1,116 @@
 from django import forms
-from django.contrib.auth.models import User
-from .models import Empleado
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from .models import Empleado, Restaurante
+
+User = get_user_model()
 
 
-class FormularioCreacionEmpleado(forms.Form):
-    nombre = forms.CharField(max_length=100)
-    apellido = forms.CharField(max_length=100)
-    nombre_usuario = forms.CharField(max_length=150)
-    correo = forms.EmailField()
-    numero_documento = forms.CharField(max_length=50)
-    departamento = forms.CharField(max_length=100, required=False)
-    telefono = forms.CharField(max_length=20, required=False)
-    contrasena = forms.CharField(widget=forms.PasswordInput)
+class FormularioPersonal(forms.ModelForm):
+    # Campos de User
+    first_name = forms.CharField(label="Nombre", max_length=100)
+    last_name = forms.CharField(label="Apellido", max_length=100)
+    email = forms.EmailField(label="Correo electrónico")
+    username = forms.CharField(label="Nombre de usuario", max_length=150)
+    password = forms.CharField(label="Contraseña", widget=forms.PasswordInput, required=False)
+    role = forms.ChoiceField(label="Rol en el sistema", choices=[('empleado', 'Empleado'), ('restaurante', 'Restaurante')])
+    
+    # Campos comunes/especificos de perfil (los manejaremos en la vista)
+    numero_documento = forms.CharField(label="Número de Documento", required=False)
+    departamento = forms.CharField(label="Departamento/Área", required=False)
+    telefono = forms.CharField(label="Teléfono", required=False)
+    nombre_sede = forms.CharField(label="Nombre de la Sede (Solo Restaurante)", required=False, initial="Sede Principal")
 
-    def clean_nombre_usuario(self):
-        nombre_usuario = self.cleaned_data["nombre_usuario"]
-        if User.objects.filter(username=nombre_usuario).exists():
-            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
-        return nombre_usuario
-
-    def clean_correo(self):
-        correo = self.cleaned_data["correo"]
-        if User.objects.filter(email=correo).exists():
-            raise forms.ValidationError("Este correo ya está en uso.")
-        return correo
-
-    def clean_numero_documento(self):
-        numero_documento = self.cleaned_data["numero_documento"]
-        if Empleado.objects.filter(numero_documento=numero_documento).exists():
-            raise forms.ValidationError("Este número de documento ya está registrado.")
-        return numero_documento
-
-
-class FormularioAsignacionRol(forms.ModelForm):
     class Meta:
-        model = Empleado
-        fields = ["rol", "esta_activo"]
+        model = User
+        fields = ["username", "email", "first_name", "last_name", "role", "password"]
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance:
+            initial = kwargs.get('initial', {})
+            # Cargar datos del perfil según el rol
+            if instance.role == 'empleado' and hasattr(instance, 'perfil_empleado'):
+                initial['numero_documento'] = instance.perfil_empleado.numero_documento
+                initial['departamento'] = instance.perfil_empleado.departamento
+                initial['telefono'] = instance.perfil_empleado.telefono
+                initial['esta_activo'] = instance.perfil_empleado.esta_activo
+            elif instance.role == 'restaurante' and hasattr(instance, 'perfil_restaurante'):
+                initial['nombre_sede'] = instance.perfil_restaurante.nombre_sede
+                initial['telefono'] = instance.perfil_restaurante.telefono
+            kwargs['initial'] = initial
+        
+        super().__init__(*args, **kwargs)
+        
+        if not instance:
+            self.fields['password'].required = True
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        qs = User.objects.filter(username=username)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if not email:
+            return email
+        qs = User.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Este correo ya está en uso.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get("role")
+        numero_documento = cleaned_data.get("numero_documento")
+
+        if role == 'empleado' and not numero_documento:
+            self.add_error('numero_documento', "El número de documento es obligatorio para empleados.")
+        
+        return cleaned_data
+
+    def save(self, commit=True):
+        # Usamos una transacción para asegurar que usuario y perfil se guarden (o no) juntos
+        with transaction.atomic():
+            user = super().save(commit=False)
+            
+            # Gestionar contraseña si se proporcionó
+            password = self.cleaned_data.get("password")
+            if password:
+                user.set_password(password)
+            
+            if commit:
+                user.save()
+                
+                # Gestión de perfiles según el rol
+                nuevo_rol = self.cleaned_data.get("role")
+                
+                if nuevo_rol == 'empleado':
+                    # Eliminar perfil de restaurante si existiera (cambio de rol)
+                    Restaurante.objects.filter(usuario=user).delete()
+                    
+                    # Crear o actualizar perfil de empleado
+                    empleado_perfil, _ = Empleado.objects.get_or_create(usuario=user)
+                    empleado_perfil.numero_documento = self.cleaned_data.get("numero_documento")
+                    empleado_perfil.departamento = self.cleaned_data.get("departamento")
+                    empleado_perfil.telefono = self.cleaned_data.get("telefono")
+                    empleado_perfil.esta_activo = True
+                    empleado_perfil.save()
+                    
+                elif nuevo_rol == 'restaurante':
+                    # Eliminar perfil de empleado si existiera (cambio de rol)
+                    Empleado.objects.filter(usuario=user).delete()
+                    
+                    # Crear o actualizar perfil de restaurante
+                    restaurante_perfil, _ = Restaurante.objects.get_or_create(usuario=user)
+                    restaurante_perfil.nombre_sede = self.cleaned_data.get("nombre_sede", "Sede Principal")
+                    restaurante_perfil.telefono = self.cleaned_data.get("telefono")
+                    restaurante_perfil.save()
+            
+            return user

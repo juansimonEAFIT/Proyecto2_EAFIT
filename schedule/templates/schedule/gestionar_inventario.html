@@ -1,11 +1,11 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Solicitar Tiquete - LunchFlow{% endblock %}
+{% block title %}Gestionar Inventario y Límites - LunchFlow{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo-central">Solicitar Tiquete</h1>
-    <p class="subtitulo">Ingresa los detalles de tu solicitud de almuerzo.</p>
+    <h1 class="titulo-central">Configuración de Tiquetes</h1>
+    <p class="subtitulo">Define el inventario total mensual y el límite máximo permitido por cada empleado.</p>
 
     <form method="post">
         {% csrf_token %}
@@ -22,11 +22,11 @@
         </div>
         {% endfor %}
         
-        <button type="submit" class="boton">Enviar Solicitud</button>
+        <button type="submit" class="boton">Guardar Configuración</button>
     </form>
     
     <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">Volver al dashboard</a>
+        <a href="{% url 'dashboard_admin' %}" style="color: #64748b; font-size: 14px;">Volver al panel de admin</a>
     </div>
 </div>
 {% endblock %}

@@ -1,72 +1,68 @@
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.db import transaction
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import FormularioCreacionEmpleado, FormularioAsignacionRol
-from .models import Empleado
+from .forms import FormularioPersonal
+from .models import Empleado, Administrador, Restaurante
 
+User = get_user_model()
 
-def crear_empleado(request):
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def gestionar_personal(request, empleado_id=None):
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect("dashboard_empleado")
+    
+    usuario_editar = get_object_or_404(User, id=empleado_id) if empleado_id else None
+    
     if request.method == "POST":
-        formulario = FormularioCreacionEmpleado(request.POST)
+        formulario = FormularioPersonal(request.POST, instance=usuario_editar)
         if formulario.is_valid():
-            with transaction.atomic():
-                usuario = User.objects.create_user(
-                    username=formulario.cleaned_data["nombre_usuario"],
-                    email=formulario.cleaned_data["correo"],
-                    password=formulario.cleaned_data["contrasena"],
-                    first_name=formulario.cleaned_data["nombre"],
-                    last_name=formulario.cleaned_data["apellido"],
-                    is_active=True,
-                )
-
-                Empleado.objects.create(
-                    usuario=usuario,
-                    numero_documento=formulario.cleaned_data["numero_documento"],
-                    departamento=formulario.cleaned_data["departamento"],
-                    telefono=formulario.cleaned_data["telefono"],
-                    rol="empleado",
-                    esta_activo=True,
-                )
-
-            messages.success(
-                request,
-                "El empleado fue creado correctamente y quedó habilitado para el servicio de almuerzos."
-            )
-            return redirect("crear_empleado")
+            formulario.save()
+            messages.success(request, "Personal guardado correctamente.")
+            return redirect("dashboard_admin")
     else:
-        formulario = FormularioCreacionEmpleado()
-
-    return render(request, "accounts/crear_empleado.html", {"formulario": formulario})
-
-
-def asignar_rol(request, empleado_id):
-    empleado = get_object_or_404(Empleado, id=empleado_id)
-
-    if request.method == "POST":
-        formulario = FormularioAsignacionRol(request.POST, instance=empleado)
-        if formulario.is_valid():
-            empleado_actualizado = formulario.save()
-
-            if empleado_actualizado.rol == "administrador":
-                empleado_actualizado.usuario.is_staff = True
-            else:
-                empleado_actualizado.usuario.is_staff = False
-
-            empleado_actualizado.usuario.is_active = empleado_actualizado.esta_activo
-            empleado_actualizado.usuario.save()
-
-            messages.success(request, "El rol fue actualizado correctamente.")
-            return redirect("crear_empleado")
-    else:
-        formulario = FormularioAsignacionRol(instance=empleado)
+        formulario = FormularioPersonal(instance=usuario_editar)
 
     return render(
-        request,
-        "accounts/asignar_rol.html",
+        request, 
+        "accounts/gestion_personal.html", 
         {
-            "formulario": formulario,
-            "empleado": empleado,
-        },
+            "formulario": formulario, 
+            "editando": usuario_editar is not None,
+            "empleado_user": usuario_editar
+        }
     )
+
+
+@login_required
+def perfil_usuario(request):
+    """Vista para que cualquier usuario vea sus propios datos de perfil."""
+    user = request.user
+    context = {
+        'view_user': user,
+    }
+    return render(request, "accounts/perfil.html", context)
+
+
+@login_required
+def cambiar_estado_usuario(request, user_id):
+    """Acción rápida para activar/desactivar un usuario (Solo Admin)."""
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        messages.error(request, "Acceso denegado.")
+        return redirect("dashboard_empleado")
+    
+    user_to_change = get_object_or_404(User, id=user_id)
+    
+    # No permitir desactivarse a uno mismo
+    if user_to_change == request.user:
+        messages.warning(request, "No puedes desactivar tu propia cuenta.")
+    else:
+        user_to_change.is_active = not user_to_change.is_active
+        user_to_change.save()
+        estado = "activado" if user_to_change.is_active else "desactivado"
+        messages.success(request, f"Usuario {user_to_change.username} {estado} correctamente.")
+        
+    return redirect("dashboard_admin")

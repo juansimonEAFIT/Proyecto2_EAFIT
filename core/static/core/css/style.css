@@ -1,5 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* ── Variables globales ────────────────────────────────────── */
+:root {
+    --color-rojo:        #dc2626;
+    --color-texto:       #1e293b;
+    --color-texto-suave: #475569;
+    --color-texto-sutil: #64748b;
+    --color-oscuro:      #0f172a;
+    --color-azul:        #1d4ed8;
+    --color-azul-claro:  #3b82f6;
+    --color-fondo-card:  #eff6ff;
+    --color-borde-card:  #bfdbfe;
+    --sombra-azul-sm:    0 10px 24px rgba(59, 130, 246, 0.10);
+    --sombra-azul-md:    0 18px 38px rgba(59, 130, 246, 0.15);
+    --sombra-azul-lg:    0 20px 50px rgba(59, 130, 246, 0.12);
+    --sombra-azul-xl:    0 20px 50px rgba(59, 130, 246, 0.18);
+    --radio-card:        22px;
+}
+
+/* ── Reset base ────────────────────────────────────────────── */
 * {
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
@@ -9,7 +28,7 @@ body {
     margin: 0;
     min-height: 100vh;
     background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 45%, #93c5fd 100%);
-    color: #1e293b;
+    color: var(--color-texto);
 }
 
 .pantalla {
@@ -18,7 +37,7 @@ body {
     flex-direction: column;
 }
 
-/* Navbar styles */
+/* ── Navbar ────────────────────────────────────────────────── */
 .barra-superior {
     width: 100%;
     background: #ffffff;
@@ -30,7 +49,7 @@ body {
 }
 
 .logo {
-    color: #dc2626;
+    color: var(--color-rojo);
     font-size: 34px;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -50,14 +69,14 @@ body {
     border: none;
     border-radius: 16px;
     background: #f8fafc;
-    color: #dc2626;
+    color: var(--color-rojo);
     font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.10);
+    box-shadow: var(--sombra-azul-sm);
     transition: transform 0.2s ease, background 0.2s ease;
 }
 
@@ -93,17 +112,17 @@ body {
     display: block;
     padding: 14px 18px;
     text-decoration: none;
-    color: #1e293b;
+    color: var(--color-texto);
     font-weight: 500;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
 .contenido-menu a:hover {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--color-fondo-card);
+    color: var(--color-azul);
 }
 
-/* Layout and Containers */
+/* ── Layout ────────────────────────────────────────────────── */
 .contenido-principal, .contenedor-principal {
     flex: 1;
     display: flex;
@@ -118,23 +137,22 @@ body {
     margin: 0 auto;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(8px);
-    border-radius: 22px;
+    border-radius: var(--radio-card);
     padding: 34px 32px;
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.18);
+    box-shadow: var(--sombra-azul-xl);
     border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.contenedor-interior {
-    width: 100%;
+.contenedor.ancho-medio {
+    max-width: 800px;
+}
+
+.contenedor.ancho-grande, .contenedor-interior {
     max-width: 1000px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.96);
-    padding: 30px;
-    border-radius: 22px;
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
 }
 
-/* Typography */
+/* ── Tipografía ────────────────────────────────────────────── */
 .encabezado {
     margin-bottom: 48px;
 }
@@ -164,27 +182,27 @@ body {
 
 h1.titulo-central {
     text-align: center;
-    color: #dc2626;
+    color: var(--color-rojo);
     margin: 0 0 8px;
     font-size: 30px;
 }
 
-.subtitulo {
-    text-align: center;
-    color: #475569;
+/* Base compartida para subtítulos */
+.subtitulo,
+.subtitulo-izq {
+    color: var(--color-texto-suave);
     margin-bottom: 24px;
     font-size: 14px;
 }
 
-.subtitulo-izq {
-    color: #475569;
-    margin-bottom: 24px;
+.subtitulo {
+    text-align: center;
 }
 
 .insignia {
     display: inline-block;
     background: #dbeafe;
-    color: #1d4ed8;
+    color: var(--color-azul);
     padding: 8px 16px;
     border-radius: 999px;
     font-size: 13px;
@@ -194,7 +212,7 @@ h1.titulo-central {
     box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
 }
 
-/* Home Cards Display */
+/* ── Tarjetas de inicio ────────────────────────────────────── */
 .tarjetas {
     display: flex;
     gap: 28px;
@@ -210,7 +228,7 @@ h1.titulo-central {
     padding: 28px 24px;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 18px 38px rgba(59, 130, 246, 0.15);
+    box-shadow: var(--sombra-azul-md);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
     display: flex;
     flex-direction: column;
@@ -226,8 +244,8 @@ h1.titulo-central {
     width: 82px;
     height: 82px;
     border-radius: 22px;
-    background: #eff6ff;
-    color: #dc2626;
+    background: var(--color-fondo-card);
+    color: var(--color-rojo);
     font-size: 38px;
     display: flex;
     align-items: center;
@@ -236,7 +254,7 @@ h1.titulo-central {
 }
 
 .titulo-tarjeta {
-    color: #dc2626;
+    color: var(--color-rojo);
     font-size: 28px;
     font-weight: 700;
     line-height: 1.15;
@@ -244,36 +262,37 @@ h1.titulo-central {
 }
 
 .descripcion-tarjeta {
-    color: #64748b;
+    color: var(--color-texto-sutil);
     font-size: 14px;
     line-height: 1.6;
 }
 
-/* Info Cards and Summary */
-.tarjeta-info {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+/* ── Tarjetas de info — base compartida ────────────────────── */
+.tarjeta-info,
+.tarjeta-interior {
+    background: var(--color-fondo-card);
+    border: 1px solid var(--color-borde-card);
     border-radius: 16px;
+}
+
+.tarjeta-info {
     padding: 18px 18px 8px;
     margin-bottom: 22px;
 }
 
+.tarjeta-interior {
+    padding: 20px;
+    text-align: left;
+}
+
 .tarjeta-info p, .tarjeta-interior p {
     margin: 0 0 10px;
-    color: #1e293b;
+    color: var(--color-texto);
     font-size: 14px;
 }
 
 .tarjeta-info strong, .tarjeta-interior strong {
-    color: #0f172a;
-}
-
-.tarjeta-interior {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 16px;
-    padding: 20px;
-    text-align: left;
+    color: var(--color-oscuro);
 }
 
 .resumen {
@@ -283,40 +302,38 @@ h1.titulo-central {
     margin-bottom: 24px;
 }
 
-.tarjeta {
+/* ── Panel base compartido (tarjeta + tabla) ───────────────── */
+.tarjeta,
+.tabla-contenedor {
     background: rgba(255, 255, 255, 0.96);
-    border-radius: 22px;
+    border-radius: var(--radio-card);
     padding: 24px;
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
+    box-shadow: var(--sombra-azul-lg);
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
 }
 
 .etiqueta {
-    color: #64748b;
+    color: var(--color-texto-sutil);
     font-size: 14px;
     margin-bottom: 8px;
 }
 
 .valor-principal {
-    color: #dc2626;
+    color: var(--color-rojo);
     font-size: 32px;
     font-weight: 700;
 }
 
 .valor-secundario {
-    color: #1e293b;
+    color: var(--color-texto);
     font-size: 22px;
     font-weight: 600;
 }
 
-/* Tables */
-.tabla-contenedor {
-    background: rgba(255, 255, 255, 0.96);
-    border-radius: 22px;
-    padding: 24px;
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.12);
-    overflow-x: auto;
-}
-
+/* ── Tablas ────────────────────────────────────────────────── */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -329,17 +346,17 @@ th, td {
 }
 
 th {
-    color: #1d4ed8;
+    color: var(--color-azul);
     font-weight: 700;
 }
 
 .actualizacion {
     margin-top: 16px;
-    color: #64748b;
+    color: var(--color-texto-sutil);
     font-size: 14px;
 }
 
-/* Forms and Buttons */
+/* ── Formularios y botones ─────────────────────────────────── */
 .boton {
     width: 100%;
     margin-top: 10px;
@@ -347,7 +364,7 @@ th {
     border: none;
     border-radius: 14px;
     background: #93c5fd;
-    color: #0f172a;
+    color: var(--color-oscuro);
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.3px;
@@ -365,48 +382,50 @@ th {
 
 input, select, textarea {
     width: 100%;
-    padding: 13px 14px;
-    border: 1.5px solid #cbd5e1;
+    padding: 12px 16px;
+    border: 2px solid #f1f5f9;
     border-radius: 12px;
-    font-size: 14px;
-    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    font-family: inherit;
     background-color: #f8fafc;
-    color: #0f172a;
-    transition: all 0.25s ease;
+    color: var(--color-texto);
+    transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
     outline: none;
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #60a5fa;
+    border-color: var(--color-azul-claro);
     background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 label {
     display: block;
-    margin-bottom: 7px;
-    color: #1e293b;
-    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 form p {
     margin: 0 0 16px;
 }
 
-/* Messages */
+/* ── Mensajes ──────────────────────────────────────────────── */
 .mensaje {
     margin-bottom: 18px;
     padding: 14px 16px;
     border-radius: 14px;
-    background: #eff6ff;
+    background: var(--color-fondo-card);
     border-left: 5px solid #60a5fa;
     color: #1e3a8a;
     font-size: 14px;
     font-weight: 500;
 }
 
-/* Media Queries */
+/* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 900px) {
     .barra-superior {
         padding: 18px 20px;
@@ -433,11 +452,21 @@ form p {
         min-height: 220px;
     }
 
-    .tabla-contenedor {
-        overflow-x: auto;
-    }
-
     table {
         min-width: 600px;
     }
+}
+
+/* ── Utilidades de formularios ─────────────────────────────── */
+.campo {
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.errorlist, .errorlist-gestion {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+    color: #ef4444;
+    font-size: 12px;
 }

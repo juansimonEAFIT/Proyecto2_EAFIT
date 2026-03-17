@@ -1,11 +1,11 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Solicitar Tiquete - LunchFlow{% endblock %}
+{% block title %}Registrar Pago - LunchFlow{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo-central">Solicitar Tiquete</h1>
-    <p class="subtitulo">Ingresa los detalles de tu solicitud de almuerzo.</p>
+    <h1 class="titulo-central">Registrar Pago</h1>
+    <p class="subtitulo">Registra el valor pagado y la referencia del comprobante.</p>
 
     <form method="post">
         {% csrf_token %}
@@ -16,13 +16,10 @@
             {% if field.help_text %}
             <small class="subtitulo" style="display: block; text-align: left; margin: 4px 0 10px;">{{ field.help_text }}</small>
             {% endif %}
-            {% for error in field.errors %}
-            <div class="mensaje" style="background: #fee2e2; border-color: #ef4444; color: #991b1b; padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
-            {% endfor %}
         </div>
         {% endfor %}
         
-        <button type="submit" class="boton">Enviar Solicitud</button>
+        <button type="submit" class="boton">Registrar Pago</button>
     </form>
     
     <div style="text-align: center; margin-top: 20px;">

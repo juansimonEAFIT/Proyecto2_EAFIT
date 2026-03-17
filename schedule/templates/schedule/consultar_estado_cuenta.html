@@ -13,49 +13,75 @@
 
     <div class="resumen">
         <div class="tarjeta">
-            <div class="etiqueta">Saldo pendiente</div>
+            <div class="etiqueta">Saldo Total Pendiente</div>
             <div class="valor-principal">$ {{ saldo_pendiente }}</div>
         </div>
 
         <div class="tarjeta">
-            <div class="etiqueta">Consumos pendientes</div>
-            <div class="valor-secundario">{{ total_consumos_pendientes }}</div>
+            <div class="etiqueta">Tiquetes Disponibles</div>
+            <div class="valor-secundario">{{ tiquetes_disponibles }}</div>
+            <div class="subtitulo" style="text-align: left; margin: 5px 0 0;">De {{ tiquetes_comprados }} comprados</div>
         </div>
 
         <div class="tarjeta">
-            <div class="etiqueta">Empleado</div>
-            <div class="valor-secundario">{{ empleado.usuario.first_name }} {{ empleado.usuario.last_name }}</div>
+            <div class="etiqueta">Valor Tiquete</div>
+            <div class="valor-secundario">$ {{ precio_tiquete }}</div>
         </div>
     </div>
 
-    <div class="tabla-contenedor">
+    <div class="tabla-contenedor" style="margin-bottom: 30px;">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Compras (Tiquetes)</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Fecha</th>
-                    <th>Hora de registro</th>
-                    <th>Valor</th>
-                    <th>Estado</th>
+                    <th>Fecha Solicitud</th>
+                    <th>Cantidad</th>
+                    <th>Valor Calculado</th>
                 </tr>
             </thead>
             <tbody>
-                {% for consumo in consumos_pendientes %}
+                {% for compra in compras %}
                     <tr>
-                        <td>{{ consumo.fecha }}</td>
-                        <td>{{ consumo.hora_registro }}</td>
-                        <td>$ {{ consumo.valor_almuerzo }}</td>
-                        <td>Pendiente</td>
+                        <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
+                        <td>{{ compra.cantidad }}</td>
+                        <td>$ {{ compra.valor_total }}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4">No hay consumos pendientes de pago.</td>
+                        <td colspan="3" style="text-align: center;">No has realizado compras de tiquetes.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tabla-contenedor">
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Pagos Validados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha Pago</th>
+                    <th>Comprobante</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                    <tr>
+                        <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                        <td>{{ pago.comprobante|default:"---" }}</td>
+                        <td>$ {{ pago.valor_pagado }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center;">No se registran pagos validados aún.</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
 
         <div class="actualizacion">
-            Última actualización: {{ ultima_actualizacion }}
+            Última actualización de saldo: {{ ultima_actualizacion|date:"d/m/Y H:i" }}
         </div>
     </div>
 </div>

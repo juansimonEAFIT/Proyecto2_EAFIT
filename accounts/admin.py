@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Empleado
+from .models import Empleado, Administrador, Restaurante
 
 
 @admin.register(Empleado)
@@ -8,7 +8,6 @@ class EmpleadoAdmin(admin.ModelAdmin):
         "usuario",
         "numero_documento",
         "departamento",
-        "rol",
         "esta_activo",
         "fecha_creacion",
     )
@@ -18,4 +17,16 @@ class EmpleadoAdmin(admin.ModelAdmin):
         "usuario__username",
         "numero_documento",
     )
-    list_filter = ("rol", "esta_activo", "departamento")
+    list_filter = ("esta_activo", "departamento")
+
+
+@admin.register(Administrador)
+class AdministradorAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "cargo", "fecha_creacion")
+    search_fields = ("usuario__username", "cargo")
+
+
+@admin.register(Restaurante)
+class RestauranteAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "nombre_sede", "telefono", "fecha_creacion")
+    search_fields = ("usuario__username", "nombre_sede")
