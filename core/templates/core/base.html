@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LunchFlow{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="pantalla">
+        <div class="barra-superior">
+            <a href="/" class="logo">LunchFlow</a>
+
+            <div class="acciones-superiores">
+                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
+
+                <div class="menu-desplegable">
+                    <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
+                    <div class="contenido-menu" id="contenido-menu">
+                        {% if request.user.role == 'administrador' or request.user.is_superuser %}
+                            <a href="{% url 'crear_personal' %}">Registrar Usuario</a>
+                        {% endif %}
+
+                        <a href="{% url 'perfil_usuario' %}">Mi Perfil</a>
+
+                        {% if request.user.role == 'empleado' %}
+                            <a href="{% url 'solicitar_tiquete' %}">Solicitar Tiquete</a>
+                            <a href="{% url 'registrar_pago' %}">Registrar Pago</a>
+                        {% endif %}
+
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 8px 0;">
+                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="background: none; border: none; color: #991b1b; cursor: pointer; font-family: inherit; font-size: inherit; padding: 12px 16px; width: 100%; text-align: left;">
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="{% block main_container_class %}contenido-principal{% endblock %}">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        const botonMenu = document.getElementById("boton-menu");
+        const contenidoMenu = document.getElementById("contenido-menu");
+
+        if (botonMenu && contenidoMenu) {
+            botonMenu.addEventListener("click", function (event) {
+                event.stopPropagation();
+                contenidoMenu.classList.toggle("mostrar");
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
+                    contenidoMenu.classList.remove("mostrar");
+                }
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

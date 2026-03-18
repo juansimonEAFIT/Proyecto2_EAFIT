@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Consumo de almuerzo{% endblock %}
+
+{% block main_container_class %}contenedor-principal{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo-central">Consumo de almuerzo</h1>
+    <div class="subtitulo">Registro rápido mediante código QR</div>
+
+    <div style="max-width: 500px; margin: 40px auto; text-align: center;">
+        <div class="tarjeta-interior" style="padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); background: white;">
+            
+            {% if exito %}
+                <div style="width: 120px; height: 120px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 60px; border: 5px solid #22c55e;">
+                    ✓
+                </div>
+                <h2 style="color: #166534; font-size: 2rem; margin-bottom: 10px;">¡APROBADO!</h2>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+                    <p style="margin: 0; color: #166534; font-weight: 600;">Consumo registrado exitosamente.</p>
+                </div>
+            {% else %}
+                <div style="width: 120px; height: 120px; background: #fee2e2; color: #991b1b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 60px; border: 5px solid #ef4444;">
+                    ✕
+                </div>
+                <h2 style="color: #991b1b; font-size: 2rem; margin-bottom: 10px;">DENEGADO</h2>
+                <div style="background: #fef2f2; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #fecaca;">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <p style="margin: 0; color: #991b1b; font-weight: 600;">{{ message }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p style="margin: 0; color: #991b1b; font-weight: 600;">Error desconocido en la validación.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div style="text-align: left; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">DETALLES DEL EMPLEADO:</p>
+                <p style="margin: 0; font-size: 1.1rem; color: #1e293b;"><strong>{{ empleado.usuario.get_full_name }}</strong></p>
+                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">ID: {{ empleado.usuario.username }}</p>
+                <p style="margin: 15px 0 0 0; font-size: 0.9rem; color: #94a3b8;">{{ fecha|date:"d/m/Y - H:i" }}</p>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <a href="javascript:history.back()" style="color: #64748b; text-decoration: none; font-size: 14px;">← Volver al lector QR</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

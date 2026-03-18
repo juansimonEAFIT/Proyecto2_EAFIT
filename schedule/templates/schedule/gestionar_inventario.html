@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Gestionar Inventario y Límites - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo-central">Configuración de Tiquetes</h1>
+    <p class="subtitulo">Define el inventario total mensual y el límite máximo permitido por cada empleado.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in formulario %}
+        <div class="campo">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <small class="subtitulo" style="display: block; text-align: left; margin: 4px 0 10px;">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+            <div class="mensaje" style="background: #fee2e2; border-color: #ef4444; color: #991b1b; padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        
+        <button type="submit" class="boton">Guardar Configuración</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'dashboard_admin' %}" style="color: #64748b; font-size: 14px;">Volver al panel de admin</a>
+    </div>
+</div>
+{% endblock %}
