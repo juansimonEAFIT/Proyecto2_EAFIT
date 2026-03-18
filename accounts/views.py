@@ -1,6 +1,7 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
 from .forms import FormularioPersonal
 from .models import Empleado, Administrador, Restaurante
@@ -8,6 +9,46 @@ from .models import Empleado, Administrador, Restaurante
 User = get_user_model()
 
 from django.contrib.auth.decorators import login_required
+
+
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    """
+    Vista custom de login que valida credenciales y redirige según rol.
+    
+    Criterios de aceptación:
+    - El sistema valida credenciales
+    - El usuario accede según su rol
+    - Si falla, se muestra un mensaje de error
+    """
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        
+        # Autenticar usuario
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Verificar que el usuario esté activo (is_active)
+            if not user.is_active:
+                messages.error(request, "Tu cuenta ha sido desactivada. Contacta con administración.")
+                return render(request, "registration/login.html")
+            
+            # Iniciar sesión
+            login(request, user)
+            
+            # Redirigir según rol
+            if user.role == 'administrador':
+                return redirect("dashboard_admin")
+            elif user.role == 'restaurante':
+                return redirect("dashboard_restaurante")
+            else:  # empleado
+                return redirect("dashboard_empleado")
+        else:
+            messages.error(request, "Usuario o contraseña incorrectos. Por favor intenta de nuevo.")
+            return render(request, "registration/login.html")
+    
+    return render(request, "registration/login.html")
 
 @login_required
 def gestionar_personal(request, empleado_id=None):

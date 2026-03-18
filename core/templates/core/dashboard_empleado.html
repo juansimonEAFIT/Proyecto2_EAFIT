@@ -59,28 +59,46 @@
     <!-- Sección de Código QR para Consumo Rápido -->
     <div style="margin: 40px auto; max-width: 400px; text-align: center; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
         <h2 style="font-size: 1.25rem; color: #1e293b; margin-top: 0; margin-bottom: 10px;">🎟️ Mi Tiquete Digital</h2>
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Presenta este código en el restaurante para registrar tu consumo rápido.</p>
         
-        <div style="background: #f8fafc; display: inline-block; padding: 20px; border-radius: 12px; border: 2px dashed #e2e8f0; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-            {% if url_consumo %}
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" 
-                 alt="Código QR de Consumo" 
-                 style="display: block; width: 200px; height: 200px;">
-            {% else %}
-            <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                QR no disponible
+        {% if empleado_activo %}
+            <!-- Mostrar QR si está activo -->
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Presenta este código en el restaurante para registrar tu consumo rápido.</p>
+            
+            <div style="background: #f8fafc; display: inline-block; padding: 20px; border-radius: 12px; border: 2px dashed #e2e8f0; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                {% if url_consumo %}
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" 
+                     alt="Código QR de Consumo" 
+                     style="display: block; width: 200px; height: 200px;">
+                {% else %}
+                <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                    QR no disponible
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-        
-        <!-- Depuración temporal -->
-        <p style="font-size: 10px; color: #94a3b8; margin-top: 5px;">{{ url_consumo }}</p>
+            
+            <!-- Depuración temporal -->
+            <p style="font-size: 10px; color: #94a3b8; margin-top: 5px;">{{ url_consumo }}</p>
 
-        <div style="margin-top: 20px; padding: 10px; background: #ecfdf5; border-radius: 8px; border: 1px solid #a7f3d0;">
-            <span style="font-size: 14px; color: #065f46;">
-                Tiquetes disponibles: <strong>{{ tiquetes_disponibles }}</strong>
-            </span>
-        </div>
+            <div style="margin-top: 20px; padding: 10px; background: #ecfdf5; border-radius: 8px; border: 1px solid #a7f3d0;">
+                <span style="font-size: 14px; color: #065f46;">
+                    Tiquetes disponibles: <strong>{{ tiquetes_disponibles }}</strong>
+                </span>
+            </div>
+        {% else %}
+            <!-- Mostrar mensaje si está inactivo -->
+            <div style="background: #fef2f2; padding: 20px; border-radius: 12px; border: 2px solid #fecaca;">
+                <div style="font-size: 48px; margin-bottom: 15px;">🚫</div>
+                <p style="color: #991b1b; font-weight: 600; margin: 0 0 10px 0; font-size: 1.1rem;">
+                    Acceso Denegado
+                </p>
+                <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                    Tu cuenta está inactiva. No puedes registrar alimentos en este momento.
+                </p>
+                <p style="color: #991b1b; margin: 10px 0 0 0; font-size: 13px; font-style: italic;">
+                    Contacta con Gestión Humana para reactivar tu cuenta.
+                </p>
+            </div>
+        {% endif %}
     </div>
 
     <div class="tabla-contenedor" style="margin-top: 40px;">

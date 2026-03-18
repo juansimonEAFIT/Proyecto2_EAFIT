@@ -63,6 +63,7 @@ def dashboard_empleado(request):
             "tiquetes_disponibles": tiquetes_disponibles,
             "tiquetes_consumidos": tiquetes_consumidos,
             "url_consumo": url_consumo,
+            "empleado_activo": empleado.esta_activo,
         },
     )
 

@@ -146,8 +146,38 @@ def gestionar_inventario(request):
 
 # Vistas existentes adaptadas
 def consumir_almuerzo_qr(request, codigo_qr):
-    # Esta vista suele ser usada por el restaurante, se deja similar
-    empleado = get_object_or_404(Empleado, codigo_qr=codigo_qr, esta_activo=True)
+    """
+    Vista para registrar consumo de almuerzo mediante QR.
+    
+    Criterios de aceptación (Historia 2):
+    - Solo empleados activos pueden consumir
+    - Si está inactivo, el sistema bloquea el registro
+    - Se muestra un mensaje claro
+    """
+    # Buscar empleado por QR (activo o inactivo)
+    try:
+        empleado = Empleado.objects.get(codigo_qr=codigo_qr)
+    except Empleado.DoesNotExist:
+        messages.error(request, "Código QR no válido. Empleado no encontrado.")
+        return render(
+            request,
+            "schedule/consumo_qr_resultado.html",
+            {"exito": False, "razon_error": "empleado_no_existe"}
+        )
+    
+    # Validar que el empleado esté activo
+    if not empleado.esta_activo:
+        messages.error(
+            request,
+            f"Acceso denegado. El empleado {empleado.usuario.get_full_name()} está inactivo. "
+            "Contacta con gestión humana para reactivar tu cuenta."
+        )
+        return render(
+            request,
+            "schedule/consumo_qr_resultado.html",
+            {"empleado": empleado, "exito": False, "razon_error": "empleado_inactivo"}
+        )
+    
     hoy = timezone.localdate()
     
     # 1. Calcular tiquetes disponibles
