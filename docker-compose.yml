@@ -1,12 +1,33 @@
 services:
-  db:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: LunchFlow_web
+    ports:
+      - "8000:8000"
+    #env_file:
+      #- .env        # coloca aquí variables como DEBUG, DB, etc.
+    environment:
+      POSTGRES_USER: p2usr
+      POSTGRES_PASSWORD: proyecto_2_psw
+      POSTGRES_HOST: lunchflow_db
+      POSTGRES_DB: lunchflow
+      POSTGRES_PORT: 5432
+    depends_on:
+      lunchflow_db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  lunchflow_db:
     image: postgres:16
-    container_name: pg_db
+    container_name: LunchFlow_db
     restart: unless-stopped
     environment:
       # Superusuario inicial del contenedor
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: container_psql_pwd
+      POSTGRES_USER: postgresql
+      POSTGRES_PASSWORD: superuser_psql_cont
     ports:
       - "5432:5432"
     volumes:
@@ -15,20 +36,21 @@ services:
       # Scripts .sql/.sh que se ejecutan 1 sola vez (cuando el volumen está vacío)
       - ./initdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgresql -d postgres -h 127.0.0.1"]
       interval: 5s
       timeout: 5s
       retries: 20
 
+
   # (Opcional) Adminer para inspeccionar la DB vía navegador
   adminer:
     image: adminer:4
-    container_name: adminer
+    container_name: LunchFlow_adminer
     restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
-      db:
+      lunchflow_db:
         condition: service_healthy
 
 volumes:
