@@ -2,33 +2,61 @@
 
 {% block title %}Dashboard Empleado - LunchFlow{% endblock %}
 
-{% block extra_css %}
-<style>
-    .estado-pendiente { background: #fef9c3; color: #854d0e; }
-    .estado-aprobado { background: #dcfce7; color: #166534; }
-    .estado-rechazado { background: #fee2e2; color: #991b1b; }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="contenedor-interior">
     <div class="encabezado-interior">
-        <h1 class="titulo-central">Bienvenido, {{ empleado.usuario.first_name }}</h1>
-        <p class="subtitulo">Aquí puedes gestionar tus tiquetes y ver tu estado de cuenta.</p>
+        <h1 class="titulo-central">¡Hola, {{ empleado.usuario.first_name }}!</h1>
+        <p class="subtitulo">Muestra tu código QR en el restaurante para registrar tu consumo.</p>
     </div>
 
-    <div class="resumen">
+    <!-- Sección de Código QR Priorizada -->
+    <div style="margin: 0 auto 50px; max-width: 420px; text-align: center; background: white; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06); border: 1px solid rgba(0,0,0,0.02);">
+        <h2 style="font-size: 1.3rem; color: #1e293b; margin-top: 0; margin-bottom: 15px; font-weight: 700;">🎟️ Mi Tiquete Digital</h2>
+        
+        {% if empleado_activo %}
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Usa este código único para un acceso rápido y seguro.</p>
+            
+            <div style="background: #f8fafc; display: inline-block; padding: 25px; border-radius: 20px; border: 2px dashed #e2e8f0; position: relative;">
+                {% if url_consumo %}
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" 
+                     alt="Código QR de Consumo" 
+                     style="display: block; width: 220px; height: 220px; opacity: 0.95;">
+                {% else %}
+                <div style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 500;">
+                    QR no disponible
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 25px; padding: 12px; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0; display: inline-block; min-width: 200px;">
+                <span style="font-size: 15px; color: #065f46; font-weight: 600;">
+                    Tiquetes disponibles: {{ tiquetes_disponibles }}
+                </span>
+            </div>
+        {% else %}
+            <div style="background: #fef2f2; padding: 25px; border-radius: 20px; border: 1px solid #fecaca; margin-top: 10px;">
+                <div style="font-size: 48px; margin-bottom: 15px;">🚫</div>
+                <p style="color: #991b1b; font-weight: 700; margin: 0 0 10px 0; font-size: 1.15rem;">Acceso Restringido</p>
+                <p style="color: #991b1b; margin: 0; font-size: 14px; line-height: 1.5;">
+                    Tu cuenta está inactiva y no puedes generar consumos.<br>
+                    <strong>Contacta con administración.</strong>
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="resumen" style="margin-bottom: 40px;">
         <div class="tarjeta">
-            <div class="etiqueta">Saldo Pendiente</div>
+            <div class="etiqueta">Saldo por Pagar</div>
             <div class="valor-principal">${{ saldo_pendiente }}</div>
         </div>
         <div class="tarjeta">
-            <div class="etiqueta">Tiquetes Disponibles</div>
-            <div class="valor-secundario">{{ tiquetes_disponibles }} para usar</div>
+            <div class="etiqueta">Estado de Tiquetes</div>
+            <div class="valor-secundario">{{ tiquetes_disponibles }} disponibles</div>
         </div>
         <div class="tarjeta">
-            <div class="etiqueta">Historial Consumos</div>
-            <div class="valor-secundario">{{ tiquetes_consumidos }} registrados</div>
+            <div class="etiqueta">Consumos Totales</div>
+            <div class="valor-secundario">{{ tiquetes_consumidos }} realizados</div>
         </div>
     </div>
 
@@ -37,100 +65,23 @@
             <div class="icono-tarjeta">🎫</div>
             <div>
                 <div class="titulo-tarjeta">Solicitar</div>
-                <p class="descripcion-tarjeta">Pide nuevos tiquetes de almuerzo indicando la fecha y cantidad.</p>
+                <p class="descripcion-tarjeta">Pide nuevos tiquetes para tus próximos almuerzos.</p>
             </div>
         </a>
         <a href="{% url 'consultar_estado_cuenta' %}" class="tarjeta-opcion">
             <div class="icono-tarjeta">📋</div>
             <div>
                 <div class="titulo-tarjeta">Estado de Cuenta</div>
-                <p class="descripcion-tarjeta">Consulta el detalle de tus consumos y el saldo total pendiente.</p>
+                <p class="descripcion-tarjeta">Consulta el detalle y saldo de tus consumos.</p>
             </div>
         </a>
         <a href="{% url 'registrar_pago' %}" class="tarjeta-opcion">
             <div class="icono-tarjeta">💰</div>
             <div>
                 <div class="titulo-tarjeta">Pagar</div>
-                <p class="descripcion-tarjeta">Registra el comprobante de pago de tus consumos pendientes.</p>
+                <p class="descripcion-tarjeta">Sube tu comprobante de pago fácilmente.</p>
             </div>
         </a>
-    </div>
-
-    <!-- Sección de Código QR para Consumo Rápido -->
-    <div style="margin: 40px auto; max-width: 400px; text-align: center; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
-        <h2 style="font-size: 1.25rem; color: #1e293b; margin-top: 0; margin-bottom: 10px;">🎟️ Mi Tiquete Digital</h2>
-        
-        {% if empleado_activo %}
-            <!-- Mostrar QR si está activo -->
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Presenta este código en el restaurante para registrar tu consumo rápido.</p>
-            
-            <div style="background: #f8fafc; display: inline-block; padding: 20px; border-radius: 12px; border: 2px dashed #e2e8f0; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                {% if url_consumo %}
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" 
-                     alt="Código QR de Consumo" 
-                     style="display: block; width: 200px; height: 200px;">
-                {% else %}
-                <div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
-                    QR no disponible
-                </div>
-                {% endif %}
-            </div>
-            
-            <!-- Depuración temporal -->
-            <p style="font-size: 10px; color: #94a3b8; margin-top: 5px;">{{ url_consumo }}</p>
-
-            <div style="margin-top: 20px; padding: 10px; background: #ecfdf5; border-radius: 8px; border: 1px solid #a7f3d0;">
-                <span style="font-size: 14px; color: #065f46;">
-                    Tiquetes disponibles: <strong>{{ tiquetes_disponibles }}</strong>
-                </span>
-            </div>
-        {% else %}
-            <!-- Mostrar mensaje si está inactivo -->
-            <div style="background: #fef2f2; padding: 20px; border-radius: 12px; border: 2px solid #fecaca;">
-                <div style="font-size: 48px; margin-bottom: 15px;">🚫</div>
-                <p style="color: #991b1b; font-weight: 600; margin: 0 0 10px 0; font-size: 1.1rem;">
-                    Acceso Denegado
-                </p>
-                <p style="color: #991b1b; margin: 0; font-size: 14px;">
-                    Tu cuenta está inactiva. No puedes registrar alimentos en este momento.
-                </p>
-                <p style="color: #991b1b; margin: 10px 0 0 0; font-size: 13px; font-style: italic;">
-                    Contacta con Gestión Humana para reactivar tu cuenta.
-                </p>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="tabla-contenedor" style="margin-top: 40px;">
-        <h2 class="subtitulo-izq" style="margin-top: 0;">Últimas Solicitudes</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Cantidad</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for solicitud in solicitudes %}
-                <tr>
-                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
-                    <td>{{ solicitud.get_tipo_tiquete_display }}</td>
-                    <td>{{ solicitud.cantidad }}</td>
-                    <td>
-                        <span class="insignia estado-{{ solicitud.estado }}">
-                            {{ solicitud.get_estado_display }}
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center;">No tienes solicitudes recientes.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </div>
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -8,7 +9,7 @@ from .models import Empleado, Administrador, Restaurante
 
 User = get_user_model()
 
-from django.contrib.auth.decorators import login_required
+
 
 
 @require_http_methods(["GET", "POST"])
@@ -82,8 +83,19 @@ def gestionar_personal(request, empleado_id=None):
 def perfil_usuario(request):
     """Vista para que cualquier usuario vea sus propios datos de perfil."""
     user = request.user
+    solicitudes = []
+    
+    if user.role == 'empleado':
+        from schedule.models import SolicitudTiquete
+        try:
+            empleado = user.perfil_empleado
+            solicitudes = SolicitudTiquete.objects.filter(empleado=empleado).order_by("-fecha_solicitud")
+        except Exception:
+            pass
+            
     context = {
         'view_user': user,
+        'solicitudes': solicitudes,
     }
     return render(request, "accounts/perfil.html", context)
 

@@ -16,6 +16,7 @@
             <div class="acciones-superiores">
                 <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
 
+                {% if request.user.role != 'administrador' and not request.user.is_superuser %}
                 <div class="menu-desplegable">
                     <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
                     <div class="contenido-menu" id="contenido-menu">
@@ -39,11 +40,18 @@
                         </form>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
 
-        <div class="{% block main_container_class %}contenido-principal{% endblock %}">
-            {% block content %}{% endblock %}
+        <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}dashboard-admin-contenedor{% else %}{% block main_container_class %}contenido-principal{% endblock %}{% endif %}">
+            {% if request.user.role == 'administrador' or request.user.is_superuser %}
+                {% include 'core/includes/sidebar_admin.html' %}
+            {% endif %}
+
+            <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}admin-main-content{% endif %}">
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </div>
 

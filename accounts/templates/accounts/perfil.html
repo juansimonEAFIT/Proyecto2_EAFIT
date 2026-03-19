@@ -66,5 +66,37 @@
             <a href="/" class="boton" style="display: inline-block; width: auto; padding: 12px 30px; text-decoration: none;">Volver al Inicio</a>
         </div>
     </div>
+
+    {% if solicitudes %}
+    <div class="tabla-contenedor" style="margin-top: 40px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+        <h2 class="subtitulo-izq" style="margin: 0 0 20px; color: #1e293b; font-size: 1.2rem;">Historial de Solicitudes</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Cant.</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes %}
+                    <tr>
+                        <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                        <td>{{ solicitud.get_tipo_tiquete_display }}</td>
+                        <td>{{ solicitud.cantidad }}</td>
+                        <td>
+                            <span class="insignia {% if solicitud.estado == 'pendiente' %}insignia-gris{% elif solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                                {{ solicitud.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
