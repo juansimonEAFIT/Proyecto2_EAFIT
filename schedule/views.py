@@ -10,8 +10,6 @@ from .models import ConsumoAlmuerzo, SolicitudTiquete, InventarioTiquetes, Regis
 from accounts.models import Empleado, Administrador
 
 
-
-
 @login_required
 def solicitar_tiquete(request):
     try:

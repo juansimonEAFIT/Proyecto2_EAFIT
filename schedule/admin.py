@@ -4,7 +4,6 @@ from .models import (
     RegistroPago
 )
 
-
 @admin.register(InventarioTiquetes)
 class InventarioTiquetesAdmin(admin.ModelAdmin):
     list_display = ("mes", "cantidad_inicial", "cantidad_disponible")

@@ -4,9 +4,6 @@ from django.conf import settings
 from accounts.models import Empleado
 
 
-from accounts.models import Empleado
-
-
 class InventarioTiquetes(models.Model):
     mes = models.DateField(default=timezone.now)
     cantidad_inicial = models.PositiveIntegerField()
