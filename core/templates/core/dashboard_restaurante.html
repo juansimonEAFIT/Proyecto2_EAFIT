@@ -2,23 +2,25 @@
 
 {% block title %}Dashboard Restaurante - LunchFlow{% endblock %}
 
+{% block main_container_class %}dashboard-empleado-contenedor{% endblock %}
+
 {% block content %}
-<div class="contenedor-interior">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Panel del Restaurante</h1>
-        <p class="subtitulo">Bienvenido al sistema de validación de almuerzos.</p>
+<div class="empleado-main-content">
+    <div class="header-seccion" style="justify-content: center; text-align: center; display: block; margin-bottom: 40px;">
+        <h1 style="color: var(--color-oscuro);">Panel del Restaurante</h1>
+        <p class="subtitulo-izq" style="text-align: center; font-size: 16px;">Bienvenido al sistema de validación de almuerzos.</p>
     </div>
 
-    <div style="margin: 40px auto; max-width: 600px; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+    <div class="bento-card" style="margin: 0 auto; max-width: 600px; text-align: center; border: 1px solid #eff6ff;">
         <div style="font-size: 60px; margin-bottom: 20px;">👨‍🍳</div>
-        <h2 style="color: #334155; margin-bottom: 15px;">Panel en construcción</h2>
-        <p style="color: #64748b; line-height: 1.6;">
+        <h2 style="color: var(--color-oscuro); margin-bottom: 15px; font-size: 24px;">Panel en construcción</h2>
+        <p style="color: var(--color-texto-sutil); line-height: 1.6; padding: 0 20px;">
             Aquí podrás escanear los códigos QR de los empleados para validar sus almuerzos de forma instantánea.
         </p>
         
-        <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <p style="color: #475569; font-size: 14px; margin: 0;">
-                Acceso concedido con el rol: <strong>Restaurante</strong>
+        <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+            <p style="color: var(--color-texto-suave); font-size: 14px; margin: 0;">
+                Acceso concedido con el rol: <strong style="color: var(--color-oscuro);">Restaurante</strong>
             </p>
         </div>
     </div>

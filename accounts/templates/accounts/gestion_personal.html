@@ -9,13 +9,6 @@
         <p class="subtitulo">{% if editando %}Actualiza la información y el rol de {{ empleado_user.get_full_name|default:empleado_user.username }}.{% else %}Crea una nueva cuenta y asigna el rol correspondiente (Empleado o Restaurante).{% endif %}</p>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mensaje" style="background: #dcfce7; border-color: #22c55e; color: #166534; margin-bottom: 20px;">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
 
     <form method="POST" id="form-personal">
         {% csrf_token %}

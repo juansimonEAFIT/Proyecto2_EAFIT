@@ -3,8 +3,14 @@
 {% block title %}Dashboard Administrador - LunchFlow{% endblock %}
 
 {% block content %}
+<style>
+    .admin-main-content .bento-card {
+        border-top: 4px solid var(--color-oscuro);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Softer distinct shadow */
+    }
+</style>
 <div class="dashboard-header" style="margin-bottom: 30px;">
-    <h1 style="font-size: 28px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
+    <h1 style="font-size: 32px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
     <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.</p>
 </div>
 
@@ -18,7 +24,7 @@
                         <div class="dato">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
                         <div style="color: var(--color-texto-sutil); margin-bottom: 10px; font-weight: 500;">Tiquetes disponibles</div>
                     </div>
-                    <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:20 }} tks</strong></p>
+                    <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tikects</strong></p>
                     <a href="{% url 'gestionar_inventario' %}" class="boton" style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
                 </div>
                 

@@ -36,14 +36,28 @@ def dashboard_empleado(request):
     solicitudes = SolicitudTiquete.objects.filter(empleado=empleado).order_by("-fecha_solicitud")[:5]
     
     # Nueva lógica de saldo: Basada en tiquetes comprados (aprobados) vs pagos validados
+    from django.db.models import F
     tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
     total_pagos_validados = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
     
-    precio_tiquete = Decimal("10000.00")
-    deuda_total = tiquetes_aprobados * precio_tiquete
+    inventario_actual = InventarioTiquetes.objects.order_by("-mes").first()
+    precio_tiquete = inventario_actual.precio_tiquete if inventario_actual else Decimal("10000.00")
+    
+    # Deuda total basada en el precio al momento de solicitar el tiquete (precio_unitario)
+    deuda_total = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").annotate(
+        costo_total=F('cantidad') * F('precio_unitario')
+    ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
+    
     saldo_pendiente = deuda_total - total_pagos_validados
     
+    from django.utils import timezone
+    month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos_mes = ConsumoAlmuerzo.objects.filter(empleado=empleado, fecha__gte=month_start.date()).count()
+    
+    ultimo_consumo = ConsumoAlmuerzo.objects.filter(empleado=empleado).order_by("-fecha").first()
+    ultimo_consumo_fecha = ultimo_consumo.fecha.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
+    
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
 
     # URL para el código QR (Solución ingeniosa)
@@ -58,12 +72,15 @@ def dashboard_empleado(request):
         {
             "empleado": empleado,
             "solicitudes": solicitudes,
-            "saldo_pendiente": saldo_pendiente,
+            "saldo_pendiente": f"{saldo_pendiente:,.0f}".replace(",", "."),
             "tiquetes_comprados": tiquetes_aprobados,
             "tiquetes_disponibles": tiquetes_disponibles,
             "tiquetes_consumidos": tiquetes_consumidos,
+            "tiquetes_consumidos_mes": tiquetes_consumidos_mes,
+            "ultimo_consumo_fecha": ultimo_consumo_fecha,
             "url_consumo": url_consumo,
             "empleado_activo": empleado.esta_activo,
+            "precio_tiquete": f"{precio_tiquete:,.0f}".replace(",", "."),
         },
     )
 

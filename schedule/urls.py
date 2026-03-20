@@ -7,9 +7,11 @@ from .views import (
     gestionar_pago,
     consultar_estado_cuenta,
     gestionar_inventario,
+    ver_qr_empleado,
 )
 
 urlpatterns = [
+    path("mi-qr/", ver_qr_empleado, name="ver_qr_empleado"),
     path("almuerzo/consumir/<uuid:codigo_qr>/", consumir_almuerzo_qr, name="consumir_almuerzo_qr"),
     path("estado-cuenta/", consultar_estado_cuenta, name="consultar_estado_cuenta"),
     path("tiquetes/solicitar/", solicitar_tiquete, name="solicitar_tiquete"),

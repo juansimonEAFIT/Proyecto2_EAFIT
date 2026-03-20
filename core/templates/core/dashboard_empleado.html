@@ -1,87 +1,57 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard Empleado - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">¡Hola, {{ empleado.usuario.first_name }}!</h1>
-        <p class="subtitulo">Muestra tu código QR en el restaurante para registrar tu consumo.</p>
+<div class="header-seccion" style="align-items: center;">
+    <div>
+        <h1 style="color: var(--color-oscuro); font-size: 32px; margin: 0;">Hola, {{ request.user.first_name }} {{ request.user.last_name }}</h1>
     </div>
+</div>
 
-    <!-- Sección de Código QR Priorizada -->
-    <div style="margin: 0 auto 50px; max-width: 420px; text-align: center; background: white; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06); border: 1px solid rgba(0,0,0,0.02);">
-        <h2 style="font-size: 1.3rem; color: #1e293b; margin-top: 0; margin-bottom: 15px; font-weight: 700;">🎟️ Mi Tiquete Digital</h2>
-        
-        {% if empleado_activo %}
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Usa este código único para un acceso rápido y seguro.</p>
-            
-            <div style="background: #f8fafc; display: inline-block; padding: 25px; border-radius: 20px; border: 2px dashed #e2e8f0; position: relative;">
-                {% if url_consumo %}
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" 
-                     alt="Código QR de Consumo" 
-                     style="display: block; width: 220px; height: 220px; opacity: 0.95;">
-                {% else %}
-                <div style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 500;">
-                    QR no disponible
-                </div>
-                {% endif %}
-            </div>
-
-            <div style="margin-top: 25px; padding: 12px; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0; display: inline-block; min-width: 200px;">
-                <span style="font-size: 15px; color: #065f46; font-weight: 600;">
-                    Tiquetes disponibles: {{ tiquetes_disponibles }}
-                </span>
-            </div>
-        {% else %}
-            <div style="background: #fef2f2; padding: 25px; border-radius: 20px; border: 1px solid #fecaca; margin-top: 10px;">
-                <div style="font-size: 48px; margin-bottom: 15px;">🚫</div>
-                <p style="color: #991b1b; font-weight: 700; margin: 0 0 10px 0; font-size: 1.15rem;">Acceso Restringido</p>
-                <p style="color: #991b1b; margin: 0; font-size: 14px; line-height: 1.5;">
-                    Tu cuenta está inactiva y no puedes generar consumos.<br>
-                    <strong>Contacta con administración.</strong>
-                </p>
-            </div>
-        {% endif %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Saldo pendiente</div>
+        <div class="value">$ {{ saldo_pendiente }}</div>
     </div>
+    <div class="stat-card">
+        <div class="label">Almuerzos (mes)</div>
+        <div class="value">{{ tiquetes_consumidos_mes }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Último consumo</div>
+        <div class="value">{{ ultimo_consumo_fecha }}</div>
+    </div>
+</div>
 
-    <div class="resumen" style="margin-bottom: 40px;">
-        <div class="tarjeta">
-            <div class="etiqueta">Saldo por Pagar</div>
-            <div class="valor-principal">${{ saldo_pendiente }}</div>
-        </div>
-        <div class="tarjeta">
-            <div class="etiqueta">Estado de Tiquetes</div>
-            <div class="valor-secundario">{{ tiquetes_disponibles }} disponibles</div>
-        </div>
-        <div class="tarjeta">
-            <div class="etiqueta">Consumos Totales</div>
-            <div class="valor-secundario">{{ tiquetes_consumidos }} realizados</div>
+<div class="dashboard-row">
+    <div class="grid-card">
+        <h2>Accesos rápidos</h2>
+        <div class="quick-actions" style="grid-template-columns: 1fr 1fr;">
+            <a href="{% url 'ver_qr_empleado' %}" class="btn-quick primary">Ver mi QR</a>
+            <a href="{% url 'solicitar_tiquete' %}" class="btn-quick" style="border: 2px solid var(--color-azul); color: var(--color-azul); font-weight: 600;">Pedir tiquete</a>
+            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Ver consumos</a>
+            <a href="{% url 'registrar_pago' %}" class="btn-quick">Ver pagos</a>
         </div>
     </div>
 
-    <div class="tarjetas">
-        <a href="{% url 'solicitar_tiquete' %}" class="tarjeta-opcion">
-            <div class="icono-tarjeta">🎫</div>
-            <div>
-                <div class="titulo-tarjeta">Solicitar</div>
-                <p class="descripcion-tarjeta">Pide nuevos tiquetes para tus próximos almuerzos.</p>
-            </div>
-        </a>
-        <a href="{% url 'consultar_estado_cuenta' %}" class="tarjeta-opcion">
-            <div class="icono-tarjeta">📋</div>
-            <div>
-                <div class="titulo-tarjeta">Estado de Cuenta</div>
-                <p class="descripcion-tarjeta">Consulta el detalle y saldo de tus consumos.</p>
-            </div>
-        </a>
-        <a href="{% url 'registrar_pago' %}" class="tarjeta-opcion">
-            <div class="icono-tarjeta">💰</div>
-            <div>
-                <div class="titulo-tarjeta">Pagar</div>
-                <p class="descripcion-tarjeta">Sube tu comprobante de pago fácilmente.</p>
-            </div>
-        </a>
+    <div class="card-resumen-lateral">
+        <h2>Resumen</h2>
+
+        <div class="resumen-item">
+            <span class="label">Costo por almuerzo</span>
+            <span class="value">$ {{ precio_tiquete }}</span>
+        </div>
+
+        <div class="resumen-item">
+            <span class="label">Estado</span>
+            {% if empleado_activo %}
+            <span class="status-badge active">Activo</span>
+            {% else %}
+            <span class="status-badge" style="background: #f1f5f9; color: var(--color-texto-sutil);">Inactivo</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

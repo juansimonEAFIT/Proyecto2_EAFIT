@@ -7,22 +7,6 @@
     <h1 class="titulo-central">Iniciar Sesión</h1>
     <p class="subtitulo">Accede a tu cuenta para gestionar tus tiquetes.</p>
 
-    <!-- Mostrar mensajes de error/éxito -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mensaje" style="
-                background: {% if message.tags == 'error' %}#fee2e2{% else %}#dcfce7{% endif %};
-                border-color: {% if message.tags == 'error' %}#ef4444{% else %}#22c55e{% endif %};
-                color: {% if message.tags == 'error' %}#991b1b{% else %}#166534{% endif %};
-                margin-bottom: 20px;
-                padding: 12px 16px;
-                border-left: 4px solid;
-                border-radius: 4px;
-            ">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
 
     <form method="post">
         {% csrf_token %}
