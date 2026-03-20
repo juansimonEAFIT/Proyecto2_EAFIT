@@ -58,7 +58,6 @@
                     <thead>
                         <tr>
                             <th>Empleado</th>
-                            <th>Tipo</th>
                             <th>Cant.</th>
                             <th>Acciones</th>
                         </tr>
@@ -91,7 +90,6 @@
                     <thead>
                         <tr>
                             <th>Empleado</th>
-                            <th>Tipo</th>
                             <th>Cant.</th>
                             <th>Fecha Reclamo</th>
                             <th>Acciones</th>
@@ -101,7 +99,6 @@
                         {% for solicitud in solicitudes_pendientes %}
                         <tr>
                             <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
-                            <td>{{ solicitud.get_tipo_tiquete_display }}</td>
                             <td>{{ solicitud.cantidad }}</td>
                             <td>{{ solicitud.fecha_reclamo|default:"---" }}</td>
                             <td>

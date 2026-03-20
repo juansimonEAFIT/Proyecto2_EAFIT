@@ -16,9 +16,17 @@ class FormularioPersonal(forms.ModelForm):
     role = forms.ChoiceField(label="Rol en el sistema", choices=[('empleado', 'Empleado'), ('restaurante', 'Restaurante')])
     
     # Campos comunes/especificos de perfil (los manejaremos en la vista)
-    numero_documento = forms.CharField(label="Número de Documento", required=False)
+    numero_documento = forms.CharField(
+        label="Número de Documento", 
+        required=False,
+        widget=forms.TextInput(attrs={'type': 'text', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'class': 'solo-numeros'})
+    )
     departamento = forms.CharField(label="Departamento/Área", required=False)
-    telefono = forms.CharField(label="Teléfono", required=False)
+    telefono = forms.CharField(
+        label="Teléfono", 
+        required=False,
+        widget=forms.TextInput(attrs={'type': 'text', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'class': 'solo-numeros'})
+    )
     nombre_sede = forms.CharField(label="Nombre de la Sede (Solo Restaurante)", required=False, initial="Sede Principal")
 
     class Meta:
@@ -64,6 +72,35 @@ class FormularioPersonal(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError("Este correo ya está en uso.")
         return email
+
+    def clean_numero_documento(self):
+        num_doc = self.cleaned_data.get("numero_documento")
+        role = self.cleaned_data.get("role")
+        
+        if role == 'empleado':
+            if not num_doc:
+                raise forms.ValidationError("El número de documento es obligatorio para empleados.")
+            
+            # Solo permitir números
+            if not num_doc.isdigit():
+                raise forms.ValidationError("El número de documento solo debe contener números.")
+
+            # Verificar unicidad
+            qs = Empleado.objects.filter(numero_documento=num_doc)
+            if self.instance and self.instance.pk:
+                # Si estamos editando un usuario, necesitamos excluir su propio perfil de empleado actual
+                qs = qs.exclude(usuario=self.instance)
+            
+            if qs.exists():
+                raise forms.ValidationError("Este número de documento ya está registrado.")
+        
+        return num_doc
+
+    def clean_telefono(self):
+        tel = self.cleaned_data.get("telefono")
+        if tel and not tel.isdigit():
+            raise forms.ValidationError("El teléfono solo debe contener números.")
+        return tel
 
     def clean(self):
         cleaned_data = super().clean()

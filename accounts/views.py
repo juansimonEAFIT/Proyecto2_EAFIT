@@ -14,18 +14,15 @@ User = get_user_model()
 
 @require_http_methods(["GET", "POST"])
 def login_view(request):
-    """
-    Vista custom de login que valida credenciales y redirige según rol.
-    
-    Criterios de aceptación:
-    - El sistema valida credenciales
-    - El usuario accede según su rol
-    - Si falla, se muestra un mensaje de error
-    """
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         
+        # Verificar si el usuario existe
+        if not User.objects.filter(username=username).exists():
+            messages.error(request, "El usuario no existe.")
+            return render(request, "registration/login.html")
+
         # Autenticar usuario
         user = authenticate(request, username=username, password=password)
         
@@ -46,7 +43,7 @@ def login_view(request):
             else:  # empleado
                 return redirect("dashboard_empleado")
         else:
-            messages.error(request, "Usuario o contraseña incorrectos. Por favor intenta de nuevo.")
+            messages.error(request, "Contraseña incorrecta. Por favor intenta de nuevo.")
             return render(request, "registration/login.html")
     
     return render(request, "registration/login.html")

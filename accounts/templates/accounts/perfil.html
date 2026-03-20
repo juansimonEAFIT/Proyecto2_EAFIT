@@ -75,7 +75,6 @@
                 <thead>
                     <tr>
                         <th>Fecha</th>
-                        <th>Tipo</th>
                         <th>Cant.</th>
                         <th>Estado</th>
                     </tr>
@@ -84,7 +83,6 @@
                     {% for solicitud in solicitudes %}
                     <tr>
                         <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
-                        <td>{{ solicitud.get_tipo_tiquete_display }}</td>
                         <td>{{ solicitud.cantidad }}</td>
                         <td>
                             <span class="insignia {% if solicitud.estado == 'pendiente' %}insignia-gris{% elif solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">

@@ -62,6 +62,9 @@
             <div class="campo">
                 <label for="{{ formulario.telefono.id_for_label }}">{{ formulario.telefono.label }}</label>
                 {{ formulario.telefono }}
+                {% if formulario.telefono.errors %}
+                    <ul class="errorlist">{{ formulario.telefono.errors.0 }}</ul>
+                {% endif %}
             </div>
         </div>
 
@@ -122,6 +125,24 @@
 
         roleSelect.addEventListener("change", toggleSections);
         toggleSections(); 
+
+        // Restringir entrada a solo números en campos específicos
+        const camposNumericos = document.querySelectorAll('.solo-numeros');
+        camposNumericos.forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.which < 48 || e.which > 57) {
+                    e.preventDefault();
+                }
+            });
+            
+            // También manejar pegado (paste)
+            input.addEventListener('paste', function(e) {
+                const pasteData = e.clipboardData.getData('text');
+                if (!/^\d+$/.test(pasteData)) {
+                    e.preventDefault();
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

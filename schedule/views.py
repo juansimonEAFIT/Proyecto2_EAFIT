@@ -25,7 +25,7 @@ def solicitar_tiquete(request):
     stock_disponible = inventario.cantidad_disponible if inventario else 0
 
     if request.method == "POST":
-        formulario = FormularioSolicitudTiquete(request.POST)
+        formulario = FormularioSolicitudTiquete(request.POST, empleado=empleado)
         if formulario.is_valid():
             cantidad = formulario.cleaned_data["cantidad"]
             
@@ -47,12 +47,11 @@ def solicitar_tiquete(request):
 
             solicitud = formulario.save(commit=False)
             solicitud.empleado = empleado
-            solicitud.tipo_tiquete = 'qr'
             solicitud.save()
             messages.success(request, "Solicitud enviada correctamente.")
             return redirect("dashboard_empleado")
     else:
-        formulario = FormularioSolicitudTiquete()
+        formulario = FormularioSolicitudTiquete(empleado=empleado)
 
     return render(request, "schedule/solicitar_tiquete.html", {"formulario": formulario})
 
@@ -195,10 +194,13 @@ def consumir_almuerzo_qr(request, codigo_qr):
         messages.error(request, f"Consumo denegado. El empleado {empleado.usuario.get_full_name()} no tiene tiquetes disponibles.")
         exito = False
     else:
+        inventario = InventarioTiquetes.objects.order_by("-mes").first()
+        precio_actual = inventario.precio_tiquete if inventario else Decimal("10000.00")
+        
         ConsumoAlmuerzo.objects.create(
             empleado=empleado,
             fecha=hoy,
-            valor_almuerzo=Decimal("10000.00"),
+            valor_almuerzo=precio_actual,
             pagado=False
         )
         messages.success(request, f"Consumo registrado con éxito para {empleado.usuario.get_full_name()}.")
@@ -223,9 +225,13 @@ def consultar_estado_cuenta(request):
     # Historial de compras (tiquetes aprobados)
     compras = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").order_by("-fecha_solicitud")
     
+    # Obtener precio actual del inventario
+    inventario = InventarioTiquetes.objects.order_by("-mes").first()
+    precio_tiquete = inventario.precio_tiquete if inventario else Decimal("10000.00")
+
     # Calcular valor detallado para cada compra (para evitar filtros en template)
     for compra in compras:
-        compra.valor_total = compra.cantidad * 10000
+        compra.valor_total = compra.cantidad * precio_tiquete
         
     # Historial de pagos validados
     pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
@@ -236,7 +242,6 @@ def consultar_estado_cuenta(request):
     
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
     
-    precio_tiquete = Decimal("10000.00")
     deuda_total = tiquetes_aprobados * precio_tiquete
     saldo_pendiente = deuda_total - total_pagos_validados
 
