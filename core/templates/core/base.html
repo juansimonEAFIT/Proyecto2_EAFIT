@@ -15,35 +15,40 @@
 
             <div class="acciones-superiores">
                 <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
-
-                <div class="menu-desplegable">
-                    <button class="boton-menu" id="boton-menu" title="Menú de opciones">⋮</button>
-                    <div class="contenido-menu" id="contenido-menu">
-                        {% if request.user.role == 'administrador' or request.user.is_superuser %}
-                            <a href="{% url 'crear_personal' %}">Registrar Usuario</a>
-                        {% endif %}
-
-                        <a href="{% url 'perfil_usuario' %}">Mi Perfil</a>
-
-                        {% if request.user.role == 'empleado' %}
-                            <a href="{% url 'solicitar_tiquete' %}">Solicitar Tiquete</a>
-                            <a href="{% url 'registrar_pago' %}">Registrar Pago</a>
-                        {% endif %}
-
-                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 8px 0;">
-                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" style="background: none; border: none; color: #991b1b; cursor: pointer; font-family: inherit; font-size: inherit; padding: 12px 16px; width: 100%; text-align: left;">
-                                Cerrar Sesión
-                            </button>
-                        </form>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <div class="{% block main_container_class %}contenido-principal{% endblock %}">
-            {% block content %}{% endblock %}
+        <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}dashboard-admin-contenedor{% elif request.user.role in 'empleado,restaurante' %}dashboard-empleado-contenedor{% else %}{% block main_container_class %}contenido-principal{% endblock %}{% endif %}">
+            {% if request.user.role == 'administrador' or request.user.is_superuser %}
+                {% include 'core/includes/sidebar_admin.html' %}
+            {% elif request.user.role == 'empleado' %}
+                {% include 'core/includes/sidebar_empleado.html' %}
+            {% elif request.user.role == 'restaurante' %}
+                {% include 'core/includes/sidebar_restaurante.html' %}
+            {% endif %}
+
+            <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}admin-main-content{% elif request.user.role in 'empleado,restaurante' %}empleado-main-content{% endif %}">
+                <!-- Mensajes del Sistema -->
+                {% if messages %}
+                    <div style="max-width: 1200px; margin: 0 auto 20px;">
+                        {% for message in messages %}
+                            <div class="mensaje" style="
+                                background: {% if message.tags == 'error' %}#fee2e2{% elif message.tags == 'success' %}#dcfce7{% else %}#f8fafc{% endif %};
+                                border-left: 5px solid {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'success' %}#22c55e{% else %}#3b82f6{% endif %};
+                                color: {% if message.tags == 'error' %}#991b1b{% elif message.tags == 'success' %}#166534{% else %}#1e3a8a{% endif %};
+                                padding: 14px 16px;
+                                border-radius: 8px;
+                                margin-bottom: 10px;
+                                font-weight: 500;
+                            ">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </div>
 

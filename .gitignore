@@ -40,3 +40,5 @@ media/
 # Docker
 .dockerignore
 docker-compose.override.yml
+
+.env

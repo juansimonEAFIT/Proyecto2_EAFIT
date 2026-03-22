@@ -9,8 +9,9 @@ from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, Formulari
 from .models import ConsumoAlmuerzo, SolicitudTiquete, InventarioTiquetes, RegistroPago
 from accounts.models import Empleado, Administrador
 
-
-
+# ==========================================
+# VISTAS DE EMPLEADO
+# ==========================================
 
 @login_required
 def solicitar_tiquete(request):
@@ -25,7 +26,7 @@ def solicitar_tiquete(request):
     stock_disponible = inventario.cantidad_disponible if inventario else 0
 
     if request.method == "POST":
-        formulario = FormularioSolicitudTiquete(request.POST)
+        formulario = FormularioSolicitudTiquete(request.POST, empleado=empleado)
         if formulario.is_valid():
             cantidad = formulario.cleaned_data["cantidad"]
             
@@ -47,12 +48,11 @@ def solicitar_tiquete(request):
 
             solicitud = formulario.save(commit=False)
             solicitud.empleado = empleado
-            solicitud.tipo_tiquete = 'qr'
             solicitud.save()
             messages.success(request, "Solicitud enviada correctamente.")
             return redirect("dashboard_empleado")
     else:
-        formulario = FormularioSolicitudTiquete()
+        formulario = FormularioSolicitudTiquete(empleado=empleado)
 
     return render(request, "schedule/solicitar_tiquete.html", {"formulario": formulario})
 
@@ -78,7 +78,163 @@ def registrar_pago(request):
     return render(request, "schedule/registrar_pago.html", {"formulario": formulario})
 
 
+@login_required
+def consultar_estado_cuenta(request):
+    try:
+        empleado = request.user.perfil_empleado
+    except Empleado.DoesNotExist:
+        return redirect("dashboard_empleado")
 
+    # Historial de compras (tiquetes aprobados)
+    compras = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").order_by("-fecha_solicitud")
+    
+    # Obtener precio actual del inventario (solo para propósitos informativos generales)
+    inventario = InventarioTiquetes.objects.order_by("-mes").first()
+    precio_tiquete = inventario.precio_tiquete if inventario else Decimal("10000.00")
+
+    # Calcular valor detallado usando el precio histórico grabado (precio_unitario)
+    for compra in compras:
+        compra.valor_total = compra.cantidad * getattr(compra, 'precio_unitario', Decimal('10000.00'))
+        
+    # Historial de pagos validados
+    pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
+    
+    tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
+    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
+    
+    total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
+    
+    from django.db.models import F
+    deuda_total = compras.annotate(
+        costo_total=F('cantidad') * F('precio_unitario')
+    ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
+    
+    saldo_pendiente = deuda_total - total_pagos_validados
+
+    return render(
+        request,
+        "schedule/consultar_estado_cuenta.html",
+        {
+            "empleado": empleado,
+            "compras": compras,
+            "pagos": pagos,
+            "saldo_pendiente": saldo_pendiente,
+            "tiquetes_comprados": tiquetes_aprobados,
+            "tiquetes_disponibles": tiquetes_disponibles,
+            "precio_tiquete": precio_tiquete,
+            "ultima_actualizacion": timezone.now(),
+        },
+    )
+
+
+@login_required
+def ver_qr_empleado(request):
+    try:
+        empleado = request.user.perfil_empleado
+    except Empleado.DoesNotExist:
+        return redirect('inicio')
+        
+    from django.urls import reverse
+    url_consumo = request.build_absolute_uri(
+        reverse("consumir_almuerzo_qr", kwargs={"codigo_qr": empleado.codigo_qr})
+    )
+    
+    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
+    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
+    
+    return render(
+        request, 
+        "schedule/qr_empleado.html", 
+        {
+            "url_consumo": url_consumo,
+            "empleado_activo": empleado.esta_activo,
+            "tiquetes_disponibles": tiquetes_disponibles,
+        }
+    )
+
+
+# ==========================================
+# VISTAS DE RESTAURANTE
+# ==========================================
+
+def consumir_almuerzo_qr(request, codigo_qr):
+    """
+    Vista para registrar consumo de almuerzo mediante QR.
+    
+    Criterios de aceptación (Historia 2):
+    - Solo empleados activos pueden consumir
+    - Si está inactivo, el sistema bloquea el registro
+    - Se muestra un mensaje claro
+    """
+    # Buscar empleado por QR (activo o inactivo)
+    try:
+        empleado = Empleado.objects.get(codigo_qr=codigo_qr)
+    except Empleado.DoesNotExist:
+        messages.error(request, "Código QR no válido. Empleado no encontrado.")
+        return render(
+            request,
+            "schedule/consumo_qr_resultado.html",
+            {"exito": False, "razon_error": "empleado_no_existe"}
+        )
+    
+    # Validar que el empleado esté activo
+    if not empleado.esta_activo:
+        messages.error(
+            request,
+            f"Acceso denegado. El empleado {empleado.usuario.get_full_name()} está inactivo. "
+            "Contacta con gestión humana para reactivar tu cuenta."
+        )
+        return render(
+            request,
+            "schedule/consumo_qr_resultado.html",
+            {"empleado": empleado, "exito": False, "razon_error": "empleado_inactivo"}
+        )
+    
+    hoy = timezone.localdate()
+    
+    # 1. Calcular tiquetes disponibles
+    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
+    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos
+
+    # 2. Verificar si ya consumió hoy
+    ya_consumio = ConsumoAlmuerzo.objects.filter(empleado=empleado, fecha=hoy).exists()
+    
+    if ya_consumio:
+        messages.error(request, f"El empleado {empleado.usuario.get_full_name()} ya registró su consumo hoy.")
+        exito = False
+    elif tiquetes_disponibles <= 0:
+        messages.error(request, f"Consumo denegado. El empleado {empleado.usuario.get_full_name()} no tiene tiquetes disponibles.")
+        exito = False
+    else:
+        inventario = InventarioTiquetes.objects.order_by("-mes").first()
+        precio_actual = inventario.precio_tiquete if inventario else Decimal("10000.00")
+        
+        ConsumoAlmuerzo.objects.create(
+            empleado=empleado,
+            fecha=hoy,
+            valor_almuerzo=precio_actual,
+            pagado=False
+        )
+        messages.success(request, f"Consumo registrado con éxito para {empleado.usuario.get_full_name()}.")
+        exito = True
+    
+    return render(
+        request, 
+        "schedule/consumo_qr_resultado.html", 
+        {
+            "empleado": empleado,
+            "fecha": hoy,
+            "exito": exito
+        }
+    )
+
+
+# ==========================================
+# VISTAS DE ADMINISTRADOR
+# ==========================================
 
 @login_required
 def gestionar_solicitud(request, solicitud_id, accion):
@@ -142,85 +298,3 @@ def gestionar_inventario(request):
         formulario = FormularioInventario(instance=inventario)
 
     return render(request, "schedule/gestionar_inventario.html", {"formulario": formulario})
-
-
-# Vistas existentes adaptadas
-def consumir_almuerzo_qr(request, codigo_qr):
-    # Esta vista suele ser usada por el restaurante, se deja similar
-    empleado = get_object_or_404(Empleado, codigo_qr=codigo_qr, esta_activo=True)
-    hoy = timezone.localdate()
-    
-    # 1. Calcular tiquetes disponibles
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
-    tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos
-
-    # 2. Verificar si ya consumió hoy
-    ya_consumio = ConsumoAlmuerzo.objects.filter(empleado=empleado, fecha=hoy).exists()
-    
-    if ya_consumio:
-        messages.error(request, f"El empleado {empleado.usuario.get_full_name()} ya registró su consumo hoy.")
-        exito = False
-    elif tiquetes_disponibles <= 0:
-        messages.error(request, f"Consumo denegado. El empleado {empleado.usuario.get_full_name()} no tiene tiquetes disponibles.")
-        exito = False
-    else:
-        ConsumoAlmuerzo.objects.create(
-            empleado=empleado,
-            fecha=hoy,
-            valor_almuerzo=Decimal("10000.00"),
-            pagado=False
-        )
-        messages.success(request, f"Consumo registrado con éxito para {empleado.usuario.get_full_name()}.")
-        exito = True
-    
-    return render(
-        request, 
-        "schedule/consumo_qr_resultado.html", 
-        {
-            "empleado": empleado,
-            "fecha": hoy,
-            "exito": exito
-        }
-    )
-@login_required
-def consultar_estado_cuenta(request):
-    try:
-        empleado = request.user.perfil_empleado
-    except Empleado.DoesNotExist:
-        return redirect("dashboard_empleado")
-
-    # Historial de compras (tiquetes aprobados)
-    compras = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").order_by("-fecha_solicitud")
-    
-    # Calcular valor detallado para cada compra (para evitar filtros en template)
-    for compra in compras:
-        compra.valor_total = compra.cantidad * 10000
-        
-    # Historial de pagos validados
-    pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
-    
-    tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
-    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
-    
-    total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
-    
-    precio_tiquete = Decimal("10000.00")
-    deuda_total = tiquetes_aprobados * precio_tiquete
-    saldo_pendiente = deuda_total - total_pagos_validados
-
-    return render(
-        request,
-        "schedule/consultar_estado_cuenta.html",
-        {
-            "empleado": empleado,
-            "compras": compras,
-            "pagos": pagos,
-            "saldo_pendiente": saldo_pendiente,
-            "tiquetes_comprados": tiquetes_aprobados,
-            "tiquetes_disponibles": tiquetes_disponibles,
-            "precio_tiquete": precio_tiquete,
-            "ultima_actualizacion": timezone.now(),
-        },
-    )

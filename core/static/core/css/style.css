@@ -2,7 +2,7 @@
 
 /* ── Variables globales ────────────────────────────────────── */
 :root {
-    --color-rojo:        #dc2626;
+    --color-rojo:        #ea1d2c;
     --color-texto:       #1e293b;
     --color-texto-suave: #475569;
     --color-texto-sutil: #64748b;
@@ -15,7 +15,7 @@
     --sombra-azul-md:    0 18px 38px rgba(59, 130, 246, 0.15);
     --sombra-azul-lg:    0 20px 50px rgba(59, 130, 246, 0.12);
     --sombra-azul-xl:    0 20px 50px rgba(59, 130, 246, 0.18);
-    --radio-card:        22px;
+    --radio-card:        24px;
 }
 
 /* ── Reset base ────────────────────────────────────────────── */
@@ -46,6 +46,9 @@ body {
     align-items: center;
     padding: 20px 34px;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .logo {
@@ -127,8 +130,9 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 40px 20px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 60px 20px;
 }
 
 .contenedor {
@@ -149,7 +153,9 @@ body {
 }
 
 .contenedor.ancho-grande, .contenedor-interior {
-    max-width: 1000px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* ── Tipografía ────────────────────────────────────────────── */
@@ -214,30 +220,31 @@ h1.titulo-central {
 
 /* ── Tarjetas de inicio ────────────────────────────────────── */
 .tarjetas {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 28px;
-    flex-wrap: wrap;
+    margin-top: 20px;
 }
 
 .tarjeta-opcion {
-    width: 260px;
-    min-height: 270px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(10px);
     border-radius: 28px;
-    padding: 28px 24px;
+    padding: 30px;
     text-decoration: none;
     color: inherit;
     box-shadow: var(--sombra-azul-md);
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .tarjeta-opcion:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 24px 42px rgba(59, 130, 246, 0.2);
+    transform: translateY(-8px);
+    box-shadow: 0 24px 48px rgba(59, 130, 246, 0.25);
+    background: #ffffff;
 }
 
 .icono-tarjeta {
@@ -470,3 +477,412 @@ form p {
     color: #ef4444;
     font-size: 12px;
 }
+
+/* ── Dashboard Layout (Admin & Empleado) ───────────────────── */
+.dashboard-admin-contenedor,
+.dashboard-empleado-contenedor {
+    display: flex;
+    min-height: calc(100vh - 90px);
+}
+
+.dashboard-empleado-contenedor {
+    background: #f0f9ff;
+}
+
+.sidebar-admin,
+.sidebar-empleado {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-admin {
+    background: var(--color-oscuro);
+    color: white;
+    padding: 30px 20px;
+    gap: 8px;
+    z-index: 10;
+}
+
+.sidebar-empleado {
+    background: rgba(255, 255, 255, 0.98);
+    border-right: 1px solid #e2e8f0;
+    padding: 30px 20px;
+    gap: 10px;
+    position: sticky;
+    top: 90px;
+    height: calc(100vh - 90px);
+}
+
+.sidebar-admin .logo-centralizado {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-rojo);
+    margin-bottom: 30px;
+    padding-left: 10px;
+}
+
+.sidebar-perfil {
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.sidebar-perfil .rol {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-rojo);
+    display: block;
+}
+
+.sidebar-perfil .nombre {
+    font-size: 13px;
+    color: var(--color-texto-sutil);
+}
+
+.sidebar-admin a,
+.sidebar-empleado a {
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-admin a {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.sidebar-empleado a {
+    color: var(--color-texto-suave);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.sidebar-admin a:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.sidebar-empleado a:hover {
+    background: var(--color-fondo-card);
+    color: var(--color-azul);
+}
+
+.sidebar-admin a.activo,
+.sidebar-empleado a.activo {
+    background: var(--color-rojo);
+    color: white;
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.2);
+}
+
+.sidebar-admin .icono-admin {
+    font-size: 18px;
+}
+
+.admin-main-content,
+.empleado-main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.admin-main-content {
+    background: #f8fafc;
+}
+
+.empleado-main-content {
+    color: var(--color-texto);
+}
+
+/* ── Admin Dashboard Cards ─────────────────────────────────── */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.bento-card {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radio-card);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease;
+}
+
+.bento-card:hover {
+    transform: translateY(-4px);
+}
+
+.bento-card.grande {
+    grid-column: span 2;
+}
+
+.bento-card.pequena {
+    grid-column: span 1;
+}
+
+.bento-card .icono {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.bento-card .dato {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-oscuro);
+}
+
+.bento-card .etiqueta-bento {
+    font-size: 14px;
+    color: var(--color-texto-sutil);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ── Tabs Dashboard ────────────────────────────────────────── */
+.dashboard-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    background: white;
+    color: var(--color-texto-sutil);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background: var(--color-oscuro);
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ── State Badges ──────────────────────────────────────────── */
+.insignia-verde { background-color: #dcfce7 !important; color: #166534 !important; }
+.insignia-roja { background-color: #fee2e2 !important; color: #991b1b !important; }
+.insignia-azul { background-color: #dbeafe !important; color: #1d4ed8 !important; }
+.insignia-gris { background-color: #f1f5f9 !important; color: #475569 !important; }
+
+@media (max-width: 1024px) {
+    .dashboard-admin-contenedor,
+    .dashboard-empleado-contenedor {
+        flex-direction: column;
+    }
+    
+    .sidebar-admin,
+    .sidebar-empleado {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 15px;
+    }
+
+    .sidebar-empleado {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sidebar-admin .logo-centralizado {
+        display: none;
+    }
+    
+    .bento-grid,
+    .stats-grid,
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .bento-card.grande {
+        grid-column: span 1;
+    }
+}
+
+/* ── Dashboard Empleado (Estilos Base Moviados Arriba) ─────── */
+
+.header-seccion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header-seccion h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-oscuro);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.stat-card,
+.grid-card {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radio-card);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.08);
+    border: 1px solid #eff6ff;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-card .label {
+    font-size: 13px;
+    color: var(--color-texto-sutil);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+}
+
+.stat-card .value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-rojo);
+}
+
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+/* .grid-card unificado con .stat-card */
+
+.grid-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--color-oscuro);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.btn-quick {
+    padding: 14px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: var(--color-texto-suave);
+    text-decoration: none;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-quick:hover {
+    background: #ffffff;
+    border-color: var(--color-azul-claro);
+    color: var(--color-azul);
+    transform: translateY(-2px);
+}
+
+.btn-quick.primary {
+    background: var(--color-azul);
+    color: white;
+    border: none;
+    box-shadow: 0 10px 20px rgba(29, 78, 216, 0.2);
+}
+
+.btn-quick.primary:hover {
+    background: var(--color-azul-claro);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
+}
+
+.card-resumen-lateral {
+    background: white;
+    padding: 30px;
+    border-radius: 24px;
+    box-shadow: var(--sombra-azul-lg);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.card-resumen-lateral h2 {
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--color-oscuro);
+}
+
+.card-resumen-lateral .info-text {
+    font-size: 14px;
+    color: var(--color-texto-sutil);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.resumen-item:last-of-type {
+    border-bottom: none;
+}
+
+.resumen-item .label {
+    color: var(--color-texto-suave);
+}
+
+.resumen-item .value {
+    font-weight: 700;
+    color: var(--color-oscuro);
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* (Media queries unificadas arriba) */

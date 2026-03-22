@@ -4,31 +4,12 @@ from django.conf import settings
 from accounts.models import Empleado
 
 
-class MenuItem(models.Model):
-    nombre = models.CharField(max_length=100)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.nombre} - ${self.precio}"
-
-
-class FoodCalendar(models.Model):
-    nombre = models.CharField(max_length=100)
-    items = models.ManyToManyField(MenuItem, related_name="calendarios")
-    empleados = models.ManyToManyField(Empleado, related_name="calendarios_asignados", blank=True)
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
-
-    def __str__(self):
-        return f"Calendario: {self.nombre} ({self.fecha_inicio} a {self.fecha_fin})"
-
-
 class InventarioTiquetes(models.Model):
     mes = models.DateField(default=timezone.now)
     cantidad_inicial = models.PositiveIntegerField()
     cantidad_disponible = models.PositiveIntegerField()
     max_tiquetes_por_empleado = models.PositiveIntegerField(default=20)
+    precio_tiquete = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
 
     class Meta:
         verbose_name_plural = "Inventarios de Tiquetes"
@@ -45,7 +26,7 @@ class ConsumoAlmuerzo(models.Model):
     )
     fecha = models.DateField(default=timezone.localdate)
     hora_registro = models.DateTimeField(auto_now_add=True)
-    valor_almuerzo = models.DecimalField(max_digits=10, decimal_places=2, default=15000.00)
+    valor_almuerzo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     pagado = models.BooleanField(default=False)
 
     class Meta:
@@ -56,11 +37,6 @@ class ConsumoAlmuerzo(models.Model):
 
 
 class SolicitudTiquete(models.Model):
-    OPCIONES_TIPO = (
-        ("fisico", "Físico"),
-        ("qr", "Código QR"),
-    )
-
     OPCIONES_ESTADO = (
         ("pendiente", "Pendiente"),
         ("aprobado", "Aprobado"),
@@ -72,14 +48,21 @@ class SolicitudTiquete(models.Model):
         on_delete=models.CASCADE,
         related_name="solicitudes_tiquete"
     )
-    tipo_tiquete = models.CharField(max_length=20, choices=OPCIONES_TIPO)
     cantidad = models.PositiveIntegerField(default=1)
     fecha_reclamo = models.DateField(null=True, blank=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=OPCIONES_ESTADO, default="pendiente")
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            inventario = InventarioTiquetes.objects.order_by("-mes").first()
+            if inventario:
+                self.precio_unitario = inventario.precio_tiquete
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.empleado.usuario.username} - {self.cantidad} {self.tipo_tiquete} - {self.estado}"
+        return f"{self.empleado.usuario.username} - {self.cantidad} a ${self.precio_unitario} - {self.estado}"
 
 
 class RegistroPago(models.Model):

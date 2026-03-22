@@ -1,13 +1,52 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
 from .forms import FormularioPersonal
 from .models import Empleado, Administrador, Restaurante
 
 User = get_user_model()
 
-from django.contrib.auth.decorators import login_required
+
+
+
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        
+        # Verificar si el usuario existe
+        if not User.objects.filter(username=username).exists():
+            messages.error(request, "El usuario no existe.")
+            return render(request, "registration/login.html")
+
+        # Autenticar usuario
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Verificar que el usuario esté activo (is_active)
+            if not user.is_active:
+                messages.error(request, "Tu cuenta ha sido desactivada. Contacta con administración.")
+                return render(request, "registration/login.html")
+            
+            # Iniciar sesión
+            login(request, user)
+            
+            # Redirigir según rol
+            if user.role == 'administrador':
+                return redirect("dashboard_admin")
+            elif user.role == 'restaurante':
+                return redirect("dashboard_restaurante")
+            else:  # empleado
+                return redirect("dashboard_empleado")
+        else:
+            messages.error(request, "Contraseña incorrecta. Por favor intenta de nuevo.")
+            return render(request, "registration/login.html")
+    
+    return render(request, "registration/login.html")
 
 @login_required
 def gestionar_personal(request, empleado_id=None):
@@ -41,8 +80,19 @@ def gestionar_personal(request, empleado_id=None):
 def perfil_usuario(request):
     """Vista para que cualquier usuario vea sus propios datos de perfil."""
     user = request.user
+    solicitudes = []
+    
+    if user.role == 'empleado':
+        from schedule.models import SolicitudTiquete
+        try:
+            empleado = user.perfil_empleado
+            solicitudes = SolicitudTiquete.objects.filter(empleado=empleado).order_by("-fecha_solicitud")
+        except Exception:
+            pass
+            
     context = {
         'view_user': user,
+        'solicitudes': solicitudes,
     }
     return render(request, "accounts/perfil.html", context)
 
