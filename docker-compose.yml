@@ -19,6 +19,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+      - ./static:/app/static
 
   lunchflow_db:
     image: postgres:16
