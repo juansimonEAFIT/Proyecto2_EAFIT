@@ -41,4 +41,9 @@ media/
 .dockerignore
 docker-compose.override.yml
 
+# Gunicorn
+gunicorn.ctl
+
 .env
+
+ gunicorn.ctl
