@@ -6,8 +6,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioInventario
-from .models import ConsumoAlmuerzo, SolicitudTiquete, InventarioTiquetes, RegistroPago
-from accounts.models import Empleado, Administrador
+from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago, Schedule, ComidaReservada
+from users.models import Empleado, Administrador
+
+from django.http import JsonResponse
+from django.core.exceptions import ValidationError
 
 # ==========================================
 # VISTAS DE EMPLEADO
@@ -100,7 +103,7 @@ def consultar_estado_cuenta(request):
     pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
     
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
@@ -141,7 +144,7 @@ def ver_qr_empleado(request):
     )
     
     tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     return render(
@@ -153,6 +156,39 @@ def ver_qr_empleado(request):
             "tiquetes_disponibles": tiquetes_disponibles,
         }
     )
+
+@login_required
+def consumir_comida(request, comida_id):
+    try:
+        empleado = request.user.perfil_empleado
+    except Empleado.DoesNotExist:
+        return redirect('inicio')
+
+    # Solo permitir POST
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido"}, status=405)
+
+    comida = get_object_or_404(ComidaReservada, id=comida_id)
+
+    # Obtener schedule del empleado dueño de la comida
+    try:
+        schedule = Schedule.objects.get(empleado=comida.empleado)
+    except Schedule.DoesNotExist:
+        return JsonResponse({"error": "El empleado no tiene schedule asociado"}, status=400)
+
+    # Intentar consumir usando la lógica del modelo
+    try:
+        consumo = schedule.consumir(comida)
+        return JsonResponse({
+            "status": "ok",
+            "mensaje": "Consumo registrado correctamente",
+            "consumo_id": consumo.id,
+            "empleado": str(consumo.comida.empleado),
+            "comida": consumo.comida.comida.nombre,
+            "fecha_consumo": consumo.fecha_consumo,
+        })
+    except ValidationError as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 
 # ==========================================
@@ -196,11 +232,11 @@ def consumir_almuerzo_qr(request, codigo_qr):
     
     # 1. Calcular tiquetes disponibles
     tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
     tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos
 
     # 2. Verificar si ya consumió hoy
-    ya_consumio = ConsumoAlmuerzo.objects.filter(empleado=empleado, fecha=hoy).exists()
+    ya_consumio = Consumo.objects.filter(empleado=empleado, fecha=hoy).exists()
     
     if ya_consumio:
         messages.error(request, f"El empleado {empleado.usuario.get_full_name()} ya registró su consumo hoy.")
@@ -212,7 +248,7 @@ def consumir_almuerzo_qr(request, codigo_qr):
         inventario = InventarioTiquetes.objects.order_by("-mes").first()
         precio_actual = inventario.precio_tiquete if inventario else Decimal("10000.00")
         
-        ConsumoAlmuerzo.objects.create(
+        Consumo.objects.create(
             empleado=empleado,
             fecha=hoy,
             valor_almuerzo=precio_actual,
@@ -270,7 +306,7 @@ def gestionar_pago(request, pago_id):
     pago.save()
 
     # Actualizar consumos como pagados para este empleado
-    ConsumoAlmuerzo.objects.filter(empleado=pago.empleado, pagado=False).update(pagado=True)
+    Consumo.objects.filter(empleado=pago.empleado, pagado=False).update(pagado=True)
     
     messages.success(request, f"Pago de {pago.empleado} validado y saldo actualizado.")
     return redirect("dashboard_admin")
@@ -298,3 +334,17 @@ def gestionar_inventario(request):
         formulario = FormularioInventario(instance=inventario)
 
     return render(request, "schedule/gestionar_inventario.html", {"formulario": formulario})
+
+
+@login_required
+def historial_consumos(request, empleado_id):
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        return redirect("dashboard_empleado")
+
+    consumos = Consumo.objects.filter(
+        comida__empleado_id=empleado_id
+    ).order_by('-fecha_consumo')
+
+    return render(request, "schedule/historial_consumo.html", {
+        "consumos": consumos
+    })

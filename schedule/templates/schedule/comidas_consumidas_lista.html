@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Historial de Consumos - LunchFlow{% endblock %}
+
+{% block content %}
+{% if consumos %}
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Comida</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for consumo in consumos %}
+                <tr>
+                    <td>{{ consumo.fecha_consumo|date:"Y-m-d" }}</td>
+                    <td>{{ consumo.fecha_consumo|date:"H:i" }}</td>
+                    <td>{{ consumo.comida.comida.nombre }}</td>
+                    <td>{{ consumo.comida.comida.descripcion }}</td>
+                    <td>{{ consumo.comida.tipo|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+    <p>No hay consumos registrados.</p>
+{% endif %}
+
+{% endblock %}

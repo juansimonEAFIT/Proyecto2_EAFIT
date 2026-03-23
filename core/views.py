@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
-from schedule.models import SolicitudTiquete, RegistroPago, ConsumoAlmuerzo, InventarioTiquetes
-from accounts.models import Empleado
+from schedule.models import SolicitudTiquete, RegistroPago, Consumo, InventarioTiquetes
+from users.models import Empleado
 
 User = get_user_model()
 
@@ -52,10 +52,10 @@ def dashboard_empleado(request):
     
     from django.utils import timezone
     month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    tiquetes_consumidos = ConsumoAlmuerzo.objects.filter(empleado=empleado).count()
-    tiquetes_consumidos_mes = ConsumoAlmuerzo.objects.filter(empleado=empleado, fecha__gte=month_start.date()).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos_mes = Consumo.objects.filter(empleado=empleado, fecha__gte=month_start.date()).count()
     
-    ultimo_consumo = ConsumoAlmuerzo.objects.filter(empleado=empleado).order_by("-fecha").first()
+    ultimo_consumo = Consumo.objects.filter(empleado=empleado).order_by("-fecha").first()
     ultimo_consumo_fecha = ultimo_consumo.fecha.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
     
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)

@@ -8,6 +8,7 @@ from .views import (
     consultar_estado_cuenta,
     gestionar_inventario,
     ver_qr_empleado,
+    consumir_comida
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("gestion-humana/inventario/", gestionar_inventario, name="gestionar_inventario"),
     path("gestion-humana/solicitud/<int:solicitud_id>/<str:accion>/", gestionar_solicitud, name="gestionar_solicitud"),
     path("gestion-humana/pago/<int:pago_id>/validar/", gestionar_pago, name="gestionar_pago"),
+    path("consumir/<int:comida_id>/", consumir_comida, name="consumir_comida"),
 ]
