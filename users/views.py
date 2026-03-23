@@ -33,8 +33,8 @@ def login_view(request):
             # Iniciar sesión
             login(request, user)
 
-            # Redirigir según rol
-            if user.role == 'administrador':
+            # Redirigir según rol (Superusuarios siempre van al admin dashboard)
+            if user.is_superuser or user.role == 'administrador':
                 return redirect("dashboard_admin")
             elif user.role == 'restaurante':
                 return redirect("dashboard_restaurante")
@@ -84,7 +84,7 @@ def perfil_usuario(request):
     if user.role == 'empleado':
         from schedule.models import SolicitudTiquete
         try:
-            empleado = user.perfil_empleado
+            empleado = user.empleado_perfil
             solicitudes = SolicitudTiquete.objects.filter(empleado=empleado).order_by("-fecha_solicitud")
         except Exception:
             pass

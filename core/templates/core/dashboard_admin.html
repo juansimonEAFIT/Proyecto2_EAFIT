@@ -71,7 +71,7 @@
                     <tbody>
                         {% for solicitud in solicitudes_pendientes|slice:":5" %}
                         <tr>
-                            <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
+                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
                             <td>{{ solicitud.get_tipo_tiquete_display }}</td>
                             <td>{{ solicitud.cantidad }}</td>
                             <td>
@@ -104,7 +104,7 @@
                     <tbody>
                         {% for solicitud in solicitudes_pendientes %}
                         <tr>
-                            <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
+                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
                             <td>{{ solicitud.cantidad }}</td>
                             <td>{{ solicitud.fecha_reclamo|default:"---" }}</td>
                             <td>
@@ -136,7 +136,7 @@
                         {% for solicitud in solicitudes_historial %}
                         <tr>
                             <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
-                            <td>{{ solicitud.empleado.usuario.get_full_name }}</td>
+                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
                             <td>{{ solicitud.cantidad }}</td>
                             <td>
                                 <span class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
@@ -166,7 +166,7 @@
                     <tbody>
                         {% for pago in pagos_pendientes %}
                         <tr>
-                            <td>{{ pago.empleado.usuario.get_full_name }}</td>
+                            <td>{{ pago.empleado.user.get_full_name }}</td>
                             <td>${{ pago.valor_pagado }}</td>
                             <td>{{ pago.comprobante }}</td>
                             <td>

@@ -38,14 +38,14 @@ class FormularioPersonal(forms.ModelForm):
         if instance:
             initial = kwargs.get('initial', {})
             # Cargar datos del perfil según el rol
-            if instance.role == 'empleado' and hasattr(instance, 'perfil_empleado'):
-                initial['numero_documento'] = instance.perfil_empleado.numero_documento
-                initial['departamento'] = instance.perfil_empleado.departamento
-                initial['telefono'] = instance.perfil_empleado.telefono
-                initial['esta_activo'] = instance.perfil_empleado.esta_activo
-            elif instance.role == 'restaurante' and hasattr(instance, 'perfil_restaurante'):
-                initial['nombre_sede'] = instance.perfil_restaurante.nombre_sede
-                initial['telefono'] = instance.perfil_restaurante.telefono
+            if instance.role == 'empleado' and hasattr(instance, 'empleado_perfil'):
+                initial['numero_documento'] = instance.empleado_perfil.numero_documento
+                initial['departamento'] = instance.empleado_perfil.departamento
+                initial['telefono'] = instance.empleado_perfil.telefono
+                initial['esta_activo'] = instance.empleado_perfil.esta_activo
+            elif instance.role == 'restaurante' and hasattr(instance, 'restaurante_perfil'):
+                initial['nombre_sede'] = instance.restaurante_perfil.nombre_sede
+                initial['telefono'] = instance.restaurante_perfil.telefono
             kwargs['initial'] = initial
         
         super().__init__(*args, **kwargs)
@@ -89,7 +89,7 @@ class FormularioPersonal(forms.ModelForm):
             qs = Empleado.objects.filter(numero_documento=num_doc)
             if self.instance and self.instance.pk:
                 # Si estamos editando un usuario, necesitamos excluir su propio perfil de empleado actual
-                qs = qs.exclude(usuario=self.instance)
+                qs = qs.exclude(user=self.instance)
             
             if qs.exists():
                 raise forms.ValidationError("Este número de documento ya está registrado.")
@@ -130,10 +130,10 @@ class FormularioPersonal(forms.ModelForm):
                 
                 if nuevo_rol == 'empleado':
                     # Eliminar perfil de restaurante si existiera (cambio de rol)
-                    Restaurante.objects.filter(usuario=user).delete()
+                    Restaurante.objects.filter(user=user).delete()
                     
                     # Crear o actualizar perfil de empleado
-                    empleado_perfil, _ = Empleado.objects.get_or_create(usuario=user)
+                    empleado_perfil, _ = Empleado.objects.get_or_create(user=user)
                     empleado_perfil.numero_documento = self.cleaned_data.get("numero_documento")
                     empleado_perfil.departamento = self.cleaned_data.get("departamento")
                     empleado_perfil.telefono = self.cleaned_data.get("telefono")
@@ -142,10 +142,10 @@ class FormularioPersonal(forms.ModelForm):
                     
                 elif nuevo_rol == 'restaurante':
                     # Eliminar perfil de empleado si existiera (cambio de rol)
-                    Empleado.objects.filter(usuario=user).delete()
+                    Empleado.objects.filter(user=user).delete()
                     
                     # Crear o actualizar perfil de restaurante
-                    restaurante_perfil, _ = Restaurante.objects.get_or_create(usuario=user)
+                    restaurante_perfil, _ = Restaurante.objects.get_or_create(user=user)
                     restaurante_perfil.nombre_sede = self.cleaned_data.get("nombre_sede", "Sede Principal")
                     restaurante_perfil.telefono = self.cleaned_data.get("telefono")
                     restaurante_perfil.save()

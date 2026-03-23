@@ -26,7 +26,7 @@ def inicio(request):
 @login_required
 def dashboard_empleado(request):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         if request.user.role == 'administrador' or request.user.is_superuser:
             return redirect('dashboard_admin')
@@ -52,11 +52,11 @@ def dashboard_empleado(request):
     
     from django.utils import timezone
     month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
-    tiquetes_consumidos_mes = Consumo.objects.filter(empleado=empleado, fecha__gte=month_start.date()).count()
+    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
+    tiquetes_consumidos_mes = Consumo.objects.filter(comida__empleado=empleado, fecha_consumo__gte=month_start.date()).count()
     
-    ultimo_consumo = Consumo.objects.filter(empleado=empleado).order_by("-fecha").first()
-    ultimo_consumo_fecha = ultimo_consumo.fecha.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
+    ultimo_consumo = Consumo.objects.filter(comida__empleado=empleado).order_by("-fecha_consumo").first()
+    ultimo_consumo_fecha = ultimo_consumo.fecha_consumo.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
     
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
 

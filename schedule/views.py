@@ -19,7 +19,7 @@ from django.core.exceptions import ValidationError
 @login_required
 def solicitar_tiquete(request):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         messages.error(request, "Solo los empleados pueden solicitar tiquetes.")
         return redirect("dashboard_empleado")
@@ -63,7 +63,7 @@ def solicitar_tiquete(request):
 @login_required
 def registrar_pago(request):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         return redirect("dashboard_empleado")
 
@@ -84,7 +84,7 @@ def registrar_pago(request):
 @login_required
 def consultar_estado_cuenta(request):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         return redirect("dashboard_empleado")
 
@@ -103,7 +103,7 @@ def consultar_estado_cuenta(request):
     pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
     
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
@@ -134,7 +134,7 @@ def consultar_estado_cuenta(request):
 @login_required
 def ver_qr_empleado(request):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         return redirect('inicio')
         
@@ -144,7 +144,7 @@ def ver_qr_empleado(request):
     )
     
     tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     return render(
@@ -160,7 +160,7 @@ def ver_qr_empleado(request):
 @login_required
 def consumir_comida(request, comida_id):
     try:
-        empleado = request.user.perfil_empleado
+        empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         return redirect('inicio')
 
@@ -219,7 +219,7 @@ def consumir_almuerzo_qr(request, codigo_qr):
     if not empleado.esta_activo:
         messages.error(
             request,
-            f"Acceso denegado. El empleado {empleado.usuario.get_full_name()} está inactivo. "
+            f"Acceso denegado. El empleado {empleado.user.get_full_name()} está inactivo. "
             "Contacta con gestión humana para reactivar tu cuenta."
         )
         return render(
@@ -232,29 +232,43 @@ def consumir_almuerzo_qr(request, codigo_qr):
     
     # 1. Calcular tiquetes disponibles
     tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
     tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos
 
     # 2. Verificar si ya consumió hoy
-    ya_consumio = Consumo.objects.filter(empleado=empleado, fecha=hoy).exists()
+    ya_consumio = Consumo.objects.filter(comida__empleado=empleado, fecha_consumo__date=hoy).exists()
     
     if ya_consumio:
-        messages.error(request, f"El empleado {empleado.usuario.get_full_name()} ya registró su consumo hoy.")
+        messages.error(request, f"El empleado {empleado.user.get_full_name()} ya registró su consumo hoy.")
         exito = False
     elif tiquetes_disponibles <= 0:
-        messages.error(request, f"Consumo denegado. El empleado {empleado.usuario.get_full_name()} no tiene tiquetes disponibles.")
+        messages.error(request, f"Consumo denegado. El empleado {empleado.user.get_full_name()} no tiene tiquetes disponibles.")
         exito = False
     else:
-        inventario = InventarioTiquetes.objects.order_by("-mes").first()
-        precio_actual = inventario.precio_tiquete if inventario else Decimal("10000.00")
+        # Para registrar el consumo vía QR, necesitamos una ComidaReservada (Almuerzo) para este empleado.
+        # Si no existe reserva hoy, intentamos buscar una o crear una genérica para poder registrar el consumo.
+        comida_hoy = ComidaReservada.objects.filter(empleado=empleado, fecha_de_consumo=hoy).first()
         
+        if not comida_hoy:
+            # Intentar obtener una comida base para crear la reserva
+            from .models import Comida
+            comida_base = Comida.objects.order_by("-fecha_de_creacion").first()
+            if not comida_base:
+                # Si ni siquiera hay comidas definidas, no podemos registrar el consumo
+                messages.error(request, "No hay comidas configuradas en el sistema para registrar el consumo.")
+                return render(request, "schedule/consumo_qr_resultado.html", {"empleado": empleado, "exito": False, "razon_error": "sin_comidas"})
+            
+            comida_hoy = ComidaReservada.objects.create(
+                empleado=empleado,
+                comida=comida_base,
+                fecha_de_consumo=hoy,
+                tipo="almuerzo"
+            )
+
         Consumo.objects.create(
-            empleado=empleado,
-            fecha=hoy,
-            valor_almuerzo=precio_actual,
-            pagado=False
+            comida=comida_hoy
         )
-        messages.success(request, f"Consumo registrado con éxito para {empleado.usuario.get_full_name()}.")
+        messages.success(request, f"Consumo registrado con éxito para {empleado.user.get_full_name()}.")
         exito = True
     
     return render(
@@ -306,7 +320,9 @@ def gestionar_pago(request, pago_id):
     pago.save()
 
     # Actualizar consumos como pagados para este empleado
-    Consumo.objects.filter(empleado=pago.empleado, pagado=False).update(pagado=True)
+    # Nota: Consumo no tiene campo 'pagado', se asume que la validación del pago es suficiente
+    # para el saldo global del empleado.
+    # Consumo.objects.filter(comida__empleado=pago.empleado).update(pagado=True)
     
     messages.success(request, f"Pago de {pago.empleado} validado y saldo actualizado.")
     return redirect("dashboard_admin")

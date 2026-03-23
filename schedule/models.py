@@ -96,7 +96,6 @@ class Schedule(models.Model):
             raise ValidationError("Esta comida no pertenece a este empleado.")
 
         consumo = Consumo.objects.create(
-            empleado=self.empleado,
             comida=comida
         )
 
@@ -149,7 +148,7 @@ class SolicitudTiquete(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.empleado.usuario.username} - {self.cantidad} a ${self.precio_unitario} - {self.estado}"
+        return f"{self.empleado.user.username} - {self.cantidad} a ${self.precio_unitario} - {self.estado}"
 
 
 class RegistroPago(models.Model):
@@ -164,7 +163,7 @@ class RegistroPago(models.Model):
     validado_por_gh = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Pago {self.empleado.usuario.username} - ${self.valor_pagado} - Val: {self.validado_por_gh}"
+        return f"Pago {self.empleado.user.username} - ${self.valor_pagado} - Val: {self.validado_por_gh}"
 
     def save(self, *args, **kwargs):
         nuevo = self.pk is None

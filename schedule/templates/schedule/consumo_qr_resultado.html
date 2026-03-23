@@ -38,8 +38,8 @@
 
             <div style="text-align: left; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
                 <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">DETALLES DEL EMPLEADO:</p>
-                <p style="margin: 0; font-size: 1.1rem; color: #1e293b;"><strong>{{ empleado.usuario.get_full_name }}</strong></p>
-                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">ID: {{ empleado.usuario.username }}</p>
+                <p style="margin: 0; font-size: 1.1rem; color: #1e293b;"><strong>{{ empleado.user.get_full_name }}</strong></p>
+                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">ID: {{ empleado.user.username }}</p>
                 <p style="margin: 15px 0 0 0; font-size: 0.9rem; color: #94a3b8;">{{ fecha|date:"d/m/Y - H:i" }}</p>
             </div>
 
