@@ -158,3 +158,22 @@ Esto borra los volúmenes y la base de datos, luego la reconstruye desde cero.
 - Los perfiles se crean automáticamente mediante signals.
 
 ---
+
+## Errores comunes (solo desarrollo)
+
+ - Un posible error que puede recivir en el momento de ejecucion es uno relacionado al archivo entrypoint.sh del programa y se veria de esta forma:
+```bash
+env: ‘bash\r’: No such file or directory
+env: use -[v]S to pass options in shebang lines
+```
+En el caso que esto suceda no se preocupe, todo lo que tiene que hacer es lo siguiente:
+
+1. En la linea de comandos escribir el siguiente comando:
+```bash
+git config core.autocrlf false
+```
+esto configurara a git para que no vuelva a pasar este problema en esta maquina
+
+2. En tu editor de texto simplemente selecciona el archivo entrypoint.sh y busca como se cambia el tipo de espaciado en tu editor de preferencia. Para vscode, PyCharm y AntiGravity esto esta en la esquina derecha abajo al lado de una opcion UTF-8, simplemente dar click a CRLF(o el que aparezca) y cambiar a LF
+  
+ 
