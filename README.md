@@ -1,74 +1,179 @@
 # Proyecto2_EAFIT
 Aplicación web para la gestión integral de almuerzos corporativos, que automatiza el registro de consumo mediante códigos QR, el control de pagos y saldos, y la visualización de métricas administrativas, apoyando la toma de decisiones a través de analítica básica y estimación de demanda.
 
-## Requisitos Previos
+---
 
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
-- **Python 3.10+**
-- **Docker** y **Docker Compose** (Para levantar la base de datos PostgreSQL)
-- **Git**
+## Requerimientos previos
 
-## Pasos para ejecutar el proyecto
+Para ejecutar correctamente el proyecto, asegúrate de tener instalado:
 
-Sigue estas instrucciones para levantar el proyecto localmente para revisión:
-
-### 1. Iniciar la Base de Datos con Docker
-
-El proyecto utiliza PostgreSQL, el cual está configurado vía Docker. En la raíz del proyecto (donde se encuentra el archivo `docker-compose.yml`), ejecuta el siguiente comando para levantar la base de datos en segundo plano:
+### 1. Docker Desktop o Docker Engine + Docker Compose
+Verifica la instalación con:
 
 ```bash
-docker-compose up -d
+docker --version
+docker compose version
 ```
-*(Opcional: puedes acceder a Adminer en `http://localhost:8080` para visualizar la base de datos)*
 
-### 2. Crear y activar un entorno virtual
-
-Se recomienda usar un entorno virtual para aislar las dependencias del proyecto.
-
-En **Windows**:
+### 2. Python 3.10+ (opcional, solo si deseas usar venv fuera de Docker)
 ```bash
-python -m venv venv
-venv\Scripts\activate
+python --version
 ```
 
-En **macOS / Linux**:
+---
+
+## (Opcional) Crear entorno virtual
+
+Si deseas ejecutar scripts o herramientas fuera de Docker, puedes crear un entorno virtual:
+
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python -m venv .venv
 ```
 
-### 3. Instalar dependencias
+Activación:
 
-Con el entorno virtual activado, instala las dependencias necesarias de Python:
+**Windows (PowerShell):**
+```bash
+.venv\Scripts\Activate.ps1
+```
+
+**Linux/Mac:**
+```bash
+source .venv/bin/activate
+```
+
+Instalar dependencias manualmente (opcional):
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Ejecutar las migraciones
+---
 
-Aplica las migraciones para estructurar la base de datos de la aplicación:
+## Ejecutar la aplicación con Docker
+
+### 1. Construir y levantar los contenedores
+
+En el directorio raíz del proyecto:
+
 ```bash
-python manage.py migrate
+docker compose up --build
 ```
 
-### 5. Crear un superusuario (Opcional)
+Esto:
+- Construye la imagen de la aplicación  
+- Instala dependencias  
+- Levanta el servidor web y la base de datos  
+- Inicia el backend en puerto 8000  
 
-Si necesitas acceder al panel de administración de Django, puedes crear un superusuario:
+---
+
+### 2. Aplicar migraciones (si tu entrypoint no lo hace automáticamente)
+
 ```bash
-python manage.py createsuperuser
+docker compose exec web python manage.py makemigrations
+docker compose exec web python manage.py migrate
 ```
-Te pedirá un nombre de usuario, correo electrónico y contraseña.
 
-### 6. Levantar el servidor de desarrollo
+> Nota: si tu servicio no se llama `web` en docker-compose.yml, ajusta el nombre en los comandos.
 
-Finalmente, inicia el servidor de desarrollo de Django:
+---
+
+### 3. Crear un superusuario
+
 ```bash
-python manage.py runserver
+docker compose exec web python manage.py createsuperuser
 ```
 
-### 7. Acceder a la aplicación
+O si necesitas hacerlo sin interacción:
 
-Abre tu navegador web e ingresa a la siguiente dirección:
-[http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+```bash
+docker compose exec web python manage.py shell
+```
 
-*Para el panel de administración, ingresa a `http://127.0.0.1:8000/admin/`.*
+```python
+from django.contrib.auth import get_user_model
+User = get_user_model()
+User.objects.create_superuser("admin", "admin@example.com", "admin123")
+exit()
+```
+
+---
+
+## Acceso a la aplicación
+
+### Aplicación principal:
+```
+http://localhost:8000
+```
+
+### Administrador de Django:
+```
+http://localhost:8000/admin
+```
+
+Inicia sesión con el superusuario que creaste.
+
+---
+
+## Comandos útiles
+
+### Entrar al shell interactivo de Django
+```bash
+docker compose exec web python manage.py shell
+```
+
+### Ver logs del contenedor
+```bash
+docker compose logs -f web
+```
+
+### Reiniciar contenedores
+```bash
+docker compose down
+docker compose up --build
+```
+
+---
+
+## Resetear completamente la base de datos (solo desarrollo)
+
+Si las migraciones fallan o la base de datos está inconsistente:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Esto borra los volúmenes y la base de datos, luego la reconstruye desde cero.
+
+---
+
+## Notas para desarrollo
+
+- Ejecuta siempre comandos de Django desde el contenedor usando:  
+  `docker compose exec web ...`
+- Si eliminas apps o cambias modelos de forma importante, borra migraciones y resetea la base con `docker compose down -v`.
+- Los roles se manejan desde `User.role`.
+- Los perfiles se crean automáticamente mediante signals.
+
+---
+
+## Errores comunes (solo desarrollo)
+
+ - Un posible error que puede recivir en el momento de ejecucion es uno relacionado al archivo entrypoint.sh del programa y se veria de esta forma:
+```bash
+env: ‘bash\r’: No such file or directory
+env: use -[v]S to pass options in shebang lines
+```
+En el caso que esto suceda no se preocupe, todo lo que tiene que hacer es lo siguiente:
+
+1. En la linea de comandos escribir el siguiente comando:
+```bash
+git config core.autocrlf false
+```
+esto configurara a git para que no vuelva a pasar este problema en esta maquina
+
+2. En tu editor de texto simplemente selecciona el archivo entrypoint.sh y busca como se cambia el tipo de espaciado en tu editor de preferencia. Para vscode, PyCharm y AntiGravity esto esta en la esquina derecha abajo al lado de una opcion UTF-8, simplemente dar click a CRLF(o el que aparezca) y cambiar a LF
+  
+ 
