@@ -37,12 +37,12 @@ class Empleado(models.Model):
         related_name="empleado_perfil"
     )
 
-    numero_documento = models.CharField(max_length=50, unique=True)
+    numero_documento = models.CharField(max_length=50, unique=True, blank=True, null=True)
     departamento = models.CharField(max_length=100, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     esta_activo = models.BooleanField(default=True)
 
-    codigo_qr = models.UUIDField(default=uuid.uuid4, editable=False)
+    codigo_qr = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     saldo = models.PositiveIntegerField(default=0)

@@ -89,8 +89,21 @@ def dashboard_empleado(request):
 def dashboard_restaurante(request):
     if request.user.role != 'restaurante' and not request.user.is_superuser:
         return redirect("inicio")
-        
-    return render(request, "core/dashboard_restaurante.html")
+
+    from schedule.models import Consumo
+    from django.utils import timezone
+
+    hoy = timezone.localdate()
+    consumos_hoy = Consumo.objects.filter(
+        fecha_consumo__date=hoy
+    ).select_related(
+        'comida__empleado__user'
+    ).order_by('-fecha_consumo')
+
+    return render(request, "core/dashboard_restaurante.html", {
+        "consumos_hoy": consumos_hoy,
+        "total_consumos_hoy": consumos_hoy.count(),
+    })
 
 
 @login_required

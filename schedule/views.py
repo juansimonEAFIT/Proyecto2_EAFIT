@@ -195,6 +195,7 @@ def consumir_comida(request, comida_id):
 # VISTAS DE RESTAURANTE
 # ==========================================
 
+@login_required
 def consumir_almuerzo_qr(request, codigo_qr):
     """
     Vista para registrar consumo de almuerzo mediante QR.
@@ -204,6 +205,10 @@ def consumir_almuerzo_qr(request, codigo_qr):
     - Si está inactivo, el sistema bloquea el registro
     - Se muestra un mensaje claro
     """
+    if request.user.role not in {"restaurante", "administrador"} and not request.user.is_superuser:
+        messages.error(request, "Solo el personal autorizado puede registrar consumos por QR.")
+        return redirect("inicio")
+
     # Buscar empleado por QR (activo o inactivo)
     try:
         empleado = Empleado.objects.get(codigo_qr=codigo_qr)
@@ -212,7 +217,7 @@ def consumir_almuerzo_qr(request, codigo_qr):
         return render(
             request,
             "schedule/consumo_qr_resultado.html",
-            {"exito": False, "razon_error": "empleado_no_existe"}
+            {"empleado": None, "exito": False, "razon_error": "empleado_no_existe", "fecha": timezone.now()}
         )
     
     # Validar que el empleado esté activo
@@ -225,7 +230,7 @@ def consumir_almuerzo_qr(request, codigo_qr):
         return render(
             request,
             "schedule/consumo_qr_resultado.html",
-            {"empleado": empleado, "exito": False, "razon_error": "empleado_inactivo"}
+            {"empleado": empleado, "exito": False, "razon_error": "empleado_inactivo", "fecha": timezone.now()}
         )
     
     hoy = timezone.localdate()
@@ -256,7 +261,11 @@ def consumir_almuerzo_qr(request, codigo_qr):
             if not comida_base:
                 # Si ni siquiera hay comidas definidas, no podemos registrar el consumo
                 messages.error(request, "No hay comidas configuradas en el sistema para registrar el consumo.")
-                return render(request, "schedule/consumo_qr_resultado.html", {"empleado": empleado, "exito": False, "razon_error": "sin_comidas"})
+                return render(
+                    request,
+                    "schedule/consumo_qr_resultado.html",
+                    {"empleado": empleado, "exito": False, "razon_error": "sin_comidas", "fecha": timezone.now()},
+                )
             
             comida_hoy = ComidaReservada.objects.create(
                 empleado=empleado,
@@ -276,7 +285,7 @@ def consumir_almuerzo_qr(request, codigo_qr):
         "schedule/consumo_qr_resultado.html", 
         {
             "empleado": empleado,
-            "fecha": hoy,
+            "fecha": timezone.now(),
             "exito": exito
         }
     )
