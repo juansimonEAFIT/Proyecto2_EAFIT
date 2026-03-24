@@ -47,26 +47,6 @@
     </div>
 </div>
 
-<!-- Últimos consumos de hoy -->
-{% if consumos_hoy %}
-<div class="bento-card" style="margin: 30px auto; max-width: 600px; border: 1px solid #eff6ff;">
-    <h2 style="color: var(--color-oscuro); margin-bottom: 15px; font-size: 18px;">Consumos registrados hoy</h2>
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-        {% for consumo in consumos_hoy %}
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
-            <div>
-                <strong style="color: var(--color-oscuro);">{{ consumo.comida.empleado.user.get_full_name }}</strong>
-                <span style="color: var(--color-texto-sutil); font-size: 13px; display: block;">{{ consumo.comida.empleado.user.username }}</span>
-            </div>
-            <span style="color: var(--color-texto-suave); font-size: 13px;">{{ consumo.fecha_consumo|time:"h:i A" }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    <div style="margin-top: 15px; text-align: center; color: var(--color-texto-sutil); font-size: 14px;">
-        Total hoy: <strong style="color: var(--color-azul);">{{ total_consumos_hoy }}</strong> almuerzo{{ total_consumos_hoy|pluralize:"s" }}
-    </div>
-</div>
-{% endif %}
 
 <!-- Info del rol -->
 <div class="bento-card" style="margin: 20px auto; max-width: 600px; border: 1px solid #eff6ff;">
@@ -136,7 +116,7 @@
     function obtenerUrlConsumoQr(decodedText) {
         try {
             const urlEscaneada = new URL(decodedText, window.location.origin);
-            const patronRuta = /^\/almuerzo\/consumir\/[0-9a-f-]+\/?$/i;
+            const patronRuta = /^\/almuerzo\/consumir\/[0-9a-f-]+\/[a-z0-9]+\/?$/i;
 
             if (urlEscaneada.origin !== window.location.origin) {
                 return null;

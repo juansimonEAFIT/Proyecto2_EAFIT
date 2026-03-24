@@ -73,3 +73,33 @@ class FormularioInventario(forms.ModelForm):
         labels = {
             "precio_tiquete": "Precio por tiquete ($)",
         }
+
+    def __init__(self, *args, **kwargs):
+        ya_existe = kwargs.pop("ya_existe", False)
+        super().__init__(*args, **kwargs)
+        if ya_existe:
+            self.fields["mes"].widget.attrs["readonly"] = True
+            self.fields["cantidad_inicial"].widget.attrs["readonly"] = True
+            self.fields["mes"].required = False
+            self.fields["cantidad_inicial"].required = False
+
+    def clean_mes(self):
+        mes = self.cleaned_data.get("mes")
+        if self.instance.pk and mes != self.instance.mes:
+            return self.instance.mes
+        return mes
+
+    def clean_cantidad_inicial(self):
+        cantidad = self.cleaned_data.get("cantidad_inicial")
+        if self.instance.pk and 'cantidad_inicial' in self.changed_data:
+            # Si ya existe, no permitimos cambiar el inicial desde este form para evitar reseteos
+            return self.instance.cantidad_inicial
+        return cantidad
+
+
+class FormularioAumentarInventario(forms.Form):
+    cantidad_a_adicionar = forms.IntegerField(
+        min_value=1, 
+        label="Cantidad a adicionar",
+        help_text="Sumará esta cantidad al stock disponible actual."
+    )

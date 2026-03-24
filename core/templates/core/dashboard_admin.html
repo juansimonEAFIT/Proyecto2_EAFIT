@@ -57,35 +57,7 @@
                 </div>
             </div>
 
-            <!-- Quick Preview Tables -->
-            <div class="tabla-contenedor" style="margin-bottom: 30px;">
-                <h2 class="subtitulo-izq" style="margin: 0 0 20px; font-size: 18px;">Solicitudes Urgentes</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Empleado</th>
-                            <th>Cant.</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for solicitud in solicitudes_pendientes|slice:":5" %}
-                        <tr>
-                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
-                            <td>{{ solicitud.get_tipo_tiquete_display }}</td>
-                            <td>{{ solicitud.cantidad }}</td>
-                            <td>
-                                <a href="{% url 'gestionar_solicitud' solicitud.id 'aprobar' %}" class="insignia insignia-verde" style="text-decoration: none;">Aprobar</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" style="text-align: center;">No hay solicitudes urgentes.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+
         </div>
 
         <!-- Solicitudes Section -->

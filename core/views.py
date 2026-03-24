@@ -52,19 +52,15 @@ def dashboard_empleado(request):
     
     from django.utils import timezone
     month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
-    tiquetes_consumidos_mes = Consumo.objects.filter(comida__empleado=empleado, fecha_consumo__gte=month_start.date()).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos_mes = Consumo.objects.filter(empleado=empleado, fecha_consumo__gte=month_start.date()).count()
     
-    ultimo_consumo = Consumo.objects.filter(comida__empleado=empleado).order_by("-fecha_consumo").first()
+    ultimo_consumo = Consumo.objects.filter(empleado=empleado).order_by("-fecha_consumo").first()
     ultimo_consumo_fecha = ultimo_consumo.fecha_consumo.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
     
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
 
-    # URL para el código QR (Solución ingeniosa)
-    from django.urls import reverse
-    url_consumo = request.build_absolute_uri(
-        reverse("consumir_almuerzo_qr", kwargs={"codigo_qr": empleado.codigo_qr})
-    )
+    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
 
     return render(
         request,
@@ -78,7 +74,6 @@ def dashboard_empleado(request):
             "tiquetes_consumidos": tiquetes_consumidos,
             "tiquetes_consumidos_mes": tiquetes_consumidos_mes,
             "ultimo_consumo_fecha": ultimo_consumo_fecha,
-            "url_consumo": url_consumo,
             "empleado_activo": empleado.esta_activo,
             "precio_tiquete": f"{precio_tiquete:,.0f}".replace(",", "."),
         },
@@ -90,20 +85,9 @@ def dashboard_restaurante(request):
     if request.user.role != 'restaurante' and not request.user.is_superuser:
         return redirect("inicio")
 
-    from schedule.models import Consumo
-    from django.utils import timezone
+    return render(request, "core/dashboard_restaurante.html")
 
-    hoy = timezone.localdate()
-    consumos_hoy = Consumo.objects.filter(
-        fecha_consumo__date=hoy
-    ).select_related(
-        'comida__empleado__user'
-    ).order_by('-fecha_consumo')
 
-    return render(request, "core/dashboard_restaurante.html", {
-        "consumos_hoy": consumos_hoy,
-        "total_consumos_hoy": consumos_hoy.count(),
-    })
 
 
 @login_required

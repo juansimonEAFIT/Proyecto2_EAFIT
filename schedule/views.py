@@ -5,12 +5,9 @@ from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioInventario
-from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago, Schedule, ComidaReservada
+from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioInventario, FormularioAumentarInventario
+from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago
 from users.models import Empleado, Administrador
-
-from django.http import JsonResponse
-from django.core.exceptions import ValidationError
 
 # ==========================================
 # VISTAS DE EMPLEADO
@@ -103,7 +100,7 @@ def consultar_estado_cuenta(request):
     pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
     
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
@@ -129,167 +126,6 @@ def consultar_estado_cuenta(request):
             "ultima_actualizacion": timezone.now(),
         },
     )
-
-
-@login_required
-def ver_qr_empleado(request):
-    try:
-        empleado = request.user.empleado_perfil
-    except Empleado.DoesNotExist:
-        return redirect('inicio')
-        
-    from django.urls import reverse
-    url_consumo = request.build_absolute_uri(
-        reverse("consumir_almuerzo_qr", kwargs={"codigo_qr": empleado.codigo_qr})
-    )
-    
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
-    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
-    
-    return render(
-        request, 
-        "schedule/qr_empleado.html", 
-        {
-            "url_consumo": url_consumo,
-            "empleado_activo": empleado.esta_activo,
-            "tiquetes_disponibles": tiquetes_disponibles,
-        }
-    )
-
-@login_required
-def consumir_comida(request, comida_id):
-    try:
-        empleado = request.user.empleado_perfil
-    except Empleado.DoesNotExist:
-        return redirect('inicio')
-
-    # Solo permitir POST
-    if request.method != "POST":
-        return JsonResponse({"error": "Método no permitido"}, status=405)
-
-    comida = get_object_or_404(ComidaReservada, id=comida_id)
-
-    # Obtener schedule del empleado dueño de la comida
-    try:
-        schedule = Schedule.objects.get(empleado=comida.empleado)
-    except Schedule.DoesNotExist:
-        return JsonResponse({"error": "El empleado no tiene schedule asociado"}, status=400)
-
-    # Intentar consumir usando la lógica del modelo
-    try:
-        consumo = schedule.consumir(comida)
-        return JsonResponse({
-            "status": "ok",
-            "mensaje": "Consumo registrado correctamente",
-            "consumo_id": consumo.id,
-            "empleado": str(consumo.comida.empleado),
-            "comida": consumo.comida.comida.nombre,
-            "fecha_consumo": consumo.fecha_consumo,
-        })
-    except ValidationError as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-
-# ==========================================
-# VISTAS DE RESTAURANTE
-# ==========================================
-
-@login_required
-def consumir_almuerzo_qr(request, codigo_qr):
-    """
-    Vista para registrar consumo de almuerzo mediante QR.
-    
-    Criterios de aceptación (Historia 2):
-    - Solo empleados activos pueden consumir
-    - Si está inactivo, el sistema bloquea el registro
-    - Se muestra un mensaje claro
-    """
-    if request.user.role not in {"restaurante", "administrador"} and not request.user.is_superuser:
-        messages.error(request, "Solo el personal autorizado puede registrar consumos por QR.")
-        return redirect("inicio")
-
-    # Buscar empleado por QR (activo o inactivo)
-    try:
-        empleado = Empleado.objects.get(codigo_qr=codigo_qr)
-    except Empleado.DoesNotExist:
-        messages.error(request, "Código QR no válido. Empleado no encontrado.")
-        return render(
-            request,
-            "schedule/consumo_qr_resultado.html",
-            {"empleado": None, "exito": False, "razon_error": "empleado_no_existe", "fecha": timezone.now()}
-        )
-    
-    # Validar que el empleado esté activo
-    if not empleado.esta_activo:
-        messages.error(
-            request,
-            f"Acceso denegado. El empleado {empleado.user.get_full_name()} está inactivo. "
-            "Contacta con gestión humana para reactivar tu cuenta."
-        )
-        return render(
-            request,
-            "schedule/consumo_qr_resultado.html",
-            {"empleado": empleado, "exito": False, "razon_error": "empleado_inactivo", "fecha": timezone.now()}
-        )
-    
-    hoy = timezone.localdate()
-    
-    # 1. Calcular tiquetes disponibles
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(comida__empleado=empleado).count()
-    tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos
-
-    # 2. Verificar si ya consumió hoy
-    ya_consumio = Consumo.objects.filter(comida__empleado=empleado, fecha_consumo__date=hoy).exists()
-    
-    if ya_consumio:
-        messages.error(request, f"El empleado {empleado.user.get_full_name()} ya registró su consumo hoy.")
-        exito = False
-    elif tiquetes_disponibles <= 0:
-        messages.error(request, f"Consumo denegado. El empleado {empleado.user.get_full_name()} no tiene tiquetes disponibles.")
-        exito = False
-    else:
-        # Para registrar el consumo vía QR, necesitamos una ComidaReservada (Almuerzo) para este empleado.
-        # Si no existe reserva hoy, intentamos buscar una o crear una genérica para poder registrar el consumo.
-        comida_hoy = ComidaReservada.objects.filter(empleado=empleado, fecha_de_consumo=hoy).first()
-        
-        if not comida_hoy:
-            # Intentar obtener una comida base para crear la reserva
-            from .models import Comida
-            comida_base = Comida.objects.order_by("-fecha_de_creacion").first()
-            if not comida_base:
-                # Si ni siquiera hay comidas definidas, no podemos registrar el consumo
-                messages.error(request, "No hay comidas configuradas en el sistema para registrar el consumo.")
-                return render(
-                    request,
-                    "schedule/consumo_qr_resultado.html",
-                    {"empleado": empleado, "exito": False, "razon_error": "sin_comidas", "fecha": timezone.now()},
-                )
-            
-            comida_hoy = ComidaReservada.objects.create(
-                empleado=empleado,
-                comida=comida_base,
-                fecha_de_consumo=hoy,
-                tipo="almuerzo"
-            )
-
-        Consumo.objects.create(
-            comida=comida_hoy
-        )
-        messages.success(request, f"Consumo registrado con éxito para {empleado.user.get_full_name()}.")
-        exito = True
-    
-    return render(
-        request, 
-        "schedule/consumo_qr_resultado.html", 
-        {
-            "empleado": empleado,
-            "fecha": timezone.now(),
-            "exito": exito
-        }
-    )
-
 
 # ==========================================
 # VISTAS DE ADMINISTRADOR
@@ -342,23 +178,74 @@ def gestionar_inventario(request):
     if request.user.role != 'administrador' and not request.user.is_superuser:
         return redirect("dashboard_empleado")
 
-    # Obtener el inventario del mes actual o crear uno básico si no existe
-    inventario = InventarioTiquetes.objects.order_by("-mes").first()
+    hoy = timezone.now()
+    # Buscar si ya existe un inventario para este mes y año
+    inventario = InventarioTiquetes.objects.filter(
+        mes__month=hoy.month, 
+        mes__year=hoy.year
+    ).first()
     
+    # Si no hay uno para este mes, buscar el último de meses anteriores para precargar datos
+    if not inventario:
+        ultimo_global = InventarioTiquetes.objects.order_by("-mes").first()
+        instancia_inicial = ultimo_global
+    else:
+        instancia_inicial = inventario
+
+    ya_existe = inventario is not None
+
     if request.method == "POST":
-        formulario = FormularioInventario(request.POST, instance=inventario)
+        formulario = FormularioInventario(request.POST, instance=instancia_inicial, ya_existe=ya_existe)
         if formulario.is_valid():
             inv = formulario.save(commit=False)
-            # Al actualizar el inicial, si es nuevo o reinicio, actualizamos el disponible
-            if not inventario or 'cantidad_inicial' in formulario.changed_data:
+            
+            # Si es una creación nueva para el mes
+            if not ya_existe:
+                inv.id = None # Asegurar creación si usamos instancia_inicial de otro mes
                 inv.cantidad_disponible = inv.cantidad_inicial
-            inv.save()
-            messages.success(request, "Inventario y límites actualizados correctamente.")
+                inv.save()
+                messages.success(request, f"Inventario para {inv.mes.strftime('%B %Y')} configurado con éxito.")
+            else:
+                inv.save()
+                messages.success(request, "Límites y precios actualizados correctamente.")
+            
             return redirect("dashboard_admin")
     else:
-        formulario = FormularioInventario(instance=inventario)
+        # Si es nuevo mes, pasamos los valores del último pero sin ser la misma instancia de DB
+        formulario = FormularioInventario(instance=instancia_inicial, ya_existe=ya_existe)
 
-    return render(request, "schedule/gestionar_inventario.html", {"formulario": formulario})
+    form_aumentar = FormularioAumentarInventario() if ya_existe else None
+
+    return render(request, "schedule/gestionar_inventario.html", {
+        "formulario": formulario,
+        "ya_existe": ya_existe,
+        "inventario": inventario,
+        "form_aumentar": form_aumentar,
+    })
+
+
+@login_required
+def aumentar_inventario(request):
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        return redirect("dashboard_empleado")
+
+    if request.method == "POST":
+        inventario = InventarioTiquetes.objects.order_by("-mes").first()
+        if not inventario:
+            messages.error(request, "No hay un inventario configurado para aumentar.")
+            return redirect("gestionar_inventario")
+
+        form = FormularioAumentarInventario(request.POST)
+        if form.is_valid():
+            adicion = form.cleaned_data["cantidad_a_adicionar"]
+            inventario.cantidad_disponible += adicion
+            inventario.cantidad_inicial += adicion # También aumentamos el total del mes para reportes
+            inventario.save()
+            messages.success(request, f"Se han adicionado {adicion} tiquetes al inventario. Nuevo stock disponible: {inventario.cantidad_disponible}")
+        else:
+            messages.error(request, "La cantidad a adicionar no es válida.")
+
+    return redirect("gestionar_inventario")
 
 
 @login_required
@@ -367,9 +254,28 @@ def historial_consumos(request, empleado_id):
         return redirect("dashboard_empleado")
 
     consumos = Consumo.objects.filter(
-        comida__empleado_id=empleado_id
+        empleado_id=empleado_id
     ).order_by('-fecha_consumo')
 
     return render(request, "schedule/historial_consumo.html", {
         "consumos": consumos
+    })
+
+
+@login_required
+def historial_consumos_restaurante(request):
+    """Muestra los consumos registrados hoy por el restaurante."""
+    if request.user.role != 'restaurante' and not request.user.is_superuser:
+        return redirect("inicio")
+
+    hoy = timezone.localdate()
+    consumos_hoy = Consumo.objects.filter(
+        fecha_consumo__date=hoy
+    ).select_related(
+        'empleado__user'
+    ).order_by('-fecha_consumo')
+
+    return render(request, "schedule/historial_consumos_restaurante.html", {
+        "consumos_hoy": consumos_hoy,
+        "total_consumos_hoy": consumos_hoy.count(),
     })
