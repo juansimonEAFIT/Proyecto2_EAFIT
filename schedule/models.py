@@ -43,10 +43,13 @@ class SolicitudTiquete(models.Model):
     fecha_reclamo = models.DateField(null=True, blank=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=OPCIONES_ESTADO, default="pendiente")
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
+        # Si es una solicitud nueva o sigue pendiente, intentamos actualizar el precio unitario
+        # del inventario más reciente. Esto asegura que si el administrador cambia el precio
+        # antes de que se apruebe, la solicitud tome el precio final vigente.
+        if not self.pk or self.estado == 'pendiente':
             inventario = InventarioTiquetes.objects.order_by("-mes").first()
             if inventario:
                 self.precio_unitario = inventario.precio_tiquete
