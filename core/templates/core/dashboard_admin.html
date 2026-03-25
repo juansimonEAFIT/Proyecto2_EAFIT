@@ -1,0 +1,256 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard Administrador - LunchFlow{% endblock %}
+
+{% block content %}
+<style>
+    .admin-main-content .bento-card {
+        border-top: 4px solid var(--color-oscuro);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Softer distinct shadow */
+    }
+</style>
+<div class="dashboard-header" style="margin-bottom: 30px;">
+    <h1 style="font-size: 32px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
+    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.</p>
+</div>
+
+        <!-- Overview Section (Default) -->
+        <div id="overview-section" class="tab-content active">
+            <!-- Bento Grid for Quick Stats -->
+            <div class="bento-grid">
+                <div class="bento-card grande">
+                    <div class="etiqueta-bento">Estado de Inventario</div>
+                    <div style="display: flex; align-items: flex-end; gap: 10px; margin: 15px 0;">
+                        <div class="dato">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
+                        <div style="color: var(--color-texto-sutil); margin-bottom: 10px; font-weight: 500;">Tiquetes disponibles</div>
+                    </div>
+                    <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tikects</strong></p>
+                    <a href="{% url 'gestionar_inventario' %}" class="boton" style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
+                </div>
+                
+                <div class="bento-card pequena">
+                    <div class="icono">🎫</div>
+                    <div class="etiqueta-bento">Pendientes</div>
+                    <div class="dato">{{ solicitudes_pendientes.count }}</div>
+                    <p style="font-size: 13px; color: var(--color-texto-sutil);">Solicitudes de tiquetes por revisar.</p>
+                </div>
+
+                <div class="bento-card pequena" style="background: var(--color-oscuro); color: white;">
+                    <div class="icono">💰</div>
+                    <div class="etiqueta-bento" style="color: #94a3b8;">Por Validar</div>
+                    <div class="dato" style="color: white;">{{ pagos_pendientes.count }}</div>
+                    <p style="font-size: 13px; color: #94a3b8;">Pagos que requieren confirmación.</p>
+                </div>
+                
+                <div class="bento-card grande">
+                    <div class="etiqueta-bento">Acciones Rápidas</div>
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
+                            <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
+                        </a>
+                        <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
+                            <div style="font-size: 24px; margin-bottom: 10px;">⚙️</div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuración</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Solicitudes Section -->
+        <div id="solicitudes-section" class="tab-content">
+            <div class="tabla-contenedor" style="margin-bottom: 30px;">
+                <h2 class="subtitulo-izq">Todas las Solicitudes Pendientes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Cant.</th>
+                            <th>Fecha Reclamo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes_pendientes %}
+                        <tr>
+                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
+                            <td>{{ solicitud.cantidad }}</td>
+                            <td>{{ solicitud.fecha_reclamo|default:"---" }}</td>
+                            <td>
+                                <a href="{% url 'gestionar_solicitud' solicitud.id 'aprobar' %}" class="insignia insignia-verde" style="text-decoration: none;">Aprobar</a>
+                                <a href="{% url 'gestionar_solicitud' solicitud.id 'rechazar' %}" class="insignia insignia-roja" style="text-decoration: none;">Rechazar</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center;">No hay solicitudes pendientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tabla-contenedor">
+                <h2 class="subtitulo-izq">Historial Reciente</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Empleado</th>
+                            <th>Cant.</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes_historial %}
+                        <tr>
+                            <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                            <td>{{ solicitud.empleado.user.get_full_name }}</td>
+                            <td>{{ solicitud.cantidad }}</td>
+                            <td>
+                                <span class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                                    {{ solicitud.get_estado_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagos Section -->
+        <div id="pagos-section" class="tab-content">
+            <div class="tabla-contenedor">
+                <h2 class="subtitulo-izq">Validación de Pagos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Valor</th>
+                            <th>Comprobante</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in pagos_pendientes %}
+                        <tr>
+                            <td>{{ pago.empleado.user.get_full_name }}</td>
+                            <td>${{ pago.valor_pagado }}</td>
+                            <td>{{ pago.comprobante }}</td>
+                            <td>
+                                <a href="{% url 'gestionar_pago' pago.id %}" class="insignia insignia-azul" style="text-decoration: none;">Validar Pago</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No hay pagos pendientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventario Section -->
+        <div id="inventario-section" class="tab-content">
+            <div class="contenedor ancho-medio" style="margin: 0; padding: 40px; text-align: left;">
+                <h2 class="titulo-central" style="text-align: left;">Configuración de Inventario</h2>
+                <p class="subtitulo-izq">Aquí puedes centralizar la gestión de stock y límites.</p>
+                
+                <div class="tarjeta-info">
+                    <p><strong>Stock Actual:</strong> {{ inventario.cantidad_disponible|default:0 }}</p>
+                    <p><strong>Última actualización:</strong> {{ inventario.mes|default:"N/A" }}</p>
+                    <p><strong>Límite por empleado:</strong> {{ inventario.max_tiquetes_por_empleado|default:20 }}</p>
+                </div>
+                
+                <a href="{% url 'gestionar_inventario' %}" class="boton">Ir a Configuración Detallada</a>
+            </div>
+        </div>
+
+        <!-- Personal Section -->
+        <div id="personal-section" class="tab-content">
+            <div class="tabla-contenedor">
+                <h2 class="subtitulo-izq">Gestión de Personal</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in personal %}
+                        <tr>
+                            <td>{{ p.get_full_name|default:p.username }}</td>
+                            <td>{{ p.get_role_display }}</td>
+                            <td>
+                                <a href="{% url 'cambiar_estado_usuario' p.id %}" style="text-decoration: none;">
+                                    <span class="insignia {% if p.is_active %}insignia-verde{% else %}insignia-roja{% endif %}">
+                                        {{ p.is_active|yesno:"Activo,Inactivo" }}
+                                    </span>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris" style="text-decoration: none;">Editar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px;">
+                    <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar Nuevo Usuario</a>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const sidebarLinks = document.querySelectorAll('.sidebar-admin a');
+
+        function showTab(tabId) {
+            // Hide all contents
+            tabContents.forEach(content => content.classList.remove('active'));
+            // Remove active class from all links
+            sidebarLinks.forEach(link => link.classList.remove('activo'));
+            
+            // Show selected content
+            const target = document.getElementById(tabId + '-section');
+            if (target) {
+                target.classList.add('active');
+            }
+            
+            // Highlight sidebar link
+            const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('activo');
+            }
+        }
+
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tabId = this.getAttribute('data-tab');
+                showTab(tabId);
+                // Update URL hash without jumping
+                history.pushState(null, null, '#' + tabId);
+            });
+        });
+
+        // Check for hash in URL on load
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            showTab(hash);
+        }
+    });
+</script>
+{% endblock %}

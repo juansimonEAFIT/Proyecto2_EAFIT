@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Historial de Consumos - LunchFlow{% endblock %}
+
+{% block main_container_class %}dashboard-empleado-contenedor{% endblock %}
+
+{% block content %}
+<div class="header-seccion" style="display: block; margin-bottom: 30px;">
+    <h1 style="color: var(--color-oscuro);">Consumos Registrados Hoy</h1>
+    <p class="subtitulo-izq" style="font-size: 16px;">Lista detallada de los almuerzos entregados en la fecha de hoy.</p>
+</div>
+
+{% if consumos_hoy %}
+<div class="bento-card" style="margin: 0 auto; max-width: 800px; border: 1px solid #eff6ff;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9;">
+        <h2 style="color: var(--color-oscuro); margin: 0; font-size: 18px;">Registro del día</h2>
+        <div style="background: #eff6ff; color: var(--color-azul); padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+            Total: {{ total_consumos_hoy }}
+        </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for consumo in consumos_hoy %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: transform 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #e2e8f0;">
+                    👤
+                </div>
+                <div>
+                    <strong style="color: var(--color-oscuro); font-size: 16px; display: block;">{{ consumo.empleado.user.get_full_name }}</strong>
+                    <span style="color: var(--color-texto-sutil); font-size: 13px;">Usuario: {{ consumo.empleado.user.username }}</span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span style="color: var(--color-oscuro); font-weight: 600; font-size: 15px; display: block;">{{ consumo.fecha_consumo|time:"h:i A" }}</span>
+                <span style="color: var(--color-texto-suave); font-size: 12px;">Registrado</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #f1f5f9; color: var(--color-texto-sutil); font-size: 14px;">
+        <p>Mostrando consumos para el día de hoy: <strong>{% now "d/m/Y" %}</strong></p>
+    </div>
+</div>
+{% else %}
+<div class="bento-card" style="margin: 0 auto; max-width: 600px; text-align: center; padding: 40px; border: 2px dashed #e2e8f0; background: transparent;">
+    <div style="font-size: 50px; margin-bottom: 20px; filter: grayscale(1);">🍽️</div>
+    <h2 style="color: var(--color-texto-sutil); margin-bottom: 10px;">No hay consumos registrados hoy</h2>
+    <p style="color: var(--color-texto-suave); margin: 0;">Los almuerzos que escanees aparecerán listados aquí.</p>
+    <div style="margin-top: 25px;">
+        <a href="{% url 'dashboard_restaurante' %}" class="btn-quick primary">Ir a Escanear QR</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

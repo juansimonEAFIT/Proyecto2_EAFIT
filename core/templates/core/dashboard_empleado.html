@@ -1,0 +1,57 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Empleado - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="header-seccion" style="align-items: center;">
+    <div>
+        <h1 style="color: var(--color-oscuro); font-size: 32px; margin: 0;">Hola, {{ request.user.first_name }} {{ request.user.last_name }}</h1>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Saldo pendiente</div>
+        <div class="value">$ {{ saldo_pendiente }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Almuerzos (mes)</div>
+        <div class="value">{{ tiquetes_consumidos_mes }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Último consumo</div>
+        <div class="value">{{ ultimo_consumo_fecha }}</div>
+    </div>
+</div>
+
+<div class="dashboard-row">
+    <div class="grid-card">
+        <h2>Accesos rápidos</h2>
+        <div class="quick-actions" style="grid-template-columns: 1fr 1fr;">
+            <a href="{% url 'ver_qr_empleado' %}" class="btn-quick primary">Ver mi QR</a>
+            <a href="{% url 'solicitar_tiquete' %}" class="btn-quick" style="border: 2px solid var(--color-azul); color: var(--color-azul); font-weight: 600;">Pedir tiquete</a>
+            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Ver consumos</a>
+            <a href="{% url 'registrar_pago' %}" class="btn-quick">Ver pagos</a>
+        </div>
+    </div>
+
+    <div class="card-resumen-lateral">
+        <h2>Resumen</h2>
+
+        <div class="resumen-item">
+            <span class="label">Costo por almuerzo</span>
+            <span class="value">$ {{ precio_tiquete }}</span>
+        </div>
+
+        <div class="resumen-item">
+            <span class="label">Estado</span>
+            {% if empleado_activo %}
+            <span class="status-badge active">Activo</span>
+            {% else %}
+            <span class="status-badge" style="background: #f1f5f9; color: var(--color-texto-sutil);">Inactivo</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

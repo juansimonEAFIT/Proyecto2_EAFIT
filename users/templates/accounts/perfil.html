@@ -1,0 +1,100 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mi Perfil - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior" style="max-width: 700px;">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Información de Perfil</h1>
+        <p class="subtitulo">Consulta tus datos registrados en el sistema.</p>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 70px; height: 70px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px;">
+                👤
+            </div>
+            <h2 style="color: #1e293b; margin: 0; font-size: 20px;">{{ view_user.get_full_name|default:view_user.username }}</h2>
+            <span class="insignia" style="background: #f1f5f9; color: #475569; margin-top: 5px;">{{ view_user.get_role_display }}</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Usuario</label>
+                <div style="font-weight: 500; color: #1e293b;">@{{ view_user.username }}</div>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Correo</label>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.email|default:"---" }}</div>
+            </div>
+            
+            {% if view_user.role == 'empleado' %}
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Documento</label>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_empleado.numero_documento }}</div>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Departamento</label>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_empleado.departamento|default:"---" }}</div>
+            </div>
+            {% elif view_user.role == 'restaurante' %}
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Sede</label>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_restaurante.nombre_sede }}</div>
+            </div>
+            {% endif %}
+
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Teléfono</label>
+                <div style="font-weight: 500; color: #1e293b;">
+                    {% if view_user.role == 'empleado' %}
+                        {{ view_user.perfil_empleado.telefono|default:"---" }}
+                    {% elif view_user.role == 'restaurante' %}
+                        {{ view_user.perfil_restaurante.telefono|default:"---" }}
+                    {% else %}
+                        ---
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Estado de cuenta</label>
+                <div style="font-weight: 500; color: #1e293b;">{% if view_user.is_active %}Activo{% else %}Inactivo{% endif %}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <a href="/" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Volver al Inicio</a>
+        </div>
+    </div>
+
+    {% if solicitudes %}
+    <div class="tabla-contenedor" style="margin-top: 20px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+        <h2 class="subtitulo-izq" style="margin: 0 0 15px; color: #1e293b; font-size: 1.1rem;">Historial de Solicitudes</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cant.</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes %}
+                    <tr>
+                        <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                        <td>{{ solicitud.cantidad }}</td>
+                        <td>
+                            <span class="insignia {% if solicitud.estado == 'pendiente' %}insignia-gris{% elif solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                                {{ solicitud.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

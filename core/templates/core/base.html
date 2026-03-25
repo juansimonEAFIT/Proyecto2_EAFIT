@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LunchFlow{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="pantalla">
+        <div class="barra-superior">
+            <a href="/" class="logo">LunchFlow</a>
+
+            <div class="acciones-superiores">
+                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
+            </div>
+        </div>
+
+        <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}dashboard-admin-contenedor{% elif request.user.role in 'empleado,restaurante' %}dashboard-empleado-contenedor{% else %}{% block main_container_class %}contenido-principal{% endblock %}{% endif %}">
+            {% if request.user.role == 'administrador' or request.user.is_superuser %}
+                {% include 'core/includes/sidebar_admin.html' %}
+            {% elif request.user.role == 'empleado' %}
+                {% include 'core/includes/sidebar_empleado.html' %}
+            {% elif request.user.role == 'restaurante' %}
+                {% include 'core/includes/sidebar_restaurante.html' %}
+            {% endif %}
+
+            <div class="{% if request.user.role == 'administrador' or request.user.is_superuser %}admin-main-content{% elif request.user.role in 'empleado,restaurante' %}empleado-main-content{% endif %}">
+                <!-- Mensajes del Sistema -->
+                {% if messages %}
+                    <div style="max-width: 1200px; margin: 0 auto 20px;">
+                        {% for message in messages %}
+                            <div class="mensaje" style="
+                                background: {% if message.tags == 'error' %}#fee2e2{% elif message.tags == 'success' %}#dcfce7{% else %}#f8fafc{% endif %};
+                                border-left: 5px solid {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'success' %}#22c55e{% else %}#3b82f6{% endif %};
+                                color: {% if message.tags == 'error' %}#991b1b{% elif message.tags == 'success' %}#166534{% else %}#1e3a8a{% endif %};
+                                padding: 14px 16px;
+                                border-radius: 8px;
+                                margin-bottom: 10px;
+                                font-weight: 500;
+                            ">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const botonMenu = document.getElementById("boton-menu");
+        const contenidoMenu = document.getElementById("contenido-menu");
+
+        if (botonMenu && contenidoMenu) {
+            botonMenu.addEventListener("click", function (event) {
+                event.stopPropagation();
+                contenidoMenu.classList.toggle("mostrar");
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
+                    contenidoMenu.classList.remove("mostrar");
+                }
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

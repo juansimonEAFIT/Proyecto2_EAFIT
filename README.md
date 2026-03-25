@@ -112,7 +112,7 @@ http://localhost:8000
 http://localhost:8000/admin
 ```
 
-Inicia sesión con el superusuario que creaste.
+Inicia sesión con the superusuario que creaste.
 
 ---
 
@@ -175,5 +175,3 @@ git config core.autocrlf false
 esto configurara a git para que no vuelva a pasar este problema en esta maquina
 
 2. En tu editor de texto simplemente selecciona el archivo entrypoint.sh y busca como se cambia el tipo de espaciado en tu editor de preferencia. Para vscode, PyCharm y AntiGravity esto esta en la esquina derecha abajo al lado de una opcion UTF-8, simplemente dar click a CRLF(o el que aparezca) y cambiar a LF
-  
- 
