@@ -161,7 +161,7 @@ Esto borra los volúmenes y la base de datos, luego la reconstruye desde cero.
 
 ## Errores comunes (solo desarrollo)
 
- - Un posible error que puede recivir en el momento de ejecucion es uno relacionado al archivo entrypoint.sh del programa y se veria de esta forma:
+ - Un posible error que puede recibir en el momento de ejecucion es uno relacionado al archivo entrypoint.sh del programa y se veria de esta forma:
 ```bash
 env: ‘bash\r’: No such file or directory
 env: use -[v]S to pass options in shebang lines
