@@ -35,8 +35,9 @@
             <thead>
                 <tr>
                     <th>Fecha Solicitud</th>
-                    <th>Cantidad</th>
-                    <th>Valor Calculado</th>
+                    <th>Cant.</th>
+                    <th>Fecha Reclamo</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,11 +45,16 @@
                     <tr>
                         <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
                         <td>{{ compra.cantidad }}</td>
-                        <td>$ {{ compra.valor_total }}</td>
+                        <td>{{ compra.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
+                        <td>
+                            <span class="insignia {% if compra.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                                {{ compra.get_estado_display }}
+                            </span>
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3" style="text-align: center;">No has realizado compras de tiquetes.</td>
+                        <td colspan="4" style="text-align: center;">No has realizado compras de tiquetes.</td>
                     </tr>
                 {% endfor %}
             </tbody>

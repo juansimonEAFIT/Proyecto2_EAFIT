@@ -15,46 +15,85 @@ from users.models import Empleado, Administrador
 
 @login_required
 def solicitar_tiquete(request):
+    from django.db import transaction
     try:
         empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
         messages.error(request, "Solo los empleados pueden solicitar tiquetes.")
         return redirect("dashboard_empleado")
 
-    inventario = InventarioTiquetes.objects.order_by("-mes").first()
-    max_permitido = inventario.max_tiquetes_por_empleado if inventario else 20
-    stock_disponible = inventario.cantidad_disponible if inventario else 0
+    # Obtener información básica para mostrar en el formulario (GET o POST fallido)
+    inventario_info = InventarioTiquetes.objects.order_by("-mes").first()
+    max_permitido = inventario_info.max_tiquetes_por_empleado if inventario_info else 20
+    stock_disponible = inventario_info.cantidad_disponible if inventario_info else 0
 
     if request.method == "POST":
         formulario = FormularioSolicitudTiquete(request.POST, empleado=empleado)
         if formulario.is_valid():
             cantidad = formulario.cleaned_data["cantidad"]
-            
-            # 1. Validar Inventario Global
-            if cantidad > stock_disponible:
-                messages.error(request, f"No hay suficientes tiquetes en inventario. Disponibles: {stock_disponible}")
-                return render(request, "schedule/solicitar_tiquete.html", {"formulario": formulario})
-            
-            # 2. Validar Límite por Empleado (Aprobados + Pendientes + Nueva solicitud)
-            tiquetes_ya_usados = SolicitudTiquete.objects.filter(
-                empleado=empleado, 
-                estado__in=["pendiente", "aprobado"]
-            ).aggregate(total=Sum("cantidad"))["total"] or 0
-            
-            if (tiquetes_ya_usados + cantidad) > max_permitido:
-                quedan = max(0, max_permitido - tiquetes_ya_usados)
-                messages.error(request, f"Has excedido tu límite mensual de {max_permitido} tiquetes. Solo puedes pedir {quedan} más.")
-                return render(request, "schedule/solicitar_tiquete.html", {"formulario": formulario})
-
             solicitud = formulario.save(commit=False)
             solicitud.empleado = empleado
-            solicitud.save()
-            messages.success(request, "Solicitud enviada correctamente.")
-            return redirect("dashboard_empleado")
+
+            try:
+                with transaction.atomic():
+                    # Obtener inventario actual con bloqueo para actualización (para la lógica de aprobación)
+                    inventario = InventarioTiquetes.objects.order_by("-mes").select_for_update().first()
+                    
+                    if not inventario:
+                        messages.error(request, "No hay inventario configurado para este periodo.")
+                        return render(request, "schedule/solicitar_tiquete.html", {
+                            "formulario": formulario,
+                            "max_permitido": max_permitido,
+                            "stock_disponible": stock_disponible
+                        })
+                    
+                    # Usamos los datos actualizados del bloqueo para la lógica
+                    stock_real = inventario.cantidad_disponible
+                    limite_real = inventario.max_tiquetes_por_empleado
+
+                    # 1. Validar Inventario Global
+                    if cantidad > stock_real:
+                        solicitud.estado = "rechazado"
+                        solicitud.save()
+                        messages.error(request, f"Solicitud rechazada por falta de stock global. (Disponible: {stock_real})")
+                        return redirect("dashboard_empleado")
+                    
+                    # 2. Validar Límite por Empleado
+                    tiquetes_ya_aprobados = SolicitudTiquete.objects.filter(
+                        empleado=empleado, 
+                        estado="aprobado"
+                    ).aggregate(total=Sum("cantidad"))["total"] or 0
+                    
+                    if (tiquetes_ya_aprobados + cantidad) > limite_real:
+                        solicitud.estado = "rechazado"
+                        solicitud.save()
+                        messages.error(request, f"Solicitud rechazada. Has excedido tu límite mensual de {limite_real} tiquetes.")
+                        return redirect("dashboard_empleado")
+
+                    # Si todo está bien, aprobamos automáticamente
+                    inventario.cantidad_disponible -= cantidad
+                    inventario.save()
+                    
+                    solicitud.estado = "aprobado"
+                    solicitud.save()
+                    
+                    messages.success(request, f"¡Éxito! Tu tiquete ha sido otorgado automáticamente.")
+                    return redirect("dashboard_empleado")
+            except Exception as e:
+                messages.error(request, f"Error al procesar la solicitud: {str(e)}")
+                return render(request, "schedule/solicitar_tiquete.html", {
+                    "formulario": formulario,
+                    "max_permitido": max_permitido,
+                    "stock_disponible": stock_disponible
+                })
     else:
         formulario = FormularioSolicitudTiquete(empleado=empleado)
 
-    return render(request, "schedule/solicitar_tiquete.html", {"formulario": formulario})
+    return render(request, "schedule/solicitar_tiquete.html", {
+        "formulario": formulario,
+        "max_permitido": max_permitido,
+        "stock_disponible": stock_disponible
+    })
 
 
 @login_required
