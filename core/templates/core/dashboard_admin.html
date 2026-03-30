@@ -69,7 +69,33 @@
 <div id="solicitudes-section" class="tab-content">
 
     <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq">Historial Reciente</h2>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <h2 class="subtitulo-izq" style="margin: 0;">Historial Reciente</h2>
+            <form method="GET" style="display: flex; gap: 10px; align-items: center;" id="form-filtros-historial">
+                <input type="hidden" name="tab" value="solicitudes-section">
+                
+                <label for="mes" style="font-weight: 600; color: var(--color-oscuro);">Mes:</label>
+                <select name="mes" id="mes" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                    <option value="">-- Todos --</option>
+                    {% for m in meses_opciones %}
+                    <option value="{{ m.id }}" {% if m.id == filtro_mes %}selected{% endif %}>{{ m.nombre }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="anio" style="font-weight: 600; color: var(--color-oscuro);">Año:</label>
+                <input type="number" name="anio" id="anio" value="{{ filtro_anio }}" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; width: 80px;">
+
+                <label for="empleado" style="font-weight: 600; color: var(--color-oscuro);">Empleado:</label>
+                <select name="empleado" id="empleado" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                    <option value="">-- Todos --</option>
+                    {% for emp in solo_empleados %}
+                    <option value="{{ emp.id }}" {% if emp.id == filtro_empleado %}selected{% endif %}>{{ emp.user.first_name }} {{ emp.user.last_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="boton" style="padding: 8px 15px;">Filtrar</button>
+            </form>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -229,8 +255,15 @@
 
         // Check for hash in URL on load
         const hash = window.location.hash.substring(1);
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
         if (hash) {
             showTab(hash);
+        } else if (tabParam) {
+            // Remove -section if included
+            const cleanId = tabParam.replace('-section', '');
+            showTab(cleanId);
         }
     });
 </script>

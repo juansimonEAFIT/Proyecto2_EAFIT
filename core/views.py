@@ -95,21 +95,62 @@ def dashboard_admin(request):
     if request.user.role != 'administrador' and not request.user.is_superuser:
         return redirect("dashboard_empleado")
 
-    solicitudes_pendientes = SolicitudTiquete.objects.filter(estado="pendiente").order_by("-fecha_solicitud")
-    solicitudes_historial = SolicitudTiquete.objects.exclude(estado="pendiente").order_by("-fecha_solicitud")[:10]
+    from django.utils import timezone
+    hoy = timezone.localdate()
+    # Parámetros de filtro
+    mes_str = request.GET.get('mes')
+    anio_str = request.GET.get('anio', str(hoy.year))
+    empleado_id = request.GET.get('empleado')
+
+    query_kwargs = {}
+    # Por defecto no excluimos nada si queremos traer todas (el requerimiento era quitar lógica de pendientes)
+    # Pero si había la lógica de .exclude(estado="pendiente"), podríamos mostrar todas incluyéndola o excluir.
+    # El usuario dijo quitar pendientes de la tabla, usaremos todos los estados del historial.
+
+    if mes_str and anio_str:
+        query_kwargs['fecha_solicitud__year'] = int(anio_str)
+        query_kwargs['fecha_solicitud__month'] = int(mes_str)
+        
+    if empleado_id:
+        query_kwargs['empleado_id'] = empleado_id
+        
+    solicitudes_historial = SolicitudTiquete.objects.filter(**query_kwargs).order_by("-fecha_solicitud")
+    
+    # Si no hay filtros, tal vez limitamos a los ultimos 50 para no recargar
+    if not query_kwargs:
+        solicitudes_historial = solicitudes_historial[:50]
+
     pagos_pendientes = RegistroPago.objects.filter(validado_por_gh=False).order_by("-fecha_pago")
     inventario = InventarioTiquetes.objects.order_by("-mes").first()
-    # Obtener todo el personal (Empleados y Restaurantes)
+    
+    # Obtener todo el personal para gestión (Empleados y Restaurantes)
     usuarios_personal = User.objects.filter(role__in=['empleado', 'restaurante']).order_by("last_name")
+    
+    # Solo empleados para el filtro de historial
+    solo_empleados = Empleado.objects.select_related('user').all().order_by('user__first_name')
+
+    # Meses para el selector
+    meses_opciones = [
+        {"id": 1, "nombre": "Enero"}, {"id": 2, "nombre": "Febrero"},
+        {"id": 3, "nombre": "Marzo"}, {"id": 4, "nombre": "Abril"},
+        {"id": 5, "nombre": "Mayo"}, {"id": 6, "nombre": "Junio"},
+        {"id": 7, "nombre": "Julio"}, {"id": 8, "nombre": "Agosto"},
+        {"id": 9, "nombre": "Septiembre"}, {"id": 10, "nombre": "Octubre"},
+        {"id": 11, "nombre": "Noviembre"}, {"id": 12, "nombre": "Diciembre"}
+    ]
 
     return render(
         request,
         "core/dashboard_admin.html",
         {
-            "solicitudes_pendientes": solicitudes_pendientes,
             "solicitudes_historial": solicitudes_historial,
             "pagos_pendientes": pagos_pendientes,
             "inventario": inventario,
             "personal": usuarios_personal,
+            "solo_empleados": solo_empleados,
+            "meses_opciones": meses_opciones,
+            "filtro_mes": int(mes_str) if mes_str else None,
+            "filtro_anio": int(anio_str),
+            "filtro_empleado": int(empleado_id) if empleado_id else None,
         },
     )

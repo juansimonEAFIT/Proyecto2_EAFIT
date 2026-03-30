@@ -30,7 +30,14 @@
     </div>
 
     <div class="tabla-contenedor" style="margin-bottom: 30px;">
-        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Compras (Tiquetes)</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="subtitulo-izq" style="margin: 0;">Historial de Compras (Tiquetes)</h2>
+            <div style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                <a href="?mes={{ prev_month }}&anio={{ prev_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
+                <span style="font-weight: 600; color: var(--color-azul); text-transform: capitalize; min-width: 100px; text-align: center;">{{ mes_nombre }} {{ anio_actual }}</span>
+                <a href="?mes={{ next_month }}&anio={{ next_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
+            </div>
+        </div>
         <table>
             <thead>
                 <tr>

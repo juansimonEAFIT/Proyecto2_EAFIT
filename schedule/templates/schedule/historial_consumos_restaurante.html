@@ -5,9 +5,16 @@
 {% block main_container_class %}dashboard-empleado-contenedor{% endblock %}
 
 {% block content %}
-<div class="header-seccion" style="display: block; margin-bottom: 30px;">
-    <h1 style="color: var(--color-oscuro);">Consumos Registrados Hoy</h1>
-    <p class="subtitulo-izq" style="font-size: 16px;">Lista detallada de los almuerzos entregados en la fecha de hoy.</p>
+<div class="header-seccion" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+    <div>
+        <h1 style="color: var(--color-oscuro); margin: 0;">{% if es_hoy %}Consumos Registrados Hoy{% else %}Consumos del {{ fecha_filtro|date:"d M Y" }}{% endif %}</h1>
+        <p class="subtitulo-izq" style="font-size: 16px; margin-top: 5px; margin-bottom: 0;">Lista detallada de los almuerzos entregados en la fecha seleccionada.</p>
+    </div>
+    <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+        <label for="fecha" style="font-weight: 600; color: var(--color-oscuro);">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|date:'Y-m-d' }}" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">
+        <button type="submit" class="boton" style="padding: 8px 15px;">Filtrar</button>
+    </form>
 </div>
 
 {% if consumos_hoy %}
@@ -40,14 +47,14 @@
     </div>
 
     <div style="margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #f1f5f9; color: var(--color-texto-sutil); font-size: 14px;">
-        <p>Mostrando consumos para el día de hoy: <strong>{% now "d/m/Y" %}</strong></p>
+        <p>Mostrando consumos para el día: <strong>{{ fecha_filtro|date:"d/m/Y" }}</strong></p>
     </div>
 </div>
 {% else %}
 <div class="bento-card" style="margin: 0 auto; max-width: 600px; text-align: center; padding: 40px; border: 2px dashed #e2e8f0; background: transparent;">
     <div style="font-size: 50px; margin-bottom: 20px; filter: grayscale(1);">🍽️</div>
-    <h2 style="color: var(--color-texto-sutil); margin-bottom: 10px;">No hay consumos registrados hoy</h2>
-    <p style="color: var(--color-texto-suave); margin: 0;">Los almuerzos que escanees aparecerán listados aquí.</p>
+    <h2 style="color: var(--color-texto-sutil); margin-bottom: 10px;">No hay consumos registrados en esta fecha</h2>
+    <p style="color: var(--color-texto-suave); margin: 0;">Los almuerzos correspondientes a este día aparecerán listados aquí.</p>
     <div style="margin-top: 25px;">
         <a href="{% url 'dashboard_restaurante' %}" class="btn-quick primary">Ir a Escanear QR</a>
     </div>

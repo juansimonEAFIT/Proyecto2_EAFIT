@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 
 from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioInventario, FormularioAumentarInventario
 from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago
@@ -124,8 +125,36 @@ def consultar_estado_cuenta(request):
     except Empleado.DoesNotExist:
         return redirect("dashboard_empleado")
 
-    # Historial de compras (tiquetes aprobados)
-    compras = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").order_by("-fecha_solicitud")
+    # Filtrado por mes en el historial de compras
+    hoy = timezone.localdate()
+    try:
+        mes_actual = int(request.GET.get('mes', hoy.month))
+        anio_actual = int(request.GET.get('anio', hoy.year))
+    except ValueError:
+        mes_actual = hoy.month
+        anio_actual = hoy.year
+        
+    # Validar rangos de fecha
+    if mes_actual < 1 or mes_actual > 12:
+        mes_actual = hoy.month
+        anio_actual = hoy.year
+
+    # Cálculos para la UI de navegación de meses
+    next_month = mes_actual + 1 if mes_actual < 12 else 1
+    next_year = anio_actual if mes_actual < 12 else anio_actual + 1
+    prev_month = mes_actual - 1 if mes_actual > 1 else 12
+    prev_year = anio_actual if mes_actual > 1 else anio_actual - 1
+    
+    nombres_meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    mes_nombre = nombres_meses[mes_actual - 1]
+
+    # Historial de compras (tiquetes aprobados) del mes especificado
+    compras = SolicitudTiquete.objects.filter(
+        empleado=empleado, 
+        estado="aprobado",
+        fecha_solicitud__year=anio_actual,
+        fecha_solicitud__month=mes_actual
+    ).order_by("-fecha_solicitud")
     
     # Obtener precio actual del inventario (solo para propósitos informativos generales)
     inventario = InventarioTiquetes.objects.order_by("-mes").first()
@@ -145,7 +174,7 @@ def consultar_estado_cuenta(request):
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
     
     from django.db.models import F
-    deuda_total = compras.annotate(
+    deuda_total = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").annotate(
         costo_total=F('cantidad') * F('precio_unitario')
     ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
     
@@ -163,6 +192,12 @@ def consultar_estado_cuenta(request):
             "tiquetes_disponibles": tiquetes_disponibles,
             "precio_tiquete": precio_tiquete,
             "ultima_actualizacion": timezone.now(),
+            "mes_nombre": mes_nombre,
+            "anio_actual": anio_actual,
+            "prev_month": prev_month,
+            "prev_year": prev_year,
+            "next_month": next_month,
+            "next_year": next_year,
         },
     )
 
@@ -303,13 +338,23 @@ def historial_consumos(request, empleado_id):
 
 @login_required
 def historial_consumos_restaurante(request):
-    """Muestra los consumos registrados hoy por el restaurante."""
+    """Muestra los consumos registrados en una fecha específica (por defecto hoy) por el restaurante."""
     if request.user.role != 'restaurante' and not request.user.is_superuser:
         return redirect("inicio")
 
     hoy = timezone.localdate()
+    fecha_filtro = hoy
+    es_hoy = True
+
+    fecha_str = request.GET.get('fecha')
+    if fecha_str:
+        parsed_date = parse_date(fecha_str)
+        if parsed_date:
+            fecha_filtro = parsed_date
+            es_hoy = (parsed_date == hoy)
+
     consumos_hoy = Consumo.objects.filter(
-        fecha_consumo__date=hoy
+        fecha_consumo__date=fecha_filtro
     ).select_related(
         'empleado__user'
     ).order_by('-fecha_consumo')
@@ -317,4 +362,6 @@ def historial_consumos_restaurante(request):
     return render(request, "schedule/historial_consumos_restaurante.html", {
         "consumos_hoy": consumos_hoy,
         "total_consumos_hoy": consumos_hoy.count(),
+        "fecha_filtro": fecha_filtro,
+        "es_hoy": es_hoy,
     })
