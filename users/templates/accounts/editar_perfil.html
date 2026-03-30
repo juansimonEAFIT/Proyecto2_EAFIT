@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Editar Perfil - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior" style="max-width: 600px;">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Editar Perfil</h1>
+        <p class="subtitulo">Actualiza tus datos de contacto e información básica.</p>
+    </div>
+
+    <form method="POST" class="formulario">
+        {% csrf_token %}
+
+        {% if formulario.errors %}
+        <div class="alert alert-danger" style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+            <p style="margin: 0; color: #b91c1c; font-weight: 600;">Por favor, corrige los siguientes errores:</p>
+            <ul style="margin: 10px 0 0 0; color: #b91c1c;">
+                {% for field in formulario %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in formulario.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="grupo-formulario">
+                <label for="{{ formulario.first_name.id_for_label }}" class="etiqueta-formulario">{{ formulario.first_name.label }}</label>
+                {{ formulario.first_name }}
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="{{ formulario.last_name.id_for_label }}" class="etiqueta-formulario">{{ formulario.last_name.label }}</label>
+                {{ formulario.last_name }}
+            </div>
+        </div>
+
+        <div class="grupo-formulario">
+            <label for="{{ formulario.email.id_for_label }}" class="etiqueta-formulario">{{ formulario.email.label }}</label>
+            {{ formulario.email }}
+        </div>
+        
+        <div class="grupo-formulario">
+            <label for="{{ formulario.departamento.id_for_label }}" class="etiqueta-formulario">{{ formulario.departamento.label }}</label>
+            {{ formulario.departamento }}
+        </div>
+
+        <div class="grupo-formulario">
+            <label for="{{ formulario.telefono.id_for_label }}" class="etiqueta-formulario">{{ formulario.telefono.label }}</label>
+            {{ formulario.telefono }}
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <a href="{% url 'perfil_usuario' %}" class="boton" style="flex: 1; background: #f1f5f9; color: #475569; text-align: center; text-decoration: none;">Cancelar</a>
+            <button type="submit" class="boton" style="flex: 1;">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

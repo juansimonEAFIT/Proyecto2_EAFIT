@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import FormularioPersonal
+from .forms import FormularioPersonal, FormularioPerfilEmpleado
 from .models import Empleado, Administrador, Restaurante
 
 User = get_user_model()
@@ -79,21 +79,35 @@ def gestionar_personal(request, empleado_id=None):
 def perfil_usuario(request):
     """Vista para que cualquier usuario vea sus propios datos de perfil."""
     user = request.user
-    solicitudes = []
-
-    if user.role == 'empleado':
-        from schedule.models import SolicitudTiquete
-        try:
-            empleado = user.empleado_perfil
-            solicitudes = SolicitudTiquete.objects.filter(empleado=empleado).order_by("-fecha_solicitud")
-        except Exception:
-            pass
 
     context = {
         'view_user': user,
-        'solicitudes': solicitudes,
     }
     return render(request, "accounts/perfil.html", context)
+
+
+@login_required
+def editar_perfil(request):
+    if request.user.role != 'empleado':
+        messages.error(request, "Solo los empleados pueden editar su perfil a través de esta opción.")
+        return redirect("perfil_usuario")
+
+    if request.method == "POST":
+        formulario = FormularioPerfilEmpleado(request.POST, instance=request.user)
+        if formulario.is_valid():
+            formulario.save()
+            messages.success(request, "Perfil actualizado correctamente.")
+            return redirect("perfil_usuario")
+    else:
+        formulario = FormularioPerfilEmpleado(instance=request.user)
+
+    return render(
+        request,
+        "accounts/editar_perfil.html",
+        {
+            "formulario": formulario,
+        }
+    )
 
 
 @login_required
