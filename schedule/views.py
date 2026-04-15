@@ -24,7 +24,8 @@ def solicitar_tiquete(request):
         return redirect("dashboard_empleado")
 
     # Obtener información básica para mostrar en el formulario (GET o POST fallido)
-    inventario_info = InventarioTiquetes.objects.order_by("-mes").first()
+    hoy = timezone.localdate()
+    inventario_info = InventarioTiquetes.objects.filter(mes__month=hoy.month, mes__year=hoy.year).first()
     max_permitido = inventario_info.max_tiquetes_por_empleado if inventario_info else 20
     stock_disponible = inventario_info.cantidad_disponible if inventario_info else 0
 
@@ -38,7 +39,9 @@ def solicitar_tiquete(request):
             try:
                 with transaction.atomic():
                     # Obtener inventario actual con bloqueo para actualización (para la lógica de aprobación)
-                    inventario = InventarioTiquetes.objects.order_by("-mes").select_for_update().first()
+                    inventario = InventarioTiquetes.objects.filter(
+                        mes__month=hoy.month, mes__year=hoy.year
+                    ).select_for_update().first()
                     
                     if not inventario:
                         messages.error(request, "No hay inventario configurado para este periodo.")
@@ -62,7 +65,9 @@ def solicitar_tiquete(request):
                     # 2. Validar Límite por Empleado
                     tiquetes_ya_aprobados = SolicitudTiquete.objects.filter(
                         empleado=empleado, 
-                        estado="aprobado"
+                        estado="aprobado",
+                        fecha_solicitud__month=hoy.month,
+                        fecha_solicitud__year=hoy.year
                     ).aggregate(total=Sum("cantidad"))["total"] or 0
                     
                     if (tiquetes_ya_aprobados + cantidad) > limite_real:
@@ -168,7 +173,11 @@ def consultar_estado_cuenta(request):
     pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
     
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
+    tiquetes_consumidos = Consumo.objects.filter(
+        empleado=empleado, 
+        fecha_consumo__month=mes_actual,
+        fecha_consumo__year=anio_actual
+    ).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
     
     total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")

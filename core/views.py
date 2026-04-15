@@ -37,7 +37,14 @@ def dashboard_empleado(request):
     
     # Nueva lógica de saldo: Basada en tiquetes comprados (aprobados) vs pagos validados
     from django.db.models import F
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
+    from django.utils import timezone
+    month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    tiquetes_aprobados_mes = SolicitudTiquete.objects.filter(
+        empleado=empleado, 
+        estado="aprobado",
+        fecha_solicitud__gte=month_start.date()
+    ).aggregate(total=Sum("cantidad"))["total"] or 0
     total_pagos_validados = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
     
     inventario_actual = InventarioTiquetes.objects.order_by("-mes").first()
@@ -50,17 +57,13 @@ def dashboard_empleado(request):
     
     saldo_pendiente = deuda_total - total_pagos_validados
     
-    from django.utils import timezone
-    month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     tiquetes_consumidos = Consumo.objects.filter(empleado=empleado).count()
     tiquetes_consumidos_mes = Consumo.objects.filter(empleado=empleado, fecha_consumo__gte=month_start.date()).count()
     
     ultimo_consumo = Consumo.objects.filter(empleado=empleado).order_by("-fecha_consumo").first()
     ultimo_consumo_fecha = ultimo_consumo.fecha_consumo.strftime("%d/%m/%Y") if ultimo_consumo else "N/A"
     
-    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
-
-    tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
+    tiquetes_disponibles = max(0, tiquetes_aprobados_mes - tiquetes_consumidos_mes)
 
     return render(
         request,
@@ -69,7 +72,7 @@ def dashboard_empleado(request):
             "empleado": empleado,
             "solicitudes": solicitudes,
             "saldo_pendiente": f"{saldo_pendiente:,.0f}".replace(",", "."),
-            "tiquetes_comprados": tiquetes_aprobados,
+            "tiquetes_comprados": tiquetes_aprobados_mes,
             "tiquetes_disponibles": tiquetes_disponibles,
             "tiquetes_consumidos": tiquetes_consumidos,
             "tiquetes_consumidos_mes": tiquetes_consumidos_mes,
@@ -86,8 +89,6 @@ def dashboard_restaurante(request):
         return redirect("inicio")
 
     return render(request, "core/dashboard_restaurante.html")
-
-
 
 
 @login_required
