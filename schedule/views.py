@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
-from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioInventario, FormularioAumentarInventario
+from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioRegistroPagoAdmin, FormularioInventario, FormularioAumentarInventario
 from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago
 from users.models import Empleado, Administrador
 
@@ -201,6 +201,20 @@ def consultar_estado_cuenta(request):
         },
     )
 
+@login_required
+def confirmar_pago_empleado(request, pago_id):
+    try:
+        empleado = request.user.empleado_perfil
+    except Empleado.DoesNotExist:
+        return redirect("dashboard_empleado")
+
+    pago = get_object_or_404(RegistroPago, id=pago_id, empleado=empleado)
+    pago.confirmado_por_empleado = True
+    pago.save()
+    messages.success(request, f"Pago de ${pago.valor_pagado:.0f} confirmado exitosamente.")
+    return redirect("consultar_estado_cuenta")
+
+
 # ==========================================
 # VISTAS DE ADMINISTRADOR
 # ==========================================
@@ -230,21 +244,24 @@ def gestionar_solicitud(request, solicitud_id, accion):
 
 
 @login_required
-def gestionar_pago(request, pago_id):
+def registrar_pago_efectivo(request):
     if request.user.role != 'administrador' and not request.user.is_superuser:
         return redirect("dashboard_empleado")
 
-    pago = get_object_or_404(RegistroPago, id=pago_id)
-    pago.validado_por_gh = True
-    pago.save()
+    if request.method == "POST":
+        formulario = FormularioRegistroPagoAdmin(request.POST)
+        if formulario.is_valid():
+            pago = formulario.save(commit=False)
+            pago.validado_por_gh = True
+            pago.confirmado_por_empleado = False
+            pago.comprobante = "Pago en efectivo (Caja RRHH)"
+            pago.save()
+            messages.success(request, f"Pago de ${pago.valor_pagado:.0f} registrado para {pago.empleado.user.get_full_name() or pago.empleado.user.username}.")
+            return redirect("dashboard_admin")
+    else:
+        formulario = FormularioRegistroPagoAdmin()
 
-    # Actualizar consumos como pagados para este empleado
-    # Nota: Consumo no tiene campo 'pagado', se asume que la validación del pago es suficiente
-    # para el saldo global del empleado.
-    # Consumo.objects.filter(comida__empleado=pago.empleado).update(pagado=True)
-    
-    messages.success(request, f"Pago de {pago.empleado} validado y saldo actualizado.")
-    return redirect("dashboard_admin")
+    return render(request, "schedule/registrar_pago_efectivo.html", {"formulario": formulario})
 
 
 @login_required

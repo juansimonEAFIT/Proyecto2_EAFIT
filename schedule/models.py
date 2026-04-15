@@ -69,9 +69,10 @@ class RegistroPago(models.Model):
     fecha_pago = models.DateTimeField(auto_now_add=True)
     comprobante = models.CharField(max_length=255, help_text="Referencia o link al comprobante", blank=True)
     validado_por_gh = models.BooleanField(default=False)
+    confirmado_por_empleado = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Pago {self.empleado.user.username} - ${self.valor_pagado} - Val: {self.validado_por_gh}"
+        return f"Pago {self.empleado.user.username} - ${self.valor_pagado} - Val: {self.validado_por_gh} - Conf: {self.confirmado_por_empleado}"
 
     def save(self, *args, **kwargs):
         nuevo = self.pk is None

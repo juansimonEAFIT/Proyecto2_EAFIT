@@ -76,6 +76,7 @@
                     <th>Fecha Pago</th>
                     <th>Comprobante</th>
                     <th>Valor</th>
+                    <th>Confirmación</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,10 +85,17 @@
                         <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
                         <td>{{ pago.comprobante|default:"---" }}</td>
                         <td>$ {{ pago.valor_pagado }}</td>
+                        <td>
+                            {% if pago.confirmado_por_empleado %}
+                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">Confirmado</span>
+                            {% else %}
+                                <a href="{% url 'confirmar_pago_empleado' pago.id %}" class="insignia insignia-azul" style="text-decoration: none; font-size: 0.8rem; padding: 4px 8px;">Confirmar</a>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3" style="text-align: center;">No se registran pagos validados aún.</td>
+                        <td colspan="4" style="text-align: center;">No se registran pagos validados aún.</td>
                     </tr>
                 {% endfor %}
             </tbody>

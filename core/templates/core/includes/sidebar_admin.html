@@ -9,8 +9,10 @@
         <span class="icono-admin">🎫</span> Solicitudes
     </a>
 
-    <a href="{% url 'inicio' %}#pagos" class="tab-link" data-tab="pagos">
-        <span class="icono-admin">💰</span> Validar Pagos
+
+
+    <a href="{% url 'registrar_pago_efectivo' %}" class="{% if request.resolver_match.url_name == 'registrar_pago_efectivo' %}activo{% endif %}" style="text-decoration: none; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+        <span class="icono-admin">💵</span> Registrar Pago
     </a>
 
     <a href="{% url 'inicio' %}#inventario" class="tab-link" data-tab="inventario">

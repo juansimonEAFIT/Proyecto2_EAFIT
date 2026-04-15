@@ -38,13 +38,6 @@
             <p style="font-size: 13px; color: var(--color-texto-sutil);">Precio unitario vigente este mes.</p>
         </div>
 
-        <div class="bento-card pequena" style="background: var(--color-oscuro); color: white;">
-            <div class="icono">💰</div>
-            <div class="etiqueta-bento" style="color: #94a3b8;">Por Validar</div>
-            <div class="dato" style="color: white;">{{ pagos_pendientes.count }}</div>
-            <p style="font-size: 13px; color: #94a3b8;">Pagos que requieren confirmación.</p>
-        </div>
-
         <div class="bento-card grande">
             <div class="etiqueta-bento">Acciones Rápidas</div>
             <div style="display: flex; gap: 15px; margin-top: 20px;">
@@ -52,6 +45,11 @@
                     style="flex: 1; min-height: auto; padding: 20px;">
                     <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
+                </a>
+                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion"
+                    style="flex: 1; min-height: auto; padding: 20px;">
+                    <div style="font-size: 24px; margin-bottom: 10px;">💵</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Pago Manual</div>
                 </a>
                 <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion"
                     style="flex: 1; min-height: auto; padding: 20px;">
@@ -119,40 +117,6 @@
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Pagos Section -->
-<div id="pagos-section" class="tab-content">
-    <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq">Validación de Pagos</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Empleado</th>
-                    <th>Valor</th>
-                    <th>Comprobante</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos_pendientes %}
-                <tr>
-                    <td>{{ pago.empleado.user.get_full_name }}</td>
-                    <td>${{ pago.valor_pagado }}</td>
-                    <td>{{ pago.comprobante }}</td>
-                    <td>
-                        <a href="{% url 'gestionar_pago' pago.id %}" class="insignia insignia-azul"
-                            style="text-decoration: none;">Validar Pago</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center;">No hay pagos pendientes.</td>
                 </tr>
                 {% endfor %}
             </tbody>

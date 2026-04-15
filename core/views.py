@@ -120,7 +120,6 @@ def dashboard_admin(request):
     if not query_kwargs:
         solicitudes_historial = solicitudes_historial[:50]
 
-    pagos_pendientes = RegistroPago.objects.filter(validado_por_gh=False).order_by("-fecha_pago")
     inventario = InventarioTiquetes.objects.order_by("-mes").first()
     
     # Obtener todo el personal para gestión (Empleados y Restaurantes)
@@ -144,7 +143,6 @@ def dashboard_admin(request):
         "core/dashboard_admin.html",
         {
             "solicitudes_historial": solicitudes_historial,
-            "pagos_pendientes": pagos_pendientes,
             "inventario": inventario,
             "personal": usuarios_personal,
             "solo_empleados": solo_empleados,

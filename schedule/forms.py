@@ -1,5 +1,8 @@
 from django import forms
 from django.utils import timezone
+from django.db.models import Sum, F
+from decimal import Decimal
+from users.models import Empleado
 from .models import SolicitudTiquete, RegistroPago, InventarioTiquetes
 
 
@@ -61,6 +64,86 @@ class FormularioRegistroPago(forms.ModelForm):
             "valor_pagado": "Valor pagado",
             "comprobante": "Referencia del comprobante",
         }
+
+
+class EmpleadoConDeudaChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=obj, estado="aprobado").annotate(
+            costo_total=F('cantidad') * F('precio_unitario')
+        ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
+        
+        total_pagos_validados = RegistroPago.objects.filter(empleado=obj, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
+        
+        saldo_pendiente = tiquetes_aprobados - total_pagos_validados
+        
+        nombre = obj.user.get_full_name() or obj.user.username
+        if saldo_pendiente > 0:
+            return f"{nombre} - ${saldo_pendiente:,.0f}".replace(",", ".")
+        else:
+            return f"{nombre} - Paz y salvo"
+
+
+class EmpleadoSelectWidget(forms.Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        # Extract the debt from the label returned by label_from_instance
+        label_str = str(label)
+        if ' - ' in label_str:
+            parts = label_str.split(' - ')
+            option['attrs']['data-deuda'] = parts[1]
+            option['label'] = parts[0]
+        return option
+
+
+class FormularioRegistroPagoAdmin(forms.ModelForm):
+    empleado = EmpleadoConDeudaChoiceField(
+        queryset=Empleado.objects.none(),
+        label="Empleado",
+        empty_label="Seleccione un empleado...",
+        widget=EmpleadoSelectWidget(attrs={"class": "form-control"})
+    )
+
+    class Meta:
+        model = RegistroPago
+        fields = ["empleado", "valor_pagado"]
+        labels = {
+            "empleado": "Empleado",
+            "valor_pagado": "Valor a pagar ($)",
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo mostrar empleados activos
+        qs = Empleado.objects.filter(esta_activo=True).select_related("user").order_by("user__first_name")
+        self.fields["empleado"].queryset = qs
+
+    def clean_valor_pagado(self):
+        valor = self.cleaned_data.get("valor_pagado")
+        if valor is None or valor <= 0:
+            raise forms.ValidationError("El valor pagado debe ser mayor a 0.")
+        return valor
+
+    def clean(self):
+        cleaned_data = super().clean()
+        empleado = cleaned_data.get("empleado")
+        valor_pagado = cleaned_data.get("valor_pagado")
+
+        if empleado and valor_pagado:
+            # Calcular la deuda actual del empleado
+            tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").annotate(
+                costo_total=F('cantidad') * F('precio_unitario')
+            ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
+            
+            total_pagos_validados = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
+            
+            saldo_pendiente = tiquetes_aprobados - total_pagos_validados
+            
+            if valor_pagado > saldo_pendiente:
+                raise forms.ValidationError(
+                    f"El pago (${valor_pagado}) excede la deuda actual del empleado (${saldo_pendiente}). No se permite saldo a favor."
+                )
+        return cleaned_data
+
 
 
 class FormularioInventario(forms.ModelForm):
