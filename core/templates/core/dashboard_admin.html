@@ -150,10 +150,12 @@
                     <th>Nombre</th>
                     <th>Rol</th>
                     <th>Estado</th>
+                    <th>Saldo Pendiente</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
+                {% load humanize %}
                 {% for p in personal %}
                 <tr>
                     <td>{{ p.get_full_name|default:p.username }}</td>
@@ -164,6 +166,17 @@
                                 {{ p.is_active|yesno:"Activo,Inactivo" }}
                             </span>
                         </a>
+                    </td>
+                    <td>
+                        {% if p.role == 'empleado' %}
+                            {% if p.saldo_pendiente > 0 %}
+                                <span class="insignia insignia-roja">${{ p.saldo_pendiente|floatformat:0|intcomma }}</span>
+                            {% else %}
+                                <span class="insignia insignia-verde">Paz y salvo</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--color-texto-sutil);">N/A</span>
+                        {% endif %}
                     </td>
                     <td>
                         <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris"

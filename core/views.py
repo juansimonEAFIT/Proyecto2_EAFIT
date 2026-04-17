@@ -124,8 +124,22 @@ def dashboard_admin(request):
     inventario = InventarioTiquetes.objects.order_by("-mes").first()
     
     # Obtener todo el personal para gestión (Empleados y Restaurantes)
-    usuarios_personal = User.objects.filter(role__in=['empleado', 'restaurante']).order_by("last_name")
+    usuarios_personal = User.objects.filter(role__in=['empleado', 'restaurante']).order_by("first_name")
     
+    from django.db.models import F
+    for u in usuarios_personal:
+        if u.role == 'empleado':
+            try:
+                emp = u.empleado_perfil
+                tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=emp, estado="aprobado").annotate(
+                    costo_total=F('cantidad') * F('precio_unitario')
+                ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
+                total_pagos_validados = RegistroPago.objects.filter(empleado=emp, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
+                u.saldo_pendiente = tiquetes_aprobados - total_pagos_validados
+            except Empleado.DoesNotExist:
+                u.saldo_pendiente = Decimal("0.00")
+        else:
+            u.saldo_pendiente = None
     # Solo empleados para el filtro de historial
     solo_empleados = Empleado.objects.select_related('user').all().order_by('user__first_name')
 

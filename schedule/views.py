@@ -288,7 +288,16 @@ def gestionar_inventario(request):
     # Si no hay uno para este mes, buscar el último de meses anteriores para precargar datos
     if not inventario:
         ultimo_global = InventarioTiquetes.objects.order_by("-mes").first()
-        instancia_inicial = ultimo_global
+        if ultimo_global:
+            from datetime import date
+            instancia_inicial = InventarioTiquetes(
+                mes=date(hoy.year, hoy.month, 1),
+                cantidad_inicial=ultimo_global.cantidad_inicial,
+                max_tiquetes_por_empleado=ultimo_global.max_tiquetes_por_empleado,
+                precio_tiquete=ultimo_global.precio_tiquete
+            )
+        else:
+            instancia_inicial = None
     else:
         instancia_inicial = inventario
 
@@ -301,7 +310,6 @@ def gestionar_inventario(request):
             
             # Si es una creación nueva para el mes
             if not ya_existe:
-                inv.id = None # Asegurar creación si usamos instancia_inicial de otro mes
                 inv.cantidad_disponible = inv.cantidad_inicial
                 inv.save()
                 messages.success(request, f"Inventario para {inv.mes.strftime('%B %Y')} configurado con éxito.")
