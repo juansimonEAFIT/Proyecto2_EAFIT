@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
-from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioRegistroPagoAdmin, FormularioInventario, FormularioAumentarInventario
-from .models import Consumo, SolicitudTiquete, InventarioTiquetes, RegistroPago
+from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioRegistroPagoAdmin, FormularioInventario, FormularioAumentarInventario, FormularioEditarConsumo
+from .models import Consumo, ConsumoLog, SolicitudTiquete, InventarioTiquetes, RegistroPago
 from users.models import Empleado, Administrador
 
 # ==========================================
@@ -361,12 +361,67 @@ def historial_consumos(request, empleado_id):
     if request.user.role != 'administrador' and not request.user.is_superuser:
         return redirect("dashboard_empleado")
 
+    from users.models import Empleado as EmpleadoModel
+    empleado_obj = get_object_or_404(EmpleadoModel, id=empleado_id)
+
     consumos = Consumo.objects.filter(
         empleado_id=empleado_id
     ).order_by('-fecha_consumo')
 
     return render(request, "schedule/historial_consumo.html", {
-        "consumos": consumos
+        "consumos": consumos,
+        "empleado_obj": empleado_obj,
+    })
+
+
+@login_required
+def editar_consumo(request, consumo_id):
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        return redirect("dashboard_empleado")
+
+    consumo = get_object_or_404(Consumo, id=consumo_id)
+    empleado_id_original = consumo.empleado.id
+
+    if request.method == "POST":
+        formulario = FormularioEditarConsumo(request.POST, instance=consumo)
+        if formulario.is_valid():
+            motivo = formulario.cleaned_data.get("motivo", "")
+
+            # Detectar cambios campo a campo y registrarlos en ConsumoLog
+            campos_legibles = {
+                "empleado": "Empleado",
+                "fecha_consumo": "Fecha de consumo",
+            }
+            
+            # Obtener los valores originales de la base de datos
+            consumo_original = Consumo.objects.get(id=consumo.id)
+            
+            for campo in ["empleado", "fecha_consumo"]:
+                valor_anterior = getattr(consumo_original, campo)
+                valor_nuevo = formulario.cleaned_data.get(campo)
+                if valor_anterior != valor_nuevo:
+                    ConsumoLog.objects.create(
+                        consumo=consumo,
+                        editado_por=request.user,
+                        campo=campos_legibles.get(campo, campo),
+                        valor_anterior=str(valor_anterior),
+                        valor_nuevo=str(valor_nuevo),
+                        motivo=motivo,
+                    )
+
+            formulario.save()
+            messages.success(request, "Registro de consumo corregido y cambio registrado en el historial.")
+            return redirect("historial_consumos", empleado_id=consumo.empleado.id)
+    else:
+        formulario = FormularioEditarConsumo(instance=consumo)
+
+    logs = consumo.logs.select_related("editado_por").order_by("-fecha_edicion")
+
+    return render(request, "schedule/editar_consumo.html", {
+        "formulario": formulario,
+        "consumo": consumo,
+        "logs": logs,
+        "empleado_id_original": empleado_id_original,
     })
 
 

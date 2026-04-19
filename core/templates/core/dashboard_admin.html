@@ -180,7 +180,11 @@
                     </td>
                     <td>
                         <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris"
-                            style="text-decoration: none;">Editar</a>
+                            style="text-decoration: none; margin-right: 5px;">Editar</a>
+                        {% if p.role == 'empleado' %}
+                        <a href="{% url 'historial_consumos' p.empleado_perfil.id %}" class="insignia insignia-azul"
+                            style="text-decoration: none;">Ver Consumos</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

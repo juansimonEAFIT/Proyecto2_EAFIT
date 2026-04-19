@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db.models import Sum, F
 from decimal import Decimal
 from users.models import Empleado
-from .models import SolicitudTiquete, RegistroPago, InventarioTiquetes
+from .models import SolicitudTiquete, RegistroPago, InventarioTiquetes, Consumo
 
 
 class FormularioSolicitudTiquete(forms.ModelForm):
@@ -186,3 +186,39 @@ class FormularioAumentarInventario(forms.Form):
         label="Cantidad a adicionar",
         help_text="Sumará esta cantidad al stock disponible actual."
     )
+
+
+class FormularioEditarConsumo(forms.ModelForm):
+    motivo = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Explica brevemente el motivo de la corrección..."}),
+        label="Motivo de la corrección",
+        required=True,
+        help_text="Este motivo quedará registrado en el historial de auditoría."
+    )
+
+    class Meta:
+        model = Consumo
+        fields = ["empleado", "fecha_consumo"]
+        widgets = {
+            "fecha_consumo": forms.DateTimeInput(
+                attrs={"type": "datetime-local"},
+                format="%Y-%m-%dT%H:%M"
+            ),
+        }
+        labels = {
+            "empleado": "Empleado",
+            "fecha_consumo": "Fecha y hora del consumo",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Precargar el datetime en formato compatible con datetime-local input
+        if self.instance and self.instance.fecha_consumo:
+            from django.utils import timezone as tz
+            local_dt = tz.localtime(self.instance.fecha_consumo)
+            self.initial["fecha_consumo"] = local_dt.strftime("%Y-%m-%dT%H:%M")
+        # Mostrar solo empleados activos
+        from users.models import Empleado as EmpleadoModel
+        self.fields["empleado"].queryset = EmpleadoModel.objects.filter(
+            esta_activo=True
+        ).select_related("user").order_by("user__first_name")
