@@ -7,18 +7,49 @@
     .admin-main-content .bento-card {
         border-top: 4px solid var(--color-oscuro);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        /* Softer distinct shadow */
+    }
+
+    .reportes-export-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .reportes-export-card__title {
+        margin: 0;
+        font-size: 20px;
+        color: var(--color-oscuro);
+    }
+
+    .reportes-export-card__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .reportes-export-card__actions .btn-quick {
+        padding: 12px 16px;
+    }
+
+    @media (max-width: 1024px) {
+        .reportes-export-card__actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .reportes-export-card__actions .btn-quick {
+            flex: 1 1 180px;
+        }
     }
 </style>
+
 <div class="dashboard-header" style="margin-bottom: 30px;">
     <h1 style="font-size: 32px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
-    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.
-    </p>
+    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestion integral de personal, tiquetes y suministros.</p>
 </div>
 
-<!-- Overview Section (Default) -->
 <div id="overview-section" class="tab-content active">
-    <!-- Bento Grid for Quick Stats -->
     <div class="bento-grid">
         <div class="bento-card grande">
             <div class="etiqueta-bento">Estado de Inventario</div>
@@ -26,9 +57,8 @@
                 <div class="dato">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
                 <div style="color: var(--color-texto-sutil); margin-bottom: 10px; font-weight: 500;">Tiquetes disponibles</div>
             </div>
-            <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tiquetes</strong></p>
-            <a href="{% url 'gestionar_inventario' %}" class="boton"
-                style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
+            <p style="color: var(--color-texto-sutil); font-size: 14px;">Limite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tiquetes</strong></p>
+            <a href="{% url 'gestionar_inventario' %}" class="boton" style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
         </div>
 
         <div class="bento-card pequena">
@@ -39,39 +69,36 @@
         </div>
 
         <div class="bento-card grande">
-            <div class="etiqueta-bento">Acciones Rápidas</div>
+            <div class="etiqueta-bento">Acciones Rapidas</div>
             <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <a href="{% url 'crear_personal' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
+                <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
                     <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
                 </a>
-                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
+                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
                     <div style="font-size: 24px; margin-bottom: 10px;">💵</div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Pago Manual</div>
                 </a>
-                <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
+                <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
                     <div style="font-size: 24px; margin-bottom: 10px;">⚙️</div>
-                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuración</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuracion</div>
                 </a>
             </div>
         </div>
+
+        <div class="bento-card pequena">
+            {% include 'core/includes/reportes_export_card.html' with compact=True %}
+        </div>
     </div>
-
-
 </div>
 
-<!-- Solicitudes Section -->
 <div id="solicitudes-section" class="tab-content">
-
     <div class="tabla-contenedor">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h2 class="subtitulo-izq" style="margin: 0;">Historial Reciente</h2>
             <form method="GET" style="display: flex; gap: 10px; align-items: center;" id="form-filtros-historial">
                 <input type="hidden" name="tab" value="solicitudes-section">
-                
+
                 <label for="mes" style="font-weight: 600; color: var(--color-oscuro);">Mes:</label>
                 <select name="mes" id="mes" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
                     <option value="">-- Todos --</option>
@@ -112,8 +139,7 @@
                     <td>{{ solicitud.cantidad }}</td>
                     <td>{{ solicitud.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
                     <td>
-                        <span
-                            class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                        <span class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
@@ -124,26 +150,24 @@
     </div>
 </div>
 
-<!-- Inventario Section -->
 <div id="inventario-section" class="tab-content">
     <div class="contenedor ancho-medio" style="margin: 0; padding: 40px; text-align: left;">
-        <h2 class="titulo-central" style="text-align: left;">Configuración de Inventario</h2>
-        <p class="subtitulo-izq">Aquí puedes centralizar la gestión de stock y límites.</p>
+        <h2 class="titulo-central" style="text-align: left;">Configuracion de Inventario</h2>
+        <p class="subtitulo-izq">Aqui puedes centralizar la gestion de stock y limites.</p>
 
         <div class="tarjeta-info">
             <p><strong>Stock Actual:</strong> {{ inventario.cantidad_disponible|default:0 }}</p>
-            <p><strong>Última actualización:</strong> {{ inventario.mes|default:"N/A" }}</p>
-            <p><strong>Límite por empleado:</strong> {{ inventario.max_tiquetes_por_empleado|default:20 }}</p>
+            <p><strong>Ultima actualizacion:</strong> {{ inventario.mes|default:"N/A" }}</p>
+            <p><strong>Limite por empleado:</strong> {{ inventario.max_tiquetes_por_empleado|default:20 }}</p>
         </div>
 
-        <a href="{% url 'gestionar_inventario' %}" class="boton">Ir a Configuración Detallada</a>
+        <a href="{% url 'gestionar_inventario' %}" class="boton">Ir a Configuracion Detallada</a>
     </div>
 </div>
 
-<!-- Personal Section -->
 <div id="personal-section" class="tab-content">
     <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq">Gestión de Personal</h2>
+        <h2 class="subtitulo-izq">Gestion de Personal</h2>
         <table>
             <thead>
                 <tr>
@@ -179,11 +203,9 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris"
-                            style="text-decoration: none; margin-right: 5px;">Editar</a>
+                        <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris" style="text-decoration: none; margin-right: 5px;">Editar</a>
                         {% if p.role == 'empleado' %}
-                        <a href="{% url 'historial_consumos' p.empleado_perfil.id %}" class="insignia insignia-azul"
-                            style="text-decoration: none;">Ver Consumos</a>
+                        <a href="{% url 'historial_consumos' p.empleado_perfil.id %}" class="insignia insignia-azul" style="text-decoration: none;">Ver Consumos</a>
                         {% endif %}
                     </td>
                 </tr>
@@ -191,8 +213,7 @@
             </tbody>
         </table>
         <div style="margin-top: 20px;">
-            <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar
-                Nuevo Usuario</a>
+            <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar Nuevo Usuario</a>
         </div>
     </div>
 </div>
@@ -206,18 +227,14 @@
         const sidebarLinks = document.querySelectorAll('.sidebar-admin a');
 
         function showTab(tabId) {
-            // Hide all contents
             tabContents.forEach(content => content.classList.remove('active'));
-            // Remove active class from all links
             sidebarLinks.forEach(link => link.classList.remove('activo'));
 
-            // Show selected content
             const target = document.getElementById(tabId + '-section');
             if (target) {
                 target.classList.add('active');
             }
 
-            // Highlight sidebar link
             const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
             if (activeLink) {
                 activeLink.classList.add('activo');
@@ -229,20 +246,18 @@
                 e.preventDefault();
                 const tabId = this.getAttribute('data-tab');
                 showTab(tabId);
-                // Update URL hash without jumping
                 history.pushState(null, null, '#' + tabId);
             });
         });
 
-        // Check for hash in URL on load
         const hash = window.location.hash.substring(1);
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
-        
-        if (hash) {
+        const hashHasTab = hash && document.querySelector(`.tab-link[data-tab="${hash}"]`);
+
+        if (hashHasTab) {
             showTab(hash);
         } else if (tabParam) {
-            // Remove -section if included
             const cleanId = tabParam.replace('-section', '');
             showTab(cleanId);
         }

@@ -19,6 +19,12 @@
         <span class="icono-admin">⚙️</span> Inventario
     </a>
 
+    <a href="{% url 'dashboard_reportes' %}"
+        class="{% if request.resolver_match.url_name == 'dashboard_reportes' %}activo{% endif %}"
+        style="text-decoration: none; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+        <span class="icono-admin">📤</span> Reportes
+    </a>
+
     <a href="{% url 'inicio' %}#personal" class="tab-link" data-tab="personal">
         <span class="icono-admin">👥</span> Gestión Personal
     </a>

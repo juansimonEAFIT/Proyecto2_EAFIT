@@ -1,0 +1,7 @@
+<div class="reportes-export-card{% if compact %} reportes-export-card--compact{% endif %}">
+    <h2 class="reportes-export-card__title">Exportar reportes</h2>
+    <div class="reportes-export-card__actions">
+        <a href="{% url 'exportar_reporte_consumos' %}" class="btn-quick primary">Exportar consumos</a>
+        <a href="{% url 'exportar_reporte_pagos' %}" class="btn-quick">Exportar pagos</a>
+    </div>
+</div>

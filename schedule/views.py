@@ -1,7 +1,10 @@
+import csv
 from decimal import Decimal
+from io import BytesIO
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -9,6 +12,23 @@ from django.utils.dateparse import parse_date
 from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioRegistroPagoAdmin, FormularioInventario, FormularioAumentarInventario, FormularioEditarConsumo
 from .models import Consumo, ConsumoLog, SolicitudTiquete, InventarioTiquetes, RegistroPago
 from users.models import Empleado, Administrador
+
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+except ImportError:  # pragma: no cover - fallback for environments without openpyxl
+    Workbook = None
+    Alignment = Font = PatternFill = get_column_letter = None
+
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+except ImportError:  # pragma: no cover - fallback for environments without reportlab
+    colors = letter = getSampleStyleSheet = None
+    Paragraph = SimpleDocTemplate = Spacer = Table = TableStyle = None
 
 # ==========================================
 # VISTAS DE EMPLEADO
@@ -454,3 +474,384 @@ def historial_consumos_restaurante(request):
         "fecha_filtro": fecha_filtro,
         "es_hoy": es_hoy,
     })
+
+
+def _usuario_es_admin(user):
+    return user.is_superuser or user.role == "administrador"
+
+
+def _fecha_para_archivo():
+    return timezone.localdate().strftime("%Y%m%d")
+
+
+def _normalizar_formato(formato):
+    formato_normalizado = (formato or "csv").strip().lower()
+    if formato_normalizado not in {"csv", "excel", "pdf"}:
+        return "csv"
+    return formato_normalizado
+
+
+def _normalizar_booleano(valor):
+    valor_normalizado = (valor or "").strip().lower()
+    if valor_normalizado in {"si", "true", "1"}:
+        return True
+    if valor_normalizado in {"no", "false", "0"}:
+        return False
+    return None
+
+
+def _aplicar_filtros_comunes(queryset, request, campo_fecha):
+    empleado_id = (request.GET.get("empleado") or "").strip()
+    buscar = (request.GET.get("buscar") or "").strip()
+    departamento = (request.GET.get("departamento") or "").strip()
+    fecha_desde = parse_date((request.GET.get("fecha_desde") or "").strip())
+    fecha_hasta = parse_date((request.GET.get("fecha_hasta") or "").strip())
+
+    if empleado_id.isdigit():
+        queryset = queryset.filter(empleado_id=int(empleado_id))
+
+    if buscar:
+        queryset = queryset.filter(
+            Q(empleado__user__username__icontains=buscar)
+            | Q(empleado__user__first_name__icontains=buscar)
+            | Q(empleado__user__last_name__icontains=buscar)
+            | Q(empleado__numero_documento__icontains=buscar)
+            | Q(empleado__departamento__icontains=buscar)
+        )
+
+    if departamento:
+        queryset = queryset.filter(empleado__departamento=departamento)
+
+    if fecha_desde:
+        queryset = queryset.filter(**{f"{campo_fecha}__date__gte": fecha_desde})
+
+    if fecha_hasta:
+        queryset = queryset.filter(**{f"{campo_fecha}__date__lte": fecha_hasta})
+
+    return queryset
+
+
+def _consumos_para_reporte(request=None):
+    encabezados = [
+        "Empleado",
+        "Usuario",
+        "Documento",
+        "Departamento",
+        "Fecha consumo",
+    ]
+    filas = []
+
+    consumos = Consumo.objects.select_related("empleado__user").order_by("-fecha_consumo")
+    if request is not None:
+        consumos = _aplicar_filtros_comunes(consumos, request, "fecha_consumo")
+
+    for consumo in consumos:
+        empleado = consumo.empleado
+        user = empleado.user
+        filas.append([
+            user.get_full_name() or user.username,
+            user.username,
+            empleado.numero_documento or "",
+            empleado.departamento or "",
+            timezone.localtime(consumo.fecha_consumo).strftime("%Y-%m-%d %H:%M:%S"),
+        ])
+
+    return encabezados, filas
+
+
+def _pagos_para_reporte(request=None):
+    encabezados = [
+        "Empleado",
+        "Usuario",
+        "Documento",
+        "Valor pagado",
+        "Fecha pago",
+        "Comprobante",
+        "Validado por GH",
+        "Confirmado por empleado",
+    ]
+    filas = []
+
+    pagos = RegistroPago.objects.select_related("empleado__user").order_by("-fecha_pago")
+    if request is not None:
+        pagos = _aplicar_filtros_comunes(pagos, request, "fecha_pago")
+        validado = _normalizar_booleano(request.GET.get("validado"))
+        confirmado = _normalizar_booleano(request.GET.get("confirmado"))
+        if validado is not None:
+            pagos = pagos.filter(validado_por_gh=validado)
+        if confirmado is not None:
+            pagos = pagos.filter(confirmado_por_empleado=confirmado)
+
+    for pago in pagos:
+        empleado = pago.empleado
+        user = empleado.user
+        filas.append([
+            user.get_full_name() or user.username,
+            user.username,
+            empleado.numero_documento or "",
+            f"{pago.valor_pagado:.2f}",
+            timezone.localtime(pago.fecha_pago).strftime("%Y-%m-%d %H:%M:%S"),
+            pago.comprobante or "",
+            "Si" if pago.validado_por_gh else "No",
+            "Si" if pago.confirmado_por_empleado else "No",
+        ])
+
+    return encabezados, filas
+
+
+def _respuesta_csv(nombre_base, encabezados, filas):
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{nombre_base}.csv"'
+    response.write("\ufeff")
+
+    writer = csv.writer(response)
+    writer.writerow(encabezados)
+    writer.writerows(filas)
+    return response
+
+
+def _respuesta_excel(nombre_base, titulo, encabezados, filas):
+    if Workbook is None:
+        response = HttpResponse(content_type="application/vnd.ms-excel; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{nombre_base}.xls"'
+        response.write("\ufeff")
+        response.write("<table border='1'>")
+        response.write(f"<tr><th colspan='{len(encabezados)}'>{titulo}</th></tr>")
+        response.write("<tr>" + "".join(f"<th>{valor}</th>" for valor in encabezados) + "</tr>")
+        for fila in filas:
+            response.write("<tr>" + "".join(f"<td>{valor}</td>" for valor in fila) + "</tr>")
+        response.write("</table>")
+        return response
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Reporte"
+    sheet.append([titulo])
+    sheet.append(encabezados)
+
+    for fila in filas:
+        sheet.append(fila)
+
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(encabezados))
+    sheet["A1"].font = Font(size=14, bold=True, color="16325B")
+    sheet["A1"].alignment = Alignment(horizontal="center")
+
+    header_fill = PatternFill(fill_type="solid", start_color="EEF3FF", end_color="EEF3FF")
+    for cell in sheet[2]:
+        cell.font = Font(bold=True, color="16325B")
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+
+    for indice, column in enumerate(sheet.columns, start=1):
+        max_length = 0
+        column_letter = get_column_letter(indice)
+        for cell in column:
+            cell_value = "" if cell.value is None else str(cell.value)
+            max_length = max(max_length, len(cell_value))
+        sheet.column_dimensions[column_letter].width = min(max(max_length + 2, 14), 34)
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{nombre_base}.xlsx"'
+    return response
+
+
+def _respuesta_pdf(nombre_base, titulo, encabezados, filas):
+    if SimpleDocTemplate is None:
+        return _respuesta_pdf_basico(nombre_base, titulo, encabezados, filas)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=36,
+        rightMargin=36,
+        topMargin=42,
+        bottomMargin=36,
+    )
+    estilos = getSampleStyleSheet()
+    elementos = [
+        Paragraph(titulo, estilos["Title"]),
+        Paragraph(
+            f"Generado el {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S')}",
+            estilos["BodyText"],
+        ),
+        Spacer(1, 12),
+    ]
+
+    tabla = Table([encabezados] + filas, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEF3FF")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#16325B")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D6E0F5")),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    elementos.append(tabla)
+    doc.build(elementos)
+    buffer.seek(0)
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{nombre_base}.pdf"'
+    return response
+
+
+def _respuesta_pdf_basico(nombre_base, titulo, encabezados, filas):
+    lineas = [
+        titulo,
+        f"Generado el {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        " | ".join(encabezados),
+        "-" * 120,
+    ]
+    for fila in filas:
+        lineas.append(" | ".join(str(valor) for valor in fila))
+
+    paginas = []
+    lineas_por_pagina = 42
+    for inicio in range(0, len(lineas), lineas_por_pagina):
+        paginas.append(lineas[inicio:inicio + lineas_por_pagina])
+
+    objetos = []
+
+    def _texto_pdf(valor):
+        return valor.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+    for pagina in paginas:
+        contenido = ["BT /F1 9 Tf 40 760 Td 12 TL"]
+        for indice, linea in enumerate(pagina):
+            prefijo = "" if indice == 0 else "T* "
+            contenido.append(f"{prefijo}({_texto_pdf(linea[:160])}) Tj")
+        contenido.append("ET")
+        objetos.append("\n".join(contenido).encode("latin-1", errors="replace"))
+
+    total_paginas = len(objetos)
+    font_obj = total_paginas * 2 + 3
+    objetos_pdf = [b"<< /Type /Catalog /Pages 2 0 R >>"]
+    hijos = " ".join(f"{indice} 0 R" for indice in range(3, 3 + total_paginas * 2, 2))
+    objetos_pdf.append(f"<< /Type /Pages /Count {total_paginas} /Kids [{hijos}] >>".encode("ascii"))
+
+    for index, contenido in enumerate(objetos, start=0):
+        page_obj = 3 + index * 2
+        content_obj = page_obj + 1
+        objetos_pdf.append(
+            (
+                f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+                f"/Resources << /Font << /F1 {font_obj} 0 R >> >> /Contents {content_obj} 0 R >>"
+            ).encode("ascii")
+        )
+        objetos_pdf.append(
+            f"<< /Length {len(contenido)} >>\nstream\n".encode("ascii") + contenido + b"\nendstream"
+        )
+
+    objetos_pdf.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>")
+
+    buffer = BytesIO()
+    buffer.write(b"%PDF-1.4\n")
+    offsets = [0]
+    for indice, objeto in enumerate(objetos_pdf, start=1):
+        offsets.append(buffer.tell())
+        buffer.write(f"{indice} 0 obj\n".encode("ascii"))
+        buffer.write(objeto)
+        buffer.write(b"\nendobj\n")
+
+    xref_offset = buffer.tell()
+    buffer.write(f"xref\n0 {len(objetos_pdf) + 1}\n".encode("ascii"))
+    buffer.write(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        buffer.write(f"{offset:010d} 00000 n \n".encode("ascii"))
+    buffer.write(
+        (
+            f"trailer\n<< /Size {len(objetos_pdf) + 1} /Root 1 0 R >>\n"
+            f"startxref\n{xref_offset}\n%%EOF"
+        ).encode("ascii")
+    )
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{nombre_base}.pdf"'
+    return response
+
+
+def _respuesta_reporte(nombre_base, titulo, encabezados, filas, formato):
+    formato_normalizado = _normalizar_formato(formato)
+    if formato_normalizado == "excel":
+        return _respuesta_excel(nombre_base, titulo, encabezados, filas)
+    if formato_normalizado == "pdf":
+        return _respuesta_pdf(nombre_base, titulo, encabezados, filas)
+    return _respuesta_csv(nombre_base, encabezados, filas)
+
+
+@login_required
+def exportar_reporte_consumos(request):
+    if not _usuario_es_admin(request.user):
+        return redirect("dashboard_empleado")
+
+    formato = request.GET.get("formato", "csv")
+    encabezados, filas = _consumos_para_reporte(request)
+    return _respuesta_reporte(
+        nombre_base=f"reporte_consumos_{_fecha_para_archivo()}",
+        titulo="Reporte de consumos",
+        encabezados=encabezados,
+        filas=filas,
+        formato=formato,
+    )
+
+
+@login_required
+def exportar_reporte_pagos(request):
+    if not _usuario_es_admin(request.user):
+        return redirect("dashboard_empleado")
+
+    formato = request.GET.get("formato", "csv")
+    encabezados, filas = _pagos_para_reporte(request)
+    return _respuesta_reporte(
+        nombre_base=f"reporte_pagos_{_fecha_para_archivo()}",
+        titulo="Reporte de pagos",
+        encabezados=encabezados,
+        filas=filas,
+        formato=formato,
+    )
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="reporte_pagos_{_fecha_para_archivo()}.csv"'
+    response.write("\ufeff")
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Empleado",
+        "Usuario",
+        "Documento",
+        "Valor pagado",
+        "Fecha pago",
+        "Comprobante",
+        "Validado por GH",
+        "Confirmado por empleado",
+    ])
+
+    pagos = RegistroPago.objects.select_related("empleado__user").order_by("-fecha_pago")
+    for pago in pagos:
+        empleado = pago.empleado
+        user = empleado.user
+        writer.writerow([
+            user.get_full_name() or user.username,
+            user.username,
+            empleado.numero_documento or "",
+            f"{pago.valor_pagado:.2f}",
+            timezone.localtime(pago.fecha_pago).strftime("%Y-%m-%d %H:%M:%S"),
+            pago.comprobante or "",
+            "Sí" if pago.validado_por_gh else "No",
+            "Sí" if pago.confirmado_por_empleado else "No",
+        ])
+
+    return response
