@@ -136,10 +136,13 @@ def dashboard_admin(request):
                 ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
                 total_pagos_validados = RegistroPago.objects.filter(empleado=emp, validado_por_gh=True).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
                 u.saldo_pendiente = tiquetes_aprobados - total_pagos_validados
+                u.empleado_perfil_id_safe = emp.id
             except Empleado.DoesNotExist:
                 u.saldo_pendiente = Decimal("0.00")
+                u.empleado_perfil_id_safe = None
         else:
             u.saldo_pendiente = None
+            u.empleado_perfil_id_safe = None
     # Solo empleados para el filtro de historial
     solo_empleados = Empleado.objects.select_related('user').all().order_by('user__first_name')
 
@@ -169,35 +172,3 @@ def dashboard_admin(request):
     )
 
 
-@login_required
-def dashboard_reportes(request):
-    if request.user.role != 'administrador' and not request.user.is_superuser:
-        return redirect("dashboard_empleado")
-
-    empleados = Empleado.objects.select_related("user").order_by("user__first_name", "user__last_name", "user__username")
-    departamentos = (
-        Empleado.objects.exclude(departamento__isnull=True)
-        .exclude(departamento__exact="")
-        .values_list("departamento", flat=True)
-        .distinct()
-        .order_by("departamento")
-    )
-    filtros = {
-        "buscar": request.GET.get("buscar", "").strip(),
-        "empleado": request.GET.get("empleado", "").strip(),
-        "departamento": request.GET.get("departamento", "").strip(),
-        "fecha_desde": request.GET.get("fecha_desde", "").strip(),
-        "fecha_hasta": request.GET.get("fecha_hasta", "").strip(),
-        "validado": request.GET.get("validado", "").strip(),
-        "confirmado": request.GET.get("confirmado", "").strip(),
-    }
-
-    return render(
-        request,
-        "core/reportes_admin.html",
-        {
-            "empleados_filtro": empleados,
-            "departamentos_filtro": departamentos,
-            "filtros": filtros,
-        },
-    )

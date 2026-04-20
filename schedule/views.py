@@ -855,3 +855,37 @@ def exportar_reporte_pagos(request):
         ])
 
     return response
+
+
+@login_required
+def dashboard_reportes(request):
+    if request.user.role != 'administrador' and not request.user.is_superuser:
+        return redirect("dashboard_empleado")
+
+    empleados = Empleado.objects.select_related("user").order_by("user__first_name", "user__last_name", "user__username")
+    departamentos = (
+        Empleado.objects.exclude(departamento__isnull=True)
+        .exclude(departamento__exact="")
+        .values_list("departamento", flat=True)
+        .distinct()
+        .order_by("departamento")
+    )
+    filtros = {
+        "buscar": request.GET.get("buscar", "").strip(),
+        "empleado": request.GET.get("empleado", "").strip(),
+        "departamento": request.GET.get("departamento", "").strip(),
+        "fecha_desde": request.GET.get("fecha_desde", "").strip(),
+        "fecha_hasta": request.GET.get("fecha_hasta", "").strip(),
+        "validado": request.GET.get("validado", "").strip(),
+        "confirmado": request.GET.get("confirmado", "").strip(),
+    }
+
+    return render(
+        request,
+        "schedule/reportes_admin.html",
+        {
+            "empleados_filtro": empleados,
+            "departamentos_filtro": departamentos,
+            "filtros": filtros,
+        },
+    )
