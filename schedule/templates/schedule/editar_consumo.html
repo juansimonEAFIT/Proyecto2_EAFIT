@@ -8,7 +8,7 @@
   <!-- Cabecera -->
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
     <div>
-      <h1 style="margin:0; font-size:1.4rem;">✏️ Editar registro de consumo</h1>
+      <h1 style="margin:0; font-size:1.4rem;">Editar registro de consumo</h1>
       <p style="margin:0.25rem 0 0; color:#6b7280; font-size:0.9rem;">
         ID #{{ consumo.id }} —
         Empleado original: <strong>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</strong>
@@ -59,7 +59,7 @@
       <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
         <button type="submit"
                 style="padding:0.6rem 1.4rem; background:#f59e0b; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:0.95rem;">
-          💾 Guardar corrección
+          Guardar corrección
         </button>
         <a href="{% url 'historial_consumos' empleado_id_original %}"
            style="padding:0.6rem 1.2rem; background:#f3f4f6; color:#374151; border-radius:6px; text-decoration:none; font-size:0.95rem;">
@@ -72,7 +72,7 @@
   <!-- Historial de ediciones -->
   <div style="background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); padding:1.75rem;">
     <h2 style="margin:0 0 1rem; font-size:1rem; color:#374151; border-bottom:1px solid #e5e7eb; padding-bottom:0.75rem;">
-      📋 Historial de cambios
+      Historial de cambios
     </h2>
 
     {% if logs %}

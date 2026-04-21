@@ -361,7 +361,7 @@
     <section class="reportes-hero">
         <div class="reportes-hero__content">
             <div>
-                <div class="reportes-badge">📊 Centro administrativo</div>
+                <div class="reportes-badge">Centro administrativo</div>
                 <h1>Reportes listos para contabilidad y seguimiento</h1>
                 <p>
                     Filtra por empleado, fechas, area o estado y descarga solo lo que necesites.
@@ -386,7 +386,7 @@
         <form id="reportes-filter-form" method="get" action="{% url 'dashboard_reportes' %}">
             <div class="reportes-filtros__header">
                 <div>
-                    <h2 class="reportes-filtros__title">🎯 Ajusta el filtro de descarga</h2>
+                    <h2 class="reportes-filtros__title">Ajusta el filtro de descarga</h2>
                     <p class="reportes-filtros__subtitle">
                         Los filtros de validacion y confirmacion aplican sobre todo al reporte de pagos.
                         En consumos se ignoran automaticamente.
@@ -466,15 +466,15 @@
         </form>
 
         <div class="reportes-filtros__chips">
-            {% if filtros.buscar %}<span class="reporte-chip">🔎 {{ filtros.buscar }}</span>{% endif %}
-            {% if filtros.empleado %}<span class="reporte-chip">👤 Empleado filtrado</span>{% endif %}
-            {% if filtros.departamento %}<span class="reporte-chip">🏢 {{ filtros.departamento }}</span>{% endif %}
-            {% if filtros.fecha_desde %}<span class="reporte-chip">📅 Desde {{ filtros.fecha_desde }}</span>{% endif %}
-            {% if filtros.fecha_hasta %}<span class="reporte-chip">📅 Hasta {{ filtros.fecha_hasta }}</span>{% endif %}
-            {% if filtros.validado %}<span class="reporte-chip">✅ Validado: {{ filtros.validado|title }}</span>{% endif %}
-            {% if filtros.confirmado %}<span class="reporte-chip">🙋 Confirmado: {{ filtros.confirmado|title }}</span>{% endif %}
+            {% if filtros.buscar %}<span class="reporte-chip">{{ filtros.buscar }}</span>{% endif %}
+            {% if filtros.empleado %}<span class="reporte-chip">Empleado filtrado</span>{% endif %}
+            {% if filtros.departamento %}<span class="reporte-chip">{{ filtros.departamento }}</span>{% endif %}
+            {% if filtros.fecha_desde %}<span class="reporte-chip">Desde {{ filtros.fecha_desde }}</span>{% endif %}
+            {% if filtros.fecha_hasta %}<span class="reporte-chip">Hasta {{ filtros.fecha_hasta }}</span>{% endif %}
+            {% if filtros.validado %}<span class="reporte-chip">Validado: {{ filtros.validado|title }}</span>{% endif %}
+            {% if filtros.confirmado %}<span class="reporte-chip">Confirmado: {{ filtros.confirmado|title }}</span>{% endif %}
             {% if not filtros.buscar and not filtros.empleado and not filtros.departamento and not filtros.fecha_desde and not filtros.fecha_hasta and not filtros.validado and not filtros.confirmado %}
-                <span class="reporte-chip">✨ Sin filtros activos</span>
+                <span class="reporte-chip">Sin filtros activos</span>
             {% endif %}
         </div>
     </section>
@@ -484,7 +484,9 @@
             class="reporte-card"
             style="--reporte-accent: linear-gradient(90deg, #1f5eff 0%, #57a4ff 100%); --reporte-soft: #eef4ff; --reporte-accent-text: #315aa8;"
         >
-            <div class="reporte-card__icon">🍽️</div>
+            <div class="reporte-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            </div>
             <div class="reporte-card__eyebrow">Consumos</div>
             <h2>Reporte de consumos</h2>
             <p>
@@ -493,9 +495,9 @@
             </p>
 
             <div class="reporte-card__chips">
-                <span class="reporte-chip">🧾 Historial detallado</span>
-                <span class="reporte-chip">👥 Datos de empleado</span>
-                <span class="reporte-chip">🕒 Fecha exacta</span>
+                <span class="reporte-chip">Historial detallado</span>
+                <span class="reporte-chip">Datos de empleado</span>
+                <span class="reporte-chip">Fecha exacta</span>
             </div>
 
             <div class="reporte-card__formats">
@@ -539,7 +541,9 @@
             class="reporte-card"
             style="--reporte-accent: linear-gradient(90deg, #ff4f6d 0%, #ff9f56 100%); --reporte-soft: #fff1ef; --reporte-accent-text: #b84b41;"
         >
-            <div class="reporte-card__icon">💳</div>
+            <div class="reporte-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            </div>
             <div class="reporte-card__eyebrow">Pagos</div>
             <h2>Reporte de pagos</h2>
             <p>
@@ -548,9 +552,9 @@
             </p>
 
             <div class="reporte-card__chips">
-                <span class="reporte-chip">💰 Valor registrado</span>
-                <span class="reporte-chip">✅ Validaciones</span>
-                <span class="reporte-chip">📎 Comprobante</span>
+                <span class="reporte-chip">Valor registrado</span>
+                <span class="reporte-chip">Validaciones</span>
+                <span class="reporte-chip">Comprobante</span>
             </div>
 
             <div class="reporte-card__formats">
@@ -592,7 +596,7 @@
     </section>
 
     <div class="reportes-note">
-        ✨ Consejo: usa <strong>Excel</strong> para revisar y filtrar, <strong>CSV</strong> para
+        Consejo: usa <strong>Excel</strong> para revisar y filtrar, <strong>CSV</strong> para
         integraciones rapidas y <strong>PDF</strong> cuando quieras una version cerrada y ordenada.
     </div>
 </div>
