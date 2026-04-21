@@ -1,31 +1,85 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Registrar Pago - LunchFlow{% endblock %}
+{% block title %}Historial de Pagos - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor">
-    <h1 class="titulo-central">Registrar Pago</h1>
-    <p class="subtitulo">Registra el valor pagado y la referencia del comprobante.</p>
-
-    <form method="post">
-        {% csrf_token %}
-        {% for field in formulario %}
-        <div class="campo">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-            <small class="subtitulo" style="display: block; text-align: left; margin: 4px 0 10px;">{{ field.help_text }}</small>
-            {% endif %}
+<div class="contenedor-interior">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Historial de Pagos</h1>
+        <div class="subtitulo" style="text-align: center;">
+            Consulta tus pagos realizados y confirma aquellos que ya han sido validados por Gestión Humana.
         </div>
-        {% endfor %}
+    </div>
 
-        <button type="submit" class="boton">Registrar Pago</button>
-    </form>
+    <div class="tabla-contenedor">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="subtitulo-izq" style="margin: 0;">Detalle de Pagos</h2>
+            <div style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                <a href="?mes={{ prev_month }}&anio={{ prev_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
+                <span style="font-weight: 600; color: var(--color-azul); text-transform: capitalize; min-width: 100px; text-align: center;">{{ mes_nombre }} {{ anio_actual }}</span>
+                <a href="?mes={{ next_month }}&anio={{ next_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha Pago</th>
+                    <th>Comprobante</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                    <tr>
+                        <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                        <td>{{ pago.comprobante|default:"---" }}</td>
+                        <td>$ {{ pago.valor_pagado }}</td>
+                        <td>
+                            {% if not pago.validado_por_gh %}
+                                <span class="insignia insignia-roja" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Pendiente validación GH
+                                </span>
+                            {% elif pago.validado_por_gh and not pago.confirmado_por_empleado %}
+                                <span class="insignia insignia-azul" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Validado por GH
+                                </span>
+                            {% else %}
+                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Confirmado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if pago.validado_por_gh and not pago.confirmado_por_empleado %}
+                                <form method="post" action="{% url 'confirmar_pago_empleado' pago.id %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="insignia insignia-azul" style="border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 8px;">
+                                        Confirmar
+                                    </button>
+                                </form>
+                            {% elif pago.confirmado_por_empleado %}
+                                <span style="color: #64748b;">Sin acciones</span>
+                            {% else %}
+                                <span style="color: #64748b;">Esperando GH</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center;">No se registran pagos aún.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <div style="text-align: center; margin-top: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
-        <a href="{% url 'consultar_estado_cuenta' %}" style="color: var(--color-azul); font-size: 15px; font-weight: 600;">
-            Ver historial de pagos
-        </a>
+        <div class="actualizacion">
+            Última actualización de pagos: {{ ultima_actualizacion|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
         <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">
             Volver al dashboard
         </a>

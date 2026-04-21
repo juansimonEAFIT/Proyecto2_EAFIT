@@ -9,19 +9,21 @@
     <a href="{% url 'inicio' %}" class="{% if request.resolver_match.url_name == 'inicio' %}activo{% endif %}">
         <span>🏠</span> Inicio
     </a>
-    
-    <a href="{% url 'ver_qr_empleado' %}" class="{% if request.resolver_match.url_name == 'ver_qr_empleado' %}activo{% endif %}">
+
+    <a href="{% url 'ver_qr_empleado' %}"
+        class="{% if request.resolver_match.url_name == 'ver_qr_empleado' %}activo{% endif %}">
         <span>📱</span> Mi QR
     </a>
 
-    <a href="{% url 'solicitar_tiquete' %}" class="{% if request.resolver_match.url_name == 'solicitar_tiquete' %}activo{% endif %}">
+    <a href="{% url 'solicitar_tiquete' %}"
+        class="{% if request.resolver_match.url_name == 'solicitar_tiquete' %}activo{% endif %}">
         <span>🎟️</span> Pedir Tiquete
     </a>
 
 
     <a href="{% url 'consultar_estado_cuenta' %}"
         class="{% if request.resolver_match.url_name == 'consultar_estado_cuenta' %}activo{% endif %}">
-        <span>📊</span> Consumos
+        <span>📊</span> Estado de cuenta
     </a>
 
     <a href="{% url 'registrar_pago' %}"

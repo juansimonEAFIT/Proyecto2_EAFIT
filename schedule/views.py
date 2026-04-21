@@ -130,18 +130,42 @@ def registrar_pago(request):
     except Empleado.DoesNotExist:
         return redirect("dashboard_empleado")
 
-    if request.method == "POST":
-        formulario = FormularioRegistroPago(request.POST)
-        if formulario.is_valid():
-            pago = formulario.save(commit=False)
-            pago.empleado = empleado
-            pago.save()
-            messages.success(request, "Pago registrado. Pendiente de validación por Gestión Humana.")
-            return redirect("dashboard_empleado")
-    else:
-        formulario = FormularioRegistroPago()
+    hoy = timezone.localdate()
+    try:
+        mes_actual = int(request.GET.get("mes", hoy.month))
+        anio_actual = int(request.GET.get("anio", hoy.year))
+    except ValueError:
+        mes_actual = hoy.month
+        anio_actual = hoy.year
 
-    return render(request, "schedule/registrar_pago.html", {"formulario": formulario})
+    if mes_actual < 1 or mes_actual > 12:
+        mes_actual = hoy.month
+        anio_actual = hoy.year
+
+    next_month = mes_actual + 1 if mes_actual < 12 else 1
+    next_year = anio_actual if mes_actual < 12 else anio_actual + 1
+    prev_month = mes_actual - 1 if mes_actual > 1 else 12
+    prev_year = anio_actual if mes_actual > 1 else anio_actual - 1
+
+    nombres_meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    mes_nombre = nombres_meses[mes_actual - 1]
+
+    pagos = RegistroPago.objects.filter(
+        empleado=empleado,
+        fecha_pago__month=mes_actual,
+        fecha_pago__year=anio_actual
+    ).order_by("-fecha_pago")
+
+    return render(request, "schedule/registrar_pago.html", {
+        "pagos": pagos,
+        "ultima_actualizacion": timezone.now(),
+        "mes_nombre": mes_nombre,
+        "anio_actual": anio_actual,
+        "prev_month": prev_month,
+        "prev_year": prev_year,
+        "next_month": next_month,
+        "next_year": next_year,
+    })
 
 
 @login_required
@@ -190,9 +214,6 @@ def consultar_estado_cuenta(request):
     for compra in compras:
         compra.valor_total = compra.cantidad * getattr(compra, "precio_unitario", Decimal("10000.00"))
 
-    # Mostrar todos los pagos del empleado
-    pagos = RegistroPago.objects.filter(empleado=empleado).order_by("-fecha_pago")
-
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
     tiquetes_consumidos = Consumo.objects.filter(
         empleado=empleado,
@@ -220,7 +241,6 @@ def consultar_estado_cuenta(request):
         {
             "empleado": empleado,
             "compras": compras,
-            "pagos": pagos,
             "saldo_pendiente": saldo_pendiente,
             "tiquetes_comprados": tiquetes_aprobados,
             "tiquetes_disponibles": tiquetes_disponibles,
@@ -249,17 +269,17 @@ def confirmar_pago_empleado(request, pago_id):
 
     if not pago.validado_por_gh:
         messages.error(request, "No puedes confirmar un pago que aún no ha sido validado por Gestión Humana.")
-        return redirect("consultar_estado_cuenta")
+        return redirect("registrar_pago")
 
     if pago.confirmado_por_empleado:
         messages.info(request, "Este pago ya fue confirmado anteriormente.")
-        return redirect("consultar_estado_cuenta")
+        return redirect("registrar_pago")
 
     pago.confirmado_por_empleado = True
     pago.save(update_fields=["confirmado_por_empleado"])
 
     messages.success(request, f"Pago de ${pago.valor_pagado:.0f} confirmado exitosamente.")
-    return redirect("consultar_estado_cuenta")
+    return redirect("registrar_pago")
 
 
 # ==========================================
