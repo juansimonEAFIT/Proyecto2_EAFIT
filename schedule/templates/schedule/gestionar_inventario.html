@@ -9,7 +9,7 @@
     {% if ya_existe %}
     <div class="tarjeta-info" style="margin-bottom: 30px; text-align: left; background: #f8fafc; border-left: 4px solid var(--color-rojo);">
         <h3 style="margin-top: 0; color: var(--color-oscuro);">Estado Actual del Mes ({{ inventario.mes|date:"F Y" }})</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+        <div class="grid-2col" style="gap: 15px; margin-top: 10px;">
             <div>
                 <span style="font-size: 13px; color: var(--color-texto-sutil); display: block;">Stock Disponible</span>
                 <strong style="font-size: 24px; color: var(--color-rojo);">{{ inventario.cantidad_disponible }}</strong>
@@ -26,7 +26,7 @@
         <h3 style="margin-top: 0; font-size: 18px;">Aumentar Tiquetes Disponibles</h3>
         <p style="font-size: 14px; color: var(--color-texto-sutil); margin-bottom: 20px;">Use esta opción para añadir tiquetes al stock actual sin reiniciar el conteo mensual.</p>
         
-        <form action="{% url 'aumentar_inventario' %}" method="post" style="display: flex; align-items: flex-end; gap: 15px;">
+        <form action="{% url 'aumentar_inventario' %}" method="post" class="form-fila">
             {% csrf_token %}
             <div class="campo" style="flex: 1; margin-bottom: 0;">
                 <label for="{{ form_aumentar.cantidad_a_adicionar.id_for_label }}">{{ form_aumentar.cantidad_a_adicionar.label }}</label>

@@ -952,4 +952,162 @@ form p {
     color: #166534;
 }
 
-/* (Media queries unificadas arriba) */
+/* ── Utilidades responsive ─────────────────────────────────── */
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.form-fila {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+}
+
+.acciones-rapidas {
+    display: flex;
+}
+
+/* ── Botón hamburguesa ─────────────────────────────────────── */
+.boton-hamburguesa {
+    display: none;
+}
+
+/* ── Overlay cajón lateral ─────────────────────────────────── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 199;
+}
+
+.sidebar-overlay.activo {
+    display: block;
+}
+
+/* ── Tablet/Móvil ≤768px ───────────────────────────────────── */
+@media (max-width: 768px) {
+
+    .boton-hamburguesa {
+        display: flex;
+    }
+
+    /* Cajón lateral deslizable */
+    .sidebar-admin,
+    .sidebar-empleado {
+        position: fixed !important;
+        top: 0 !important;
+        left: -290px !important;
+        width: 270px !important;
+        height: 100vh !important;
+        flex-direction: column !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 30px 20px !important;
+        transition: left 0.3s ease;
+        z-index: 200;
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-admin.sidebar-abierto,
+    .sidebar-empleado.sidebar-abierto {
+        left: 0 !important;
+    }
+
+    /* Contenido a todo el ancho */
+    .admin-main-content,
+    .empleado-main-content {
+        padding: 20px 16px;
+    }
+
+    /* Grillas a 1 columna */
+    .stats-grid,
+    .dashboard-row,
+    .quick-actions,
+    .grid-2col {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Acciones rápidas admin apiladas */
+    .acciones-rapidas {
+        flex-direction: column;
+    }
+
+    /* Formulario fila → columna */
+    .form-fila {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-fila .campo {
+        flex: none !important;
+        margin-bottom: 12px !important;
+    }
+
+    .form-fila .boton {
+        margin-top: 0 !important;
+        white-space: normal;
+    }
+
+    /* Cabecera de sección apilada */
+    .header-seccion {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    /* Filtro historial envuelve */
+    #form-filtros-historial {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Headings */
+    .admin-main-content h1,
+    .empleado-main-content h1,
+    .header-seccion h1 {
+        font-size: 24px !important;
+    }
+
+    /* Tabla más compacta */
+    th, td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    /* Botones de navbar */
+    .boton-icono,
+    .boton-menu,
+    .boton-hamburguesa {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* ── Teléfono pequeño ≤480px ───────────────────────────────── */
+@media (max-width: 480px) {
+    .barra-superior {
+        padding: 14px 16px;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    .contenedor {
+        padding: 20px 16px;
+    }
+
+    .bento-card,
+    .stat-card,
+    .grid-card,
+    .card-resumen-lateral {
+        padding: 20px;
+    }
+
+    .admin-main-content,
+    .empleado-main-content {
+        padding: 16px 12px;
+    }
+}
