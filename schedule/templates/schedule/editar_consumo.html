@@ -1,133 +1,88 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Editar Consumo #{{ consumo.id }} – LunchFlow{% endblock %}
+{% block title %}Editar Consumo #{{ consumo.id }} - LunchFlow{% endblock %}
 
 {% block content %}
-<div style="max-width:680px; margin:2rem auto; padding:0 1rem;">
+<div class="contenedor-interior">
 
-  <!-- Cabecera -->
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
-    <div>
-      <h1 style="margin:0; font-size:1.4rem;">Editar registro de consumo</h1>
-      <p style="margin:0.25rem 0 0; color:#6b7280; font-size:0.9rem;">
-        ID #{{ consumo.id }} —
-        Empleado original: <strong>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</strong>
-      </p>
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Editar registro de consumo</h1>
+        <p class="subtitulo">
+            ID #{{ consumo.id }} &mdash; Empleado: <strong>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</strong>
+        </p>
     </div>
-    <a href="{% url 'historial_consumos' empleado_id_original %}"
-       style="padding:0.5rem 1rem; background:#6b7280; color:#fff; border-radius:6px; text-decoration:none; font-size:0.9rem;">
-      ← Volver
-    </a>
-  </div>
 
-  {% if messages %}
-    {% for message in messages %}
-    <div style="padding:0.75rem 1rem; border-radius:6px; margin-bottom:1rem;
-                background:{% if message.tags == 'success' %}#d1fae5{% elif message.tags == 'error' %}#fee2e2{% else %}#e0f2fe{% endif %};
-                color:{% if message.tags == 'success' %}#065f46{% elif message.tags == 'error' %}#991b1b{% else %}#0369a1{% endif %};">
-      {{ message }}
+    <div class="contenedor ancho-medio" style="margin: 0 auto 24px; text-align: left;">
+        <h2 style="margin: 0 0 20px; font-size: 16px; color: var(--color-oscuro); border-bottom: 1px solid var(--color-borde-card); padding-bottom: 12px;">
+            Datos del consumo
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in formulario %}
+            <div class="campo">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %} <span style="color: var(--color-rojo);">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small style="display: block; color: var(--color-texto-sutil); font-size: 12px; margin-top: 4px;">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="mensaje mensaje-error" style="padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button type="submit" class="boton" style="width: auto; padding: 12px 24px; background: var(--color-azul); color: white;">
+                    Guardar corrección
+                </button>
+                <a href="{% url 'historial_consumos' empleado_id_original %}" class="boton"
+                   style="width: auto; padding: 12px 24px; background: #f1f5f9; color: var(--color-texto-suave); text-decoration: none; text-align: center;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
     </div>
-    {% endfor %}
-  {% endif %}
 
-  <!-- Formulario de edición -->
-  <div style="background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); padding:1.75rem; margin-bottom:1.5rem;">
-    <h2 style="margin:0 0 1.25rem; font-size:1rem; color:#374151; border-bottom:1px solid #e5e7eb; padding-bottom:0.75rem;">
-      Datos del consumo
-    </h2>
-
-    <form method="post">
-      {% csrf_token %}
-
-      {% for field in formulario %}
-      <div style="margin-bottom:1.1rem;">
-        <label for="{{ field.id_for_label }}"
-               style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">
-          {{ field.label }}
-          {% if field.field.required %}<span style="color:#ef4444;">*</span>{% endif %}
-        </label>
-        {{ field }}
-        {% if field.help_text %}
-          <p style="margin:0.25rem 0 0; font-size:0.78rem; color:#6b7280;">{{ field.help_text }}</p>
+    <div class="tabla-contenedor">
+        <h2 class="subtitulo-izq" style="margin: 0 0 20px;">Historial de cambios</h2>
+        {% if logs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Campo</th>
+                    <th>Antes</th>
+                    <th>Despues</th>
+                    <th>Editado por</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.fecha_edicion|date:"d/m/Y H:i" }}</td>
+                    <td><span class="insignia insignia-gris">{{ log.campo }}</span></td>
+                    <td style="color: var(--color-rojo); text-decoration: line-through;">{{ log.valor_anterior }}</td>
+                    <td style="color: #166534; font-weight: 600;">{{ log.valor_nuevo }}</td>
+                    <td>{{ log.editado_por.get_full_name|default:log.editado_por.username }}</td>
+                    <td style="color: var(--color-texto-sutil); font-style: italic;">{{ log.motivo|default:"&mdash;" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--color-texto-sutil); text-align: center; padding: 20px 0;">Este consumo no ha sido editado previamente.</p>
         {% endif %}
-        {% for error in field.errors %}
-          <p style="margin:0.25rem 0 0; font-size:0.8rem; color:#dc2626;">{{ error }}</p>
-        {% endfor %}
-      </div>
-      {% endfor %}
+    </div>
 
-      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-        <button type="submit"
-                style="padding:0.6rem 1.4rem; background:#f59e0b; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:0.95rem;">
-          Guardar corrección
-        </button>
-        <a href="{% url 'historial_consumos' empleado_id_original %}"
-           style="padding:0.6rem 1.2rem; background:#f3f4f6; color:#374151; border-radius:6px; text-decoration:none; font-size:0.95rem;">
-          Cancelar
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'historial_consumos' empleado_id_original %}" style="color: var(--color-texto-sutil); font-size: 14px;">
+            &larr; Volver al historial
         </a>
-      </div>
-    </form>
-  </div>
-
-  <!-- Historial de ediciones -->
-  <div style="background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); padding:1.75rem;">
-    <h2 style="margin:0 0 1rem; font-size:1rem; color:#374151; border-bottom:1px solid #e5e7eb; padding-bottom:0.75rem;">
-      Historial de cambios
-    </h2>
-
-    {% if logs %}
-    <table style="width:100%; border-collapse:collapse; font-size:0.875rem;">
-      <thead>
-        <tr style="background:#f9fafb;">
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Fecha</th>
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Campo</th>
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Antes</th>
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Después</th>
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Editado por</th>
-          <th style="padding:0.6rem 0.75rem; text-align:left; color:#6b7280; font-weight:600;">Motivo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for log in logs %}
-        <tr style="border-top:1px solid #e5e7eb;">
-          <td style="padding:0.6rem 0.75rem; white-space:nowrap; color:#374151;">{{ log.fecha_edicion|date:"d/m/Y H:i" }}</td>
-          <td style="padding:0.6rem 0.75rem;">
-            <span style="background:#f3f4f6; padding:0.15rem 0.5rem; border-radius:4px; font-size:0.8rem;">{{ log.campo }}</span>
-          </td>
-          <td style="padding:0.6rem 0.75rem; color:#dc2626; text-decoration:line-through;">{{ log.valor_anterior }}</td>
-          <td style="padding:0.6rem 0.75rem; color:#065f46; font-weight:600;">{{ log.valor_nuevo }}</td>
-          <td style="padding:0.6rem 0.75rem; color:#374151;">{{ log.editado_por.get_full_name|default:log.editado_por.username }}</td>
-          <td style="padding:0.6rem 0.75rem; color:#6b7280; font-style:italic;">{{ log.motivo|default:"—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p style="color:#9ca3af; text-align:center; padding:1rem;">Este consumo no ha sido editado previamente.</p>
-    {% endif %}
-  </div>
+    </div>
 
 </div>
-
-<style>
-  input[type="datetime-local"],
-  select,
-  textarea {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    color: #111827;
-    box-sizing: border-box;
-    background: #f9fafb;
-  }
-  input[type="datetime-local"]:focus,
-  select:focus,
-  textarea:focus {
-    outline: none;
-    border-color: #f59e0b;
-    background: #fff;
-  }
-</style>
 {% endblock %}
