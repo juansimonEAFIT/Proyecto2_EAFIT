@@ -1,64 +1,65 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Historial de Consumos – {{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}{% endblock %}
+{% block title %}Historial de Consumos - {{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}{% endblock %}
 
 {% block content %}
-<div style="max-width:900px; margin:2rem auto; padding:0 1rem;">
+<div class="contenedor-interior">
 
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
-    <div>
-      <h1 style="margin:0; font-size:1.5rem;">Historial de consumos</h1>
-      <p style="margin:0.25rem 0 0; color:#6b7280;">
-        Empleado: <strong>{{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}</strong>
-      </p>
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Historial de consumos</h1>
+        <p class="subtitulo">
+            Empleado: <strong>{{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}</strong>
+        </p>
     </div>
-    <a href="{% url 'dashboard_admin' %}"
-       style="padding:0.5rem 1rem; background:#6b7280; color:#fff; border-radius:6px; text-decoration:none; font-size:0.9rem;">
-      ← Volver al panel
-    </a>
-  </div>
 
-  {% if consumos %}
-  <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-    <thead style="background:#f3f4f6;">
-      <tr>
-        <th style="padding:0.75rem 1rem; text-align:left; font-size:0.85rem; color:#374151;">Fecha</th>
-        <th style="padding:0.75rem 1rem; text-align:left; font-size:0.85rem; color:#374151;">Hora</th>
-        <th style="padding:0.75rem 1rem; text-align:left; font-size:0.85rem; color:#374151;">Empleado</th>
-        <th style="padding:0.75rem 1rem; text-align:left; font-size:0.85rem; color:#374151;">Ediciones</th>
-        <th style="padding:0.75rem 1rem; text-align:center; font-size:0.85rem; color:#374151;">Acción</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for consumo in consumos %}
-      <tr style="border-top:1px solid #e5e7eb;">
-        <td style="padding:0.75rem 1rem;">{{ consumo.fecha_consumo|date:"d/m/Y" }}</td>
-        <td style="padding:0.75rem 1rem;">{{ consumo.fecha_consumo|date:"h:i A" }}</td>
-        <td style="padding:0.75rem 1rem;">{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</td>
-        <td style="padding:0.75rem 1rem;">
-          {% with num_logs=consumo.logs.count %}
-            {% if num_logs > 0 %}
-              <span style="background:#dbeafe; color:#1d4ed8; padding:0.2rem 0.5rem; border-radius:999px; font-size:0.78rem;">
-                {{ num_logs }} edición{{ num_logs|pluralize:"es" }}
-              </span>
-            {% else %}
-              <span style="color:#9ca3af; font-size:0.85rem;">—</span>
-            {% endif %}
-          {% endwith %}
-        </td>
-        <td style="padding:0.75rem 1rem; text-align:center;">
-          <a href="{% url 'editar_consumo' consumo.id %}"
-             style="padding:0.35rem 0.85rem; background:#f59e0b; color:#fff; border-radius:5px; text-decoration:none; font-size:0.85rem; font-weight:500;">
-            Editar
-          </a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p style="color:#6b7280; text-align:center; padding:2rem;">Este empleado no tiene consumos registrados.</p>
-  {% endif %}
+    <div class="tabla-contenedor">
+        {% if consumos %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Empleado</th>
+                    <th>Ediciones</th>
+                    <th style="text-align: center;">Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consumo in consumos %}
+                <tr>
+                    <td>{{ consumo.fecha_consumo|date:"d/m/Y" }}</td>
+                    <td>{{ consumo.fecha_consumo|date:"h:i A" }}</td>
+                    <td>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</td>
+                    <td>
+                        {% with num_logs=consumo.logs.count %}
+                            {% if num_logs > 0 %}
+                                <span class="insignia insignia-azul">{{ num_logs }} edicion{{ num_logs|pluralize:"es" }}</span>
+                            {% else %}
+                                <span style="color: var(--color-texto-sutil);">&mdash;</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'editar_consumo' consumo.id %}" class="insignia insignia-gris" style="text-decoration: none;">
+                            Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--color-texto-sutil); text-align: center; padding: 2rem 0;">
+            Este empleado no tiene consumos registrados.
+        </p>
+        {% endif %}
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'dashboard_admin' %}" style="color: var(--color-texto-sutil); font-size: 14px;">
+            &larr; Volver al panel
+        </a>
+    </div>
 
 </div>
 {% endblock %}
