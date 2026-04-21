@@ -69,14 +69,15 @@
     </div>
 
     <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Pagos Validados</h2>
+        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Pagos</h2>
         <table>
             <thead>
                 <tr>
                     <th>Fecha Pago</th>
                     <th>Comprobante</th>
                     <th>Valor</th>
-                    <th>Confirmación</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody>
@@ -86,16 +87,38 @@
                         <td>{{ pago.comprobante|default:"---" }}</td>
                         <td>$ {{ pago.valor_pagado }}</td>
                         <td>
-                            {% if pago.confirmado_por_empleado %}
-                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">Confirmado</span>
+                            {% if not pago.validado_por_gh %}
+                                <span class="insignia insignia-roja" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Pendiente validación GH
+                                </span>
+                            {% elif pago.validado_por_gh and not pago.confirmado_por_empleado %}
+                                <span class="insignia insignia-azul" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Validado por GH
+                                </span>
                             {% else %}
-                                <a href="{% url 'confirmar_pago_empleado' pago.id %}" class="insignia insignia-azul" style="text-decoration: none; font-size: 0.8rem; padding: 4px 8px;">Confirmar</a>
+                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">
+                                    Confirmado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if pago.validado_por_gh and not pago.confirmado_por_empleado %}
+                                <form method="post" action="{% url 'confirmar_pago_empleado' pago.id %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="insignia insignia-azul" style="border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 8px;">
+                                        Confirmar
+                                    </button>
+                                </form>
+                            {% elif pago.confirmado_por_empleado %}
+                                <span style="color: #64748b;">Sin acciones</span>
+                            {% else %}
+                                <span style="color: #64748b;">Esperando GH</span>
                             {% endif %}
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align: center;">No se registran pagos validados aún.</td>
+                        <td colspan="5" style="text-align: center;">No se registran pagos aún.</td>
                     </tr>
                 {% endfor %}
             </tbody>

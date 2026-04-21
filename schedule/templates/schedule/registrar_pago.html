@@ -18,12 +18,17 @@
             {% endif %}
         </div>
         {% endfor %}
-        
+
         <button type="submit" class="boton">Registrar Pago</button>
     </form>
-    
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">Volver al dashboard</a>
+
+    <div style="text-align: center; margin-top: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        <a href="{% url 'consultar_estado_cuenta' %}" style="color: var(--color-azul); font-size: 15px; font-weight: 600;">
+            Ver historial de pagos
+        </a>
+        <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">
+            Volver al dashboard
+        </a>
     </div>
 </div>
 {% endblock %}

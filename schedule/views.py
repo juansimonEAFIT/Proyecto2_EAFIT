@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_POST
 
 from .forms import FormularioSolicitudTiquete, FormularioRegistroPago, FormularioRegistroPagoAdmin, FormularioInventario, FormularioAumentarInventario, FormularioEditarConsumo
 from .models import Consumo, ConsumoLog, SolicitudTiquete, InventarioTiquetes, RegistroPago
@@ -62,7 +63,7 @@ def solicitar_tiquete(request):
                     inventario = InventarioTiquetes.objects.filter(
                         mes__month=hoy.month, mes__year=hoy.year
                     ).select_for_update().first()
-                    
+
                     if not inventario:
                         messages.error(request, "No hay inventario configurado para este periodo.")
                         return render(request, "schedule/solicitar_tiquete.html", {
@@ -70,7 +71,7 @@ def solicitar_tiquete(request):
                             "max_permitido": max_permitido,
                             "stock_disponible": stock_disponible
                         })
-                    
+
                     # Usamos los datos actualizados del bloqueo para la lógica
                     stock_real = inventario.cantidad_disponible
                     limite_real = inventario.max_tiquetes_por_empleado
@@ -81,15 +82,15 @@ def solicitar_tiquete(request):
                         solicitud.save()
                         messages.error(request, f"Solicitud rechazada por falta de stock global. (Disponible: {stock_real})")
                         return redirect("dashboard_empleado")
-                    
+
                     # 2. Validar Límite por Empleado
                     tiquetes_ya_aprobados = SolicitudTiquete.objects.filter(
-                        empleado=empleado, 
+                        empleado=empleado,
                         estado="aprobado",
                         fecha_solicitud__month=hoy.month,
                         fecha_solicitud__year=hoy.year
                     ).aggregate(total=Sum("cantidad"))["total"] or 0
-                    
+
                     if (tiquetes_ya_aprobados + cantidad) > limite_real:
                         solicitud.estado = "rechazado"
                         solicitud.save()
@@ -99,11 +100,11 @@ def solicitar_tiquete(request):
                     # Si todo está bien, aprobamos automáticamente
                     inventario.cantidad_disponible -= cantidad
                     inventario.save()
-                    
+
                     solicitud.estado = "aprobado"
                     solicitud.save()
-                    
-                    messages.success(request, f"¡Éxito! Tu tiquete ha sido otorgado automáticamente.")
+
+                    messages.success(request, "¡Éxito! Tu tiquete ha sido otorgado automáticamente.")
                     return redirect("dashboard_empleado")
             except Exception as e:
                 messages.error(request, f"Error al procesar la solicitud: {str(e)}")
@@ -153,12 +154,12 @@ def consultar_estado_cuenta(request):
     # Filtrado por mes en el historial de compras
     hoy = timezone.localdate()
     try:
-        mes_actual = int(request.GET.get('mes', hoy.month))
-        anio_actual = int(request.GET.get('anio', hoy.year))
+        mes_actual = int(request.GET.get("mes", hoy.month))
+        anio_actual = int(request.GET.get("anio", hoy.year))
     except ValueError:
         mes_actual = hoy.month
         anio_actual = hoy.year
-        
+
     # Validar rangos de fecha
     if mes_actual < 1 or mes_actual > 12:
         mes_actual = hoy.month
@@ -169,44 +170,48 @@ def consultar_estado_cuenta(request):
     next_year = anio_actual if mes_actual < 12 else anio_actual + 1
     prev_month = mes_actual - 1 if mes_actual > 1 else 12
     prev_year = anio_actual if mes_actual > 1 else anio_actual - 1
-    
+
     nombres_meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     mes_nombre = nombres_meses[mes_actual - 1]
 
     # Historial de compras (tiquetes aprobados) del mes especificado
     compras = SolicitudTiquete.objects.filter(
-        empleado=empleado, 
+        empleado=empleado,
         estado="aprobado",
         fecha_solicitud__year=anio_actual,
         fecha_solicitud__month=mes_actual
     ).order_by("-fecha_solicitud")
-    
+
     # Obtener precio actual del inventario (solo para propósitos informativos generales)
     inventario = InventarioTiquetes.objects.order_by("-mes").first()
     precio_tiquete = inventario.precio_tiquete if inventario else Decimal("10000.00")
 
     # Calcular valor detallado usando el precio histórico grabado (precio_unitario)
     for compra in compras:
-        compra.valor_total = compra.cantidad * getattr(compra, 'precio_unitario', Decimal('10000.00'))
-        
-    # Historial de pagos validados
-    pagos = RegistroPago.objects.filter(empleado=empleado, validado_por_gh=True).order_by("-fecha_pago")
-    
+        compra.valor_total = compra.cantidad * getattr(compra, "precio_unitario", Decimal("10000.00"))
+
+    # Mostrar todos los pagos del empleado
+    pagos = RegistroPago.objects.filter(empleado=empleado).order_by("-fecha_pago")
+
     tiquetes_aprobados = compras.aggregate(total=Sum("cantidad"))["total"] or 0
     tiquetes_consumidos = Consumo.objects.filter(
-        empleado=empleado, 
+        empleado=empleado,
         fecha_consumo__month=mes_actual,
         fecha_consumo__year=anio_actual
     ).count()
     tiquetes_disponibles = max(0, tiquetes_aprobados - tiquetes_consumidos)
-    
-    total_pagos_validados = pagos.aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
-    
+
+    # Solo los pagos validados por GH afectan el saldo
+    total_pagos_validados = RegistroPago.objects.filter(
+        empleado=empleado,
+        validado_por_gh=True
+    ).aggregate(total=Sum("valor_pagado"))["total"] or Decimal("0.00")
+
     from django.db.models import F
     deuda_total = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").annotate(
-        costo_total=F('cantidad') * F('precio_unitario')
-    ).aggregate(total=Sum('costo_total'))["total"] or Decimal("0.00")
-    
+        costo_total=F("cantidad") * F("precio_unitario")
+    ).aggregate(total=Sum("costo_total"))["total"] or Decimal("0.00")
+
     saldo_pendiente = deuda_total - total_pagos_validados
 
     return render(
@@ -230,16 +235,29 @@ def consultar_estado_cuenta(request):
         },
     )
 
+
 @login_required
+@require_POST
 def confirmar_pago_empleado(request, pago_id):
     try:
         empleado = request.user.empleado_perfil
     except Empleado.DoesNotExist:
+        messages.error(request, "Solo los empleados pueden confirmar pagos.")
         return redirect("dashboard_empleado")
 
     pago = get_object_or_404(RegistroPago, id=pago_id, empleado=empleado)
+
+    if not pago.validado_por_gh:
+        messages.error(request, "No puedes confirmar un pago que aún no ha sido validado por Gestión Humana.")
+        return redirect("consultar_estado_cuenta")
+
+    if pago.confirmado_por_empleado:
+        messages.info(request, "Este pago ya fue confirmado anteriormente.")
+        return redirect("consultar_estado_cuenta")
+
     pago.confirmado_por_empleado = True
-    pago.save()
+    pago.save(update_fields=["confirmado_por_empleado"])
+
     messages.success(request, f"Pago de ${pago.valor_pagado:.0f} confirmado exitosamente.")
     return redirect("consultar_estado_cuenta")
 
@@ -267,7 +285,7 @@ def gestionar_solicitud(request, solicitud_id, accion):
     elif accion == "rechazar":
         solicitud.estado = "rechazado"
         messages.info(request, f"Solicitud de {solicitud.empleado} rechazada.")
-    
+
     solicitud.save()
     return redirect("dashboard_admin")
 
@@ -301,10 +319,10 @@ def gestionar_inventario(request):
     hoy = timezone.now()
     # Buscar si ya existe un inventario para este mes y año
     inventario = InventarioTiquetes.objects.filter(
-        mes__month=hoy.month, 
+        mes__month=hoy.month,
         mes__year=hoy.year
     ).first()
-    
+
     # Si no hay uno para este mes, buscar el último de meses anteriores para precargar datos
     if not inventario:
         ultimo_global = InventarioTiquetes.objects.order_by("-mes").first()
@@ -327,7 +345,7 @@ def gestionar_inventario(request):
         formulario = FormularioInventario(request.POST, instance=instancia_inicial, ya_existe=ya_existe)
         if formulario.is_valid():
             inv = formulario.save(commit=False)
-            
+
             # Si es una creación nueva para el mes
             if not ya_existe:
                 inv.cantidad_disponible = inv.cantidad_inicial
@@ -336,7 +354,7 @@ def gestionar_inventario(request):
             else:
                 inv.save()
                 messages.success(request, "Límites y precios actualizados correctamente.")
-            
+
             return redirect("dashboard_admin")
     else:
         # Si es nuevo mes, pasamos los valores del último pero sin ser la misma instancia de DB
@@ -367,7 +385,7 @@ def aumentar_inventario(request):
         if form.is_valid():
             adicion = form.cleaned_data["cantidad_a_adicionar"]
             inventario.cantidad_disponible += adicion
-            inventario.cantidad_inicial += adicion # También aumentamos el total del mes para reportes
+            inventario.cantidad_inicial += adicion  # También aumentamos el total del mes para reportes
             inventario.save()
             messages.success(request, f"Se han adicionado {adicion} tiquetes al inventario. Nuevo stock disponible: {inventario.cantidad_disponible}")
         else:
@@ -386,7 +404,7 @@ def historial_consumos(request, empleado_id):
 
     consumos = Consumo.objects.filter(
         empleado_id=empleado_id
-    ).order_by('-fecha_consumo')
+    ).order_by("-fecha_consumo")
 
     return render(request, "schedule/historial_consumo.html", {
         "consumos": consumos,
@@ -412,10 +430,10 @@ def editar_consumo(request, consumo_id):
                 "empleado": "Empleado",
                 "fecha_consumo": "Fecha de consumo",
             }
-            
+
             # Obtener los valores originales de la base de datos
             consumo_original = Consumo.objects.get(id=consumo.id)
-            
+
             for campo in ["empleado", "fecha_consumo"]:
                 valor_anterior = getattr(consumo_original, campo)
                 valor_nuevo = formulario.cleaned_data.get(campo)
@@ -455,7 +473,7 @@ def historial_consumos_restaurante(request):
     fecha_filtro = hoy
     es_hoy = True
 
-    fecha_str = request.GET.get('fecha')
+    fecha_str = request.GET.get("fecha")
     if fecha_str:
         parsed_date = parse_date(fecha_str)
         if parsed_date:
@@ -465,8 +483,8 @@ def historial_consumos_restaurante(request):
     consumos_hoy = Consumo.objects.filter(
         fecha_consumo__date=fecha_filtro
     ).select_related(
-        'empleado__user'
-    ).order_by('-fecha_consumo')
+        "empleado__user"
+    ).order_by("-fecha_consumo")
 
     return render(request, "schedule/historial_consumos_restaurante.html", {
         "consumos_hoy": consumos_hoy,
@@ -889,3 +907,4 @@ def dashboard_reportes(request):
             "filtros": filtros,
         },
     )
+
