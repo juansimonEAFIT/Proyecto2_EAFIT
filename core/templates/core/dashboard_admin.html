@@ -62,7 +62,9 @@
         </div>
 
         <div class="bento-card pequena">
-            <div class="icono">💰</div>
+            <div class="icono">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
             <div class="etiqueta-bento">Costo Tiquete</div>
             <div class="dato">${{ inventario.precio_tiquete|default:"10.000" }}</div>
             <p style="font-size: 13px; color: var(--color-texto-sutil);">Precio unitario vigente este mes.</p>
@@ -72,15 +74,21 @@
             <div class="etiqueta-bento">Acciones Rapidas</div>
             <div style="display: flex; gap: 15px; margin-top: 20px;">
                 <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
                 </a>
                 <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">💵</div>
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Pago Manual</div>
                 </a>
                 <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">⚙️</div>
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuracion</div>
                 </a>
             </div>

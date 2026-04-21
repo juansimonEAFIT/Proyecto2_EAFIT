@@ -426,10 +426,73 @@ form p {
     padding: 14px 16px;
     border-radius: 14px;
     background: var(--color-fondo-card);
-    border-left: 5px solid #60a5fa;
+    border-left: 5px solid var(--color-azul-claro);
     color: #1e3a8a;
     font-size: 14px;
     font-weight: 500;
+}
+
+.mensaje-error {
+    background: #fee2e2;
+    border-left-color: #ef4444;
+    color: #991b1b;
+}
+
+.mensaje-exito {
+    background: #dcfce7;
+    border-left-color: #22c55e;
+    color: #166534;
+}
+
+/* ── Botón cerrar sesión (sidebar admin) ───────────────────── */
+.btn-cerrar-sesion {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.btn-cerrar-sesion:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fca5a5;
+}
+
+/* ── Variante peligro para btn-quick ───────────────────────── */
+.btn-quick.peligro {
+    background: #fee2e2;
+    color: var(--color-rojo);
+    border-color: #fecaca;
+}
+
+.btn-quick.peligro:hover {
+    background: #fecaca;
+    color: #991b1b;
+    border-color: #fca5a5;
+    transform: translateY(-2px);
+}
+
+/* ── Avatar de perfil ──────────────────────────────────────── */
+.avatar-perfil {
+    width: 70px;
+    height: 70px;
+    background: var(--color-fondo-card);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: var(--color-azul);
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
@@ -580,7 +643,9 @@ form p {
 }
 
 .sidebar-admin .icono-admin {
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .admin-main-content,
@@ -631,8 +696,10 @@ form p {
 }
 
 .bento-card .icono {
-    font-size: 32px;
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
+    color: var(--color-oscuro);
 }
 
 .bento-card .dato {
