@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Editar Consumo #{{ consumo.id }} - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior">
+
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Editar registro de consumo</h1>
+        <p class="subtitulo">
+            ID #{{ consumo.id }} &mdash; Empleado: <strong>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</strong>
+        </p>
+    </div>
+
+    <div class="contenedor ancho-medio" style="margin: 0 auto 24px; text-align: left;">
+        <h2 style="margin: 0 0 20px; font-size: 16px; color: var(--color-oscuro); border-bottom: 1px solid var(--color-borde-card); padding-bottom: 12px;">
+            Datos del consumo
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in formulario %}
+            <div class="campo">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %} <span style="color: var(--color-rojo);">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small style="display: block; color: var(--color-texto-sutil); font-size: 12px; margin-top: 4px;">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="mensaje mensaje-error" style="padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button type="submit" class="boton" style="width: auto; padding: 12px 24px; background: var(--color-azul); color: white;">
+                    Guardar corrección
+                </button>
+                <a href="{% url 'historial_consumos' empleado_id_original %}" class="boton"
+                   style="width: auto; padding: 12px 24px; background: #f1f5f9; color: var(--color-texto-suave); text-decoration: none; text-align: center;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="tabla-contenedor">
+        <h2 class="subtitulo-izq" style="margin: 0 0 20px;">Historial de cambios</h2>
+        {% if logs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Campo</th>
+                    <th>Antes</th>
+                    <th>Despues</th>
+                    <th>Editado por</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.fecha_edicion|date:"d/m/Y H:i" }}</td>
+                    <td><span class="insignia insignia-gris">{{ log.campo }}</span></td>
+                    <td style="color: var(--color-rojo); text-decoration: line-through;">{{ log.valor_anterior }}</td>
+                    <td style="color: #166534; font-weight: 600;">{{ log.valor_nuevo }}</td>
+                    <td>{{ log.editado_por.get_full_name|default:log.editado_por.username }}</td>
+                    <td style="color: var(--color-texto-sutil); font-style: italic;">{{ log.motivo|default:"&mdash;" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--color-texto-sutil); text-align: center; padding: 20px 0;">Este consumo no ha sido editado previamente.</p>
+        {% endif %}
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'historial_consumos' empleado_id_original %}" style="color: var(--color-texto-sutil); font-size: 14px;">
+            &larr; Volver al historial
+        </a>
+    </div>
+
+</div>
+{% endblock %}

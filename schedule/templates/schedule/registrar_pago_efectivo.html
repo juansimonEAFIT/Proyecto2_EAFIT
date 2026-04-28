@@ -1,0 +1,148 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Registrar Pago Manual - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor ancho-medio">
+    <div style="margin-bottom: 30px; text-align: center;">
+        <h1 class="titulo-central" style="margin-bottom: 10px;">Registrar Pago en Efectivo</h1>
+        <p class="subtitulo-izq" style="text-align: center; max-width: 600px; margin: 0 auto;">
+            Registra el pago recibido de un empleado y actualiza automáticamente su saldo en el sistema.
+        </p>
+    </div>
+
+    <div class="tarjeta-formulario">
+        <form method="post">
+            {% csrf_token %}
+            {% if formulario.non_field_errors %}
+                <div style="background-color: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                    {{ formulario.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in formulario %}
+            <div class="grupo-formulario">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small style="color: var(--color-texto-sutil); display: block; margin-top: 5px;">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                    <div style="color: var(--color-rojo); font-size: 13px; margin-top: 5px;">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
+                <button type="submit" class="boton" style="flex: 1; min-width: 150px; background-color: var(--color-rojo); color: white;">Registrar Pago</button>
+                <a href="{% url 'dashboard_admin' %}" class="boton" style="flex: 1; min-width: 150px; background-color: #e2e8f0; color: var(--color-texto-suave); display: flex; justify-content: center; align-items: center; align-content: center; text-decoration: none;">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .tarjeta-formulario {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+    .grupo-formulario {
+        margin-bottom: 20px;
+    }
+    .grupo-formulario label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--color-oscuro);
+    }
+    /* Estilizar inputs de Django */
+    .grupo-formulario input,
+    .grupo-formulario select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+    .grupo-formulario input:focus,
+    .grupo-formulario select:focus {
+        outline: none;
+        border-color: var(--color-principal);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+    }
+</style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const empleadoSelect = document.querySelector('select[name="empleado"]');
+    let deudaBadge = document.getElementById('deuda-badge');
+
+    if (empleadoSelect) {
+        // Garantizar layout inyectándolo directamente vía JS
+        if (!deudaBadge) {
+            const selectContainer = document.createElement('div');
+            selectContainer.style.display = 'flex';
+            selectContainer.style.gap = '15px';
+            selectContainer.style.alignItems = 'center';
+            
+            empleadoSelect.parentNode.insertBefore(selectContainer, empleadoSelect);
+            
+            const badgeContainer = document.createElement('div');
+            badgeContainer.style.minWidth = '130px';
+            badgeContainer.style.textAlign = 'center';
+            
+            deudaBadge = document.createElement('span');
+            deudaBadge.id = 'deuda-badge';
+            deudaBadge.style.display = 'none';
+            deudaBadge.style.fontSize = '15px';
+            deudaBadge.style.margin = '0';
+            deudaBadge.style.width = '100%';
+            deudaBadge.style.boxSizing = 'border-box';
+            
+            badgeContainer.appendChild(deudaBadge);
+            
+            const wrapper = document.createElement('div');
+            wrapper.style.flex = '1';
+            wrapper.appendChild(empleadoSelect);
+            
+            selectContainer.appendChild(wrapper);
+            selectContainer.appendChild(badgeContainer);
+        }
+
+        // La opción ya trae `data-deuda` gracias al Widget de Django (EmpleadoSelectWidget)
+        
+        // Función para actualizar la insignia azul/roja al lado del input
+        function updateDeudaBadge() {
+            if (!deudaBadge || empleadoSelect.selectedIndex < 0) return;
+
+            const selectedOption = empleadoSelect.options[empleadoSelect.selectedIndex];
+            const deudaText = selectedOption.getAttribute('data-deuda');
+
+            if (deudaText) {
+                deudaBadge.textContent = deudaText;
+                deudaBadge.style.display = 'inline-block';
+                
+                if (deudaText.includes('Paz y salvo')) {
+                    deudaBadge.className = 'insignia insignia-verde';
+                } else {
+                    deudaBadge.className = 'insignia insignia-roja';
+                }
+            } else {
+                deudaBadge.style.display = 'none';
+            }
+        }
+
+        empleadoSelect.addEventListener('change', updateDeudaBadge);
+        // Llamar inicialmente para el valor cargado por defecto (si hay alguno)
+        updateDeudaBadge();
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

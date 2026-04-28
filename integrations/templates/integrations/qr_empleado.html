@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mi QR - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior" style="max-width: 600px; text-align: center;">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Mi Código QR</h1>
+        <p class="subtitulo">Muestra este código en el restaurante para validar tu almuerzo.</p>
+    </div>
+
+    <div style="background: white; padding: 40px 20px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: inline-block; width: 100%;">
+        {% if empleado_activo %}
+            {% if limite_alcanzado %}
+                <div style="color: var(--color-rojo); background: #fee2e2; padding: 25px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; font-size: 18px;">Límite Mensual Alcanzado</h3>
+                    <p style="margin-bottom: 0;">Ya has consumido tus <strong>{{ max_mensual }}</strong> almuerzos permitidos para este mes.</p>
+                </div>
+                <div style="color: var(--color-texto-suave); font-size: 15px;">
+                    Tus tiquetes restantes podrán ser usados el próximo mes.
+                </div>
+            {% else %}
+                <div style="background: white; padding: 20px; display: inline-block; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; margin-bottom: 20px;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" alt="QR" style="display: block; margin: 0 auto;">
+                </div>
+                
+                <div style="color: var(--color-texto-suave); font-size: 16px; margin-bottom: 10px;">
+                    Tiquetes disponibles en saldo: <strong style="color: var(--color-azul); font-size: 20px;">{{ tiquetes_disponibles }}</strong>
+                </div>
+                <div style="font-size: 14px; color: var(--color-texto-sutil);">
+                    Consumos este mes: <strong>{{ consumos_mes }} / {{ max_mensual }}</strong>
+                </div>
+            {% endif %}
+            
+        {% else %}
+            <div style="color: var(--color-rojo); background: #fee2e2; padding: 20px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px;">
+                Tu cuenta está actualmente inactiva. Contacta a administración para poder usar tus tiquetes.
+            </div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <a href="{% url 'dashboard_empleado' %}" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Volver al Inicio</a>
+    </div>
+</div>
+{% endblock %}

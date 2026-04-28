@@ -1,8 +1,16 @@
 from django.contrib import admin
 from .models import (
-    Consumo, SolicitudTiquete, InventarioTiquetes,
+    Consumo, ConsumoLog, SolicitudTiquete, InventarioTiquetes,
     RegistroPago
 )
+
+@admin.register(ConsumoLog)
+class ConsumoLogAdmin(admin.ModelAdmin):
+    list_display = ("consumo", "campo", "valor_anterior", "valor_nuevo", "editado_por", "fecha_edicion")
+    list_filter = ("campo", "fecha_edicion")
+    readonly_fields = ("consumo", "editado_por", "fecha_edicion", "campo", "valor_anterior", "valor_nuevo", "motivo")
+    ordering = ("-fecha_edicion",)
+
 
 @admin.register(InventarioTiquetes)
 class InventarioTiquetesAdmin(admin.ModelAdmin):
@@ -11,32 +19,19 @@ class InventarioTiquetesAdmin(admin.ModelAdmin):
 @admin.register(Consumo)
 class ConsumoAdmin(admin.ModelAdmin):
     list_display = (
-        "empleado_responsable",
-        "nombre_comida",
+        "empleado",
         "fecha_consumo",
     )
 
     list_filter = (
-        "comida__empleado",
-        "comida__comida__nombre",
+        "empleado",
         "fecha_consumo",
     )
 
     search_fields = (
-        "comida__empleado__usuario__username",
-        "comida__comida__nombre",
+        "empleado__user__username",
         "fecha_consumo",
     )
-
-    # === Métodos auxiliares para mostrar datos relacionados ===
-
-    def empleado_responsable(self, obj):
-        return obj.comida.empleado
-    empleado_responsable.short_description = "Empleado"
-
-    def nombre_comida(self, obj):
-        return obj.comida.comida.nombre
-    nombre_comida.short_description = "Comida"
 
 @admin.register(SolicitudTiquete)
 class SolicitudTiqueteAdmin(admin.ModelAdmin):

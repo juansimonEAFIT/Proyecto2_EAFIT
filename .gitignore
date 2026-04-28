@@ -47,3 +47,6 @@ gunicorn.ctl
 .env
 
  gunicorn.ctl
+
+# Claude Code
+CLAUDE.md

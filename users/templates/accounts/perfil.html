@@ -11,8 +11,8 @@
 
     <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
         <div style="text-align: center; margin-bottom: 20px;">
-            <div style="width: 70px; height: 70px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px;">
-                👤
+            <div class="avatar-perfil">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <h2 style="color: #1e293b; margin: 0; font-size: 20px;">{{ view_user.get_full_name|default:view_user.username }}</h2>
             <span class="insignia" style="background: #f1f5f9; color: #475569; margin-top: 5px;">{{ view_user.get_role_display }}</span>
@@ -31,16 +31,16 @@
             {% if view_user.role == 'empleado' %}
             <div>
                 <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Documento</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_empleado.numero_documento }}</div>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.empleado_perfil.numero_documento }}</div>
             </div>
             <div>
                 <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Departamento</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_empleado.departamento|default:"---" }}</div>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.empleado_perfil.departamento|default:"---" }}</div>
             </div>
             {% elif view_user.role == 'restaurante' %}
             <div>
                 <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Sede</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.perfil_restaurante.nombre_sede }}</div>
+                <div style="font-weight: 500; color: #1e293b;">{{ view_user.restaurante_perfil.nombre_sede }}</div>
             </div>
             {% endif %}
 
@@ -48,9 +48,9 @@
                 <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Teléfono</label>
                 <div style="font-weight: 500; color: #1e293b;">
                     {% if view_user.role == 'empleado' %}
-                        {{ view_user.perfil_empleado.telefono|default:"---" }}
+                        {{ view_user.empleado_perfil.telefono|default:"---" }}
                     {% elif view_user.role == 'restaurante' %}
-                        {{ view_user.perfil_restaurante.telefono|default:"---" }}
+                        {{ view_user.restaurante_perfil.telefono|default:"---" }}
                     {% else %}
                         ---
                     {% endif %}
@@ -62,39 +62,12 @@
             </div>
         </div>
 
-        <div style="margin-top: 25px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-            <a href="/" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Volver al Inicio</a>
+        <div style="margin-top: 25px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; display: flex; justify-content: center; gap: 15px;">
+            <a href="/" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none; background: #f1f5f9; color: #475569;">Volver al Inicio</a>
+            {% if view_user == request.user and view_user.role == 'empleado' %}
+                <a href="{% url 'editar_perfil' %}" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Editar Perfil</a>
+            {% endif %}
         </div>
     </div>
-
-    {% if solicitudes %}
-    <div class="tabla-contenedor" style="margin-top: 20px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
-        <h2 class="subtitulo-izq" style="margin: 0 0 15px; color: #1e293b; font-size: 1.1rem;">Historial de Solicitudes</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Cant.</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for solicitud in solicitudes %}
-                    <tr>
-                        <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
-                        <td>{{ solicitud.cantidad }}</td>
-                        <td>
-                            <span class="insignia {% if solicitud.estado == 'pendiente' %}insignia-gris{% elif solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
-                                {{ solicitud.get_estado_display }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
