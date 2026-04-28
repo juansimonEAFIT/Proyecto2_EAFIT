@@ -426,10 +426,73 @@ form p {
     padding: 14px 16px;
     border-radius: 14px;
     background: var(--color-fondo-card);
-    border-left: 5px solid #60a5fa;
+    border-left: 5px solid var(--color-azul-claro);
     color: #1e3a8a;
     font-size: 14px;
     font-weight: 500;
+}
+
+.mensaje-error {
+    background: #fee2e2;
+    border-left-color: #ef4444;
+    color: #991b1b;
+}
+
+.mensaje-exito {
+    background: #dcfce7;
+    border-left-color: #22c55e;
+    color: #166534;
+}
+
+/* ── Botón cerrar sesión (sidebar admin) ───────────────────── */
+.btn-cerrar-sesion {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.btn-cerrar-sesion:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fca5a5;
+}
+
+/* ── Variante peligro para btn-quick ───────────────────────── */
+.btn-quick.peligro {
+    background: #fee2e2;
+    color: var(--color-rojo);
+    border-color: #fecaca;
+}
+
+.btn-quick.peligro:hover {
+    background: #fecaca;
+    color: #991b1b;
+    border-color: #fca5a5;
+    transform: translateY(-2px);
+}
+
+/* ── Avatar de perfil ──────────────────────────────────────── */
+.avatar-perfil {
+    width: 70px;
+    height: 70px;
+    background: var(--color-fondo-card);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: var(--color-azul);
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
@@ -580,7 +643,9 @@ form p {
 }
 
 .sidebar-admin .icono-admin {
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .admin-main-content,
@@ -631,8 +696,10 @@ form p {
 }
 
 .bento-card .icono {
-    font-size: 32px;
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
+    color: var(--color-oscuro);
 }
 
 .bento-card .dato {
@@ -885,4 +952,162 @@ form p {
     color: #166534;
 }
 
-/* (Media queries unificadas arriba) */
+/* ── Utilidades responsive ─────────────────────────────────── */
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.form-fila {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+}
+
+.acciones-rapidas {
+    display: flex;
+}
+
+/* ── Botón hamburguesa ─────────────────────────────────────── */
+.boton-hamburguesa {
+    display: none;
+}
+
+/* ── Overlay cajón lateral ─────────────────────────────────── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 199;
+}
+
+.sidebar-overlay.activo {
+    display: block;
+}
+
+/* ── Tablet/Móvil ≤768px ───────────────────────────────────── */
+@media (max-width: 768px) {
+
+    .boton-hamburguesa {
+        display: flex;
+    }
+
+    /* Cajón lateral deslizable */
+    .sidebar-admin,
+    .sidebar-empleado {
+        position: fixed !important;
+        top: 0 !important;
+        left: -290px !important;
+        width: 270px !important;
+        height: 100vh !important;
+        flex-direction: column !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 30px 20px !important;
+        transition: left 0.3s ease;
+        z-index: 200;
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-admin.sidebar-abierto,
+    .sidebar-empleado.sidebar-abierto {
+        left: 0 !important;
+    }
+
+    /* Contenido a todo el ancho */
+    .admin-main-content,
+    .empleado-main-content {
+        padding: 20px 16px;
+    }
+
+    /* Grillas a 1 columna */
+    .stats-grid,
+    .dashboard-row,
+    .quick-actions,
+    .grid-2col {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Acciones rápidas admin apiladas */
+    .acciones-rapidas {
+        flex-direction: column;
+    }
+
+    /* Formulario fila → columna */
+    .form-fila {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-fila .campo {
+        flex: none !important;
+        margin-bottom: 12px !important;
+    }
+
+    .form-fila .boton {
+        margin-top: 0 !important;
+        white-space: normal;
+    }
+
+    /* Cabecera de sección apilada */
+    .header-seccion {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    /* Filtro historial envuelve */
+    #form-filtros-historial {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Headings */
+    .admin-main-content h1,
+    .empleado-main-content h1,
+    .header-seccion h1 {
+        font-size: 24px !important;
+    }
+
+    /* Tabla más compacta */
+    th, td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    /* Botones de navbar */
+    .boton-icono,
+    .boton-menu,
+    .boton-hamburguesa {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* ── Teléfono pequeño ≤480px ───────────────────────────────── */
+@media (max-width: 480px) {
+    .barra-superior {
+        padding: 14px 16px;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    .contenedor {
+        padding: 20px 16px;
+    }
+
+    .bento-card,
+    .stat-card,
+    .grid-card,
+    .card-resumen-lateral {
+        padding: 20px;
+    }
+
+    .admin-main-content,
+    .empleado-main-content {
+        padding: 16px 12px;
+    }
+}
