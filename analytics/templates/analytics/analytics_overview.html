@@ -1,0 +1,410 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Analíticas - LunchFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .filters-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-end;
+    }
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .user-input-gray {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+    }
+    .user-input-active {
+        background-color: white;
+        color: black;
+    }
+    .graph-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        cursor: grab;
+    }
+    .graph-card:active {
+        cursor: grabbing;
+    }
+    .btn-apply, .btn-secondary {
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+    .btn-apply {
+        background-color: var(--color-rojo);
+        color: white;
+    }
+    .btn-secondary {
+        background-color: #64748b;
+        color: white;
+    }
+    .axis-selector {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <h1 style="color: var(--color-oscuro); margin-bottom: 20px;">Analíticas del Sistema</h1>
+
+    <div class="filters-card">
+        <form method="GET" id="analytics-filters">
+            <div class="filter-group">
+                <!-- User Filter -->
+                <div class="filter-item">
+                    <label>
+                        <input type="checkbox" name="use_user_filter" id="use_user_filter" {% if filters.use_user_filter %}checked{% endif %}>
+                        Filtrar por Usuario
+                    </label>
+                    <input type="text" name="user_search" id="user_search" value="{{ filters.user_search }}" 
+                           placeholder="ID, Nombre o Email"
+                           class="{% if not filters.use_user_filter %}user-input-gray{% endif %}"
+                           {% if not filters.use_user_filter %}disabled{% endif %}
+                           style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+
+                <!-- Metrics -->
+                <div class="filter-item">
+                    <label><input type="checkbox" name="show_used" {% if filters.show_used %}checked{% endif %}> Tiquetes Usados</label>
+                    <label><input type="checkbox" name="show_petitions" {% if filters.show_petitions %}checked{% endif %}> Peticiones de Tiquetes</label>
+                    <label><input type="checkbox" name="show_accepted" {% if filters.show_accepted %}checked{% endif %}> Tiquetes Aceptados</label>
+                </div>
+
+                <!-- Timeframe -->
+                <div class="filter-item">
+                    <label for="timeframe">Temporalidad</label>
+                    <select name="timeframe" id="timeframe" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                        <option value="day" {% if filters.timeframe == 'day' %}selected{% endif %}>Día</option>
+                        <option value="month" {% if filters.timeframe == 'month' %}selected{% endif %}>Mes</option>
+                        <option value="year" {% if filters.timeframe == 'year' %}selected{% endif %}>Año</option>
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div class="filter-item">
+                    <label for="start_date">Fecha Inicio</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+                <div class="filter-item">
+                    <label for="end_date">Fecha Fin</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+
+                <div class="filter-item">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-apply">Aplicar Cambios</button>
+                </div>
+            </div>
+
+            <div class="axis-selector">
+                <div class="filter-item">
+                    <input type="hidden" name="x_axis" id="x_axis_input" value="{{ filters.x_axis }}">
+                    <input type="hidden" name="y_axis" id="y_axis_input" value="{{ filters.y_axis }}">
+                    <button type="button" id="btn-switch-axes" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                        Intercambiar Ejes (X: <span id="x_axis_label">{% if filters.x_axis == 'time' %}Tiempo{% else %}Cantidad{% endif %}</span>, Y: <span id="y_axis_label">{% if filters.y_axis == 'count' %}Cantidad{% else %}Tiempo{% endif %}</span>)
+                    </button>
+                </div>
+                <div class="filter-item">
+                    <button type="button" id="btn-reset-zoom" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Restablecer Zoom
+                    </button>
+                </div>
+                <div class="filter-item" style="border-left: 1px solid #e2e8f0; padding-left: 20px; margin-left: 10px;">
+                    <label for="export_format" style="font-size: 0.8rem; color: #64748b;">Formato de Exportación</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="export_format" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: white;">
+                            <option value="png">Imagen (PNG)</option>
+                            <option value="csv">Datos (CSV)</option>
+                            <option value="both">CSV + PNG</option>
+                        </select>
+                        <button type="button" id="btn-export" class="btn-apply" style="padding: 8px 15px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Exportar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="graph-card">
+        <canvas id="analyticsChart" height="100"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Grayish input behavior
+        const useUserFilter = document.getElementById('use_user_filter');
+        const userSearch = document.getElementById('user_search');
+
+        useUserFilter.addEventListener('change', function() {
+            if (this.checked) {
+                userSearch.disabled = false;
+                userSearch.classList.remove('user-input-gray');
+            } else {
+                userSearch.disabled = true;
+                userSearch.classList.add('user-input-gray');
+            }
+        });
+
+        // Axis Switching
+        const btnSwitchAxes = document.getElementById('btn-switch-axes');
+        const xAxisInput = document.getElementById('x_axis_input');
+        const yAxisInput = document.getElementById('y_axis_input');
+        const xAxisLabel = document.getElementById('x_axis_label');
+        const yAxisLabel = document.getElementById('y_axis_label');
+
+        btnSwitchAxes.addEventListener('click', function() {
+            const currentX = xAxisInput.value;
+            const currentY = yAxisInput.value;
+            
+            xAxisInput.value = currentY;
+            yAxisInput.value = currentX;
+            
+            xAxisLabel.textContent = xAxisInput.value === 'time' ? 'Tiempo' : 'Cantidad';
+            yAxisLabel.textContent = yAxisInput.value === 'time' ? 'Tiempo' : 'Cantidad';
+        });
+
+        // Export Handler
+        document.getElementById('btn-export').addEventListener('click', function() {
+            const format = document.getElementById('export_format').value;
+            const form = document.getElementById('analytics-filters');
+            const urlParams = new URLSearchParams(new FormData(form));
+            
+            const exportPNG = () => {
+                const link = document.createElement('a');
+                link.download = 'analiticas_grafico.png';
+                link.href = myChart.toBase64Image();
+                link.click();
+            };
+
+            const exportServer = (type, includeChart = false) => {
+                const tempForm = document.createElement('form');
+                tempForm.method = 'POST';
+                tempForm.action = `${window.location.pathname}?export_type=${type}&${urlParams.toString()}`;
+                
+                // CSRF Token - Try to get it from the hidden input or cookie
+                let csrfToken = '';
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfInput) {
+                    csrfToken = csrfInput.value;
+                } else {
+                    // Fallback to cookie if available
+                    const name = 'csrftoken';
+                    const value = `; ${document.cookie}`;
+                    const parts = value.split(`; ${name}=`);
+                    if (parts.length === 2) csrfToken = parts.pop().split(';').shift();
+                }
+
+                if (csrfToken) {
+                    const csrfHiddenInput = document.createElement('input');
+                    csrfHiddenInput.type = 'hidden';
+                    csrfHiddenInput.name = 'csrfmiddlewaretoken';
+                    csrfHiddenInput.value = csrfToken;
+                    tempForm.appendChild(csrfHiddenInput);
+                }
+
+                if (includeChart) {
+                    const chartDataInput = document.createElement('input');
+                    chartDataInput.type = 'hidden';
+                    chartDataInput.name = 'chart_image';
+                    chartDataInput.value = myChart.toBase64Image();
+                    tempForm.appendChild(chartDataInput);
+                }
+
+                document.body.appendChild(tempForm);
+                tempForm.submit();
+                document.body.removeChild(tempForm);
+            };
+
+            if (format === 'png') {
+                exportPNG();
+            } else if (format === 'csv') {
+                exportServer('csv');
+            } else if (format === 'both') {
+                exportPNG();
+                setTimeout(() => exportServer('csv'), 500);
+            }
+        });
+
+        let myChart; // Global reference for zoom reset
+
+        document.getElementById('btn-reset-zoom').addEventListener('click', function() {
+            if (myChart) {
+                myChart.resetZoom();
+            }
+        });
+
+        // Chart.js implementation
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        const chartData = JSON.parse('{{ chart_data_json|safe }}');
+        const filters = {
+            xAxis: '{{ filters.x_axis }}',
+            yAxis: '{{ filters.y_axis }}'
+        };
+        
+        const datasets = [];
+        
+        if (chartData.used && chartData.used.length > 0) {
+            datasets.push({
+                label: 'Tiquetes Usados',
+                data: chartData.used,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                tension: 0.1
+            });
+        }
+        
+        if (chartData.petitions && chartData.petitions.length > 0) {
+            datasets.push({
+                label: 'Peticiones de Tiquetes',
+                data: chartData.petitions,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                tension: 0.1
+            });
+        }
+        
+        if (chartData.accepted && chartData.accepted.length > 0) {
+            datasets.push({
+                label: 'Tiquetes Aceptados',
+                data: chartData.accepted,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                tension: 0.1
+            });
+        }
+
+        // Handle axis swapping in Chart.js
+        let chartConfig;
+        if (filters.xAxis === 'count') {
+            // Horizontal bar chart or swapped line chart
+            // For simplicity and standard line chart expectations, we'll keep it as 'line' 
+            // but swap the data points structure if possible.
+            // Actually, line charts in Chart.js are usually category x-axis.
+            // If we swap, we might want a horizontal bar chart or just swap labels and data.
+            // If X is count and Y is time, it's a bit unusual for a line chart.
+            
+            chartConfig = {
+                type: 'bar', // Horizontal bar is better for X=count
+                data: {
+                    labels: chartData.labels,
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Cantidad' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Tiempo' }
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            },
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            }
+                        }
+                    }
+                }
+            };
+        } else {
+            chartConfig = {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Cantidad' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Tiempo' }
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            },
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        myChart = new Chart(ctx, chartConfig);
+    });
+</script>
+{% endblock %}

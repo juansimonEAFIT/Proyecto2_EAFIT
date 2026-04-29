@@ -48,9 +48,14 @@ def ver_qr_empleado(request):
     
     limite_alcanzado = consumos_mes >= max_mensual
     
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos_total = Consumo.objects.filter(empleado=empleado).count()
-    tiquetes_disponibles_global = max(0, tiquetes_aprobados - tiquetes_consumidos_total)
+    tiquetes_aprobados_mes = SolicitudTiquete.objects.filter(
+        empleado=empleado, 
+        estado="aprobado",
+        fecha_solicitud__month=hoy.month,
+        fecha_solicitud__year=hoy.year
+    ).aggregate(total=Sum("cantidad"))["total"] or 0
+    
+    tiquetes_disponibles = max(0, tiquetes_aprobados_mes - consumos_mes)
     
     return render(
         request, 
@@ -58,7 +63,7 @@ def ver_qr_empleado(request):
         {
             "url_consumo": url_consumo,
             "empleado_activo": empleado.esta_activo,
-            "tiquetes_disponibles": tiquetes_disponibles_global,
+            "tiquetes_disponibles": tiquetes_disponibles,
             "limite_alcanzado": limite_alcanzado,
             "consumos_mes": consumos_mes,
             "max_mensual": max_mensual,
@@ -126,10 +131,15 @@ def consumir_almuerzo_qr(request, codigo_qr, token):
             {"empleado": empleado, "exito": False, "razon_error": "limite_mensual_excedido", "fecha": timezone.now()}
         )
 
-    # 4. Validar Tiquetes Disponibles (Global)
-    tiquetes_aprobados = SolicitudTiquete.objects.filter(empleado=empleado, estado="aprobado").aggregate(total=Sum("cantidad"))["total"] or 0
-    tiquetes_consumidos_total = Consumo.objects.filter(empleado=empleado).count()
-    tiquetes_disponibles = tiquetes_aprobados - tiquetes_consumidos_total
+    # 4. Validar Tiquetes Disponibles (Del Més)
+    tiquetes_aprobados_mes = SolicitudTiquete.objects.filter(
+        empleado=empleado, 
+        estado="aprobado",
+        fecha_solicitud__month=hoy.month,
+        fecha_solicitud__year=hoy.year
+    ).aggregate(total=Sum("cantidad"))["total"] or 0
+    
+    tiquetes_disponibles = tiquetes_aprobados_mes - consumos_mes
 
     # 5. Verificar si ya consumió hoy
     ya_consumio = Consumo.objects.filter(empleado=empleado, fecha_consumo__date=hoy.date()).exists()

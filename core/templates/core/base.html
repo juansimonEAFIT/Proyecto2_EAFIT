@@ -14,7 +14,14 @@
             <a href="/" class="logo">LunchFlow</a>
 
             <div class="acciones-superiores">
-                <a href="/" class="boton-icono" title="Volver al inicio">⌂</a>
+                <a href="/" class="boton-icono" title="Volver al inicio">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </a>
+                {% if request.user.is_authenticated and request.user.role %}
+                <button class="boton-hamburguesa boton-icono" id="boton-hamburguesa" title="Menu" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                {% endif %}
             </div>
         </div>
 
@@ -32,15 +39,7 @@
                 {% if messages %}
                     <div style="max-width: 1200px; margin: 0 auto 20px;">
                         {% for message in messages %}
-                            <div class="mensaje" style="
-                                background: {% if message.tags == 'error' %}#fee2e2{% elif message.tags == 'success' %}#dcfce7{% else %}#f8fafc{% endif %};
-                                border-left: 5px solid {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'success' %}#22c55e{% else %}#3b82f6{% endif %};
-                                color: {% if message.tags == 'error' %}#991b1b{% elif message.tags == 'success' %}#166534{% else %}#1e3a8a{% endif %};
-                                padding: 14px 16px;
-                                border-radius: 8px;
-                                margin-bottom: 10px;
-                                font-weight: 500;
-                            ">
+                            <div class="mensaje {% if message.tags == 'error' %}mensaje-error{% elif message.tags == 'success' %}mensaje-exito{% endif %}">
                                 {{ message }}
                             </div>
                         {% endfor %}
@@ -52,7 +51,10 @@
         </div>
     </div>
 
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <script>
+        // Menú desplegable (navbar)
         const botonMenu = document.getElementById("boton-menu");
         const contenidoMenu = document.getElementById("contenido-menu");
 
@@ -66,6 +68,23 @@
                 if (!contenidoMenu.contains(event.target) && !botonMenu.contains(event.target)) {
                     contenidoMenu.classList.remove("mostrar");
                 }
+            });
+        }
+
+        // Cajón lateral móvil
+        const hamburguesa = document.getElementById("boton-hamburguesa");
+        const overlay = document.getElementById("sidebar-overlay");
+        const sidebar = document.querySelector(".sidebar-admin, .sidebar-empleado");
+
+        if (hamburguesa && sidebar) {
+            hamburguesa.addEventListener("click", function () {
+                sidebar.classList.toggle("sidebar-abierto");
+                overlay.classList.toggle("activo");
+            });
+
+            overlay.addEventListener("click", function () {
+                sidebar.classList.remove("sidebar-abierto");
+                overlay.classList.remove("activo");
             });
         }
     </script>

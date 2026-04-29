@@ -1,8 +1,16 @@
 from django.contrib import admin
 from .models import (
-    Consumo, SolicitudTiquete, InventarioTiquetes,
+    Consumo, ConsumoLog, SolicitudTiquete, InventarioTiquetes,
     RegistroPago
 )
+
+@admin.register(ConsumoLog)
+class ConsumoLogAdmin(admin.ModelAdmin):
+    list_display = ("consumo", "campo", "valor_anterior", "valor_nuevo", "editado_por", "fecha_edicion")
+    list_filter = ("campo", "fecha_edicion")
+    readonly_fields = ("consumo", "editado_por", "fecha_edicion", "campo", "valor_anterior", "valor_nuevo", "motivo")
+    ordering = ("-fecha_edicion",)
+
 
 @admin.register(InventarioTiquetes)
 class InventarioTiquetesAdmin(admin.ModelAdmin):

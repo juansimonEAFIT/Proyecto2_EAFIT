@@ -13,6 +13,38 @@ class Consumo(models.Model):
         return f"{self.empleado.user.username} consumió un tiquete el {self.fecha_consumo}"
 
 
+class ConsumoLog(models.Model):
+    """
+    Registro de auditoría de cada edición hecha sobre un Consumo.
+    Guarda el campo modificado, el valor anterior, el nuevo valor,
+    quién realizó el cambio y el motivo indicado.
+    """
+    consumo = models.ForeignKey(
+        Consumo,
+        on_delete=models.CASCADE,
+        related_name="logs"
+    )
+    editado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ediciones_consumo"
+    )
+    fecha_edicion = models.DateTimeField(auto_now_add=True)
+    campo = models.CharField(max_length=50)        # ej. "fecha_consumo", "empleado"
+    valor_anterior = models.CharField(max_length=255)
+    valor_nuevo = models.CharField(max_length=255)
+    motivo = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-fecha_edicion"]
+        verbose_name = "Log de consumo"
+        verbose_name_plural = "Logs de consumo"
+
+    def __str__(self):
+        return f"[{self.fecha_edicion:%d/%m/%Y %H:%M}] {self.campo}: {self.valor_anterior} → {self.valor_nuevo}"
+
+
 class InventarioTiquetes(models.Model):
     mes = models.DateField(default=timezone.now)
     cantidad_inicial = models.PositiveIntegerField()
@@ -69,9 +101,10 @@ class RegistroPago(models.Model):
     fecha_pago = models.DateTimeField(auto_now_add=True)
     comprobante = models.CharField(max_length=255, help_text="Referencia o link al comprobante", blank=True)
     validado_por_gh = models.BooleanField(default=False)
+    confirmado_por_empleado = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Pago {self.empleado.user.username} - ${self.valor_pagado} - Val: {self.validado_por_gh}"
+        return f"Pago {self.empleado.user.username} - ${self.valor_pagado} - Val: {self.validado_por_gh} - Conf: {self.confirmado_por_empleado}"
 
     def save(self, *args, **kwargs):
         nuevo = self.pk is None

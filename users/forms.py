@@ -151,3 +151,62 @@ class FormularioPersonal(forms.ModelForm):
                     restaurante_perfil.save()
             
             return user
+
+
+class FormularioPerfilEmpleado(forms.ModelForm):
+    first_name = forms.CharField(label="Nombre", max_length=100)
+    last_name = forms.CharField(label="Apellido", max_length=100)
+    email = forms.EmailField(label="Correo electrónico", required=False)
+    
+    departamento = forms.CharField(label="Departamento/Área", required=False)
+    telefono = forms.CharField(
+        label="Teléfono", 
+        required=False,
+        widget=forms.TextInput(attrs={'type': 'text', 'inputmode': 'numeric', 'pattern': '[0-9]*', 'class': 'solo-numeros'})
+    )
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email"]
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance and hasattr(instance, 'empleado_perfil'):
+            initial = kwargs.get('initial', {})
+            initial['departamento'] = instance.empleado_perfil.departamento
+            initial['telefono'] = instance.empleado_perfil.telefono
+            kwargs['initial'] = initial
+        
+        super().__init__(*args, **kwargs)
+
+    def clean_telefono(self):
+        tel = self.cleaned_data.get("telefono")
+        if tel and not tel.isdigit():
+            raise forms.ValidationError("El teléfono solo debe contener números.")
+        return tel
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if not email:
+            return email
+        qs = User.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Este correo ya está en uso.")
+        return email
+
+    def save(self, commit=True):
+        with transaction.atomic():
+            user = super().save(commit=False)
+            if commit:
+                user.save()
+                
+                # Actualizar perfil
+                if hasattr(user, 'empleado_perfil'):
+                    empleado_perfil = user.empleado_perfil
+                    empleado_perfil.departamento = self.cleaned_data.get("departamento")
+                    empleado_perfil.telefono = self.cleaned_data.get("telefono")
+                    empleado_perfil.save()
+            
+            return user
