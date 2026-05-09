@@ -3,30 +3,33 @@
 {% block title %}Solicitar Tiquete - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor">
-    <h1 class="titulo-central">Solicitar Tiquete</h1>
-    <p class="subtitulo">Ingresa los detalles de tu solicitud de almuerzo.</p>
+<div class="emp-container" style="max-width: 720px;">
+    <div class="emp-header">
+        <h1>Pedir Tiquete</h1>
+        <p>Solicita tiquetes de almuerzo para consumir en el restaurante.</p>
+    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        {% for field in formulario %}
-        <div class="campo">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-            <small class="subtitulo" style="display: block; text-align: left; margin: 4px 0 10px;">{{ field.help_text }}</small>
-            {% endif %}
-            {% for error in field.errors %}
-            <div class="mensaje" style="background: #fee2e2; border-color: #ef4444; color: #991b1b; padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
+    <div class="emp-card">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in formulario %}
+            <div class="emp-input-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <small style="font-size: 12px; color: var(--color-texto-sutil);">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 6px 12px; border-radius: 8px; font-size: 13px; margin-top: 2px;">{{ error }}</div>
+                {% endfor %}
+            </div>
             {% endfor %}
-        </div>
-        {% endfor %}
-        
-        <button type="submit" class="boton">Enviar Solicitud</button>
-    </form>
-    
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">Volver al dashboard</a>
+            
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="emp-btn emp-btn-primary" style="padding: 0 32px;">Enviar Solicitud</button>
+                <a href="{% url 'dashboard_empleado' %}" class="emp-btn emp-btn-ghost" style="text-decoration: none;">Cancelar</a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

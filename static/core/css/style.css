@@ -553,8 +553,11 @@ form p {
 }
 
 .sidebar-admin,
-.sidebar-empleado {
+.sidebar-empleado,
+.sidebar-restaurante {
     width: 280px;
+    min-width: 280px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
@@ -995,7 +998,8 @@ form p {
 
     /* Cajón lateral deslizable */
     .sidebar-admin,
-    .sidebar-empleado {
+    .sidebar-empleado,
+    .sidebar-restaurante {
         position: fixed !important;
         top: 0 !important;
         left: -290px !important;
@@ -1011,7 +1015,8 @@ form p {
     }
 
     .sidebar-admin.sidebar-abierto,
-    .sidebar-empleado.sidebar-abierto {
+    .sidebar-empleado.sidebar-abierto,
+    .sidebar-restaurante.sidebar-abierto {
         left: 0 !important;
     }
 
@@ -1445,4 +1450,157 @@ select.admin-input {
     .admin-grid-2 {
         grid-template-columns: 1fr;
     }
+}
+
+/* ==========================================================================
+   SISTEMA DE ESTANDARIZACIÓN UI — PANEL EMPLEADO
+   Identidad: Portal de beneficio corporativo moderno, ligero y amigable.
+   ========================================================================== */
+
+.emp-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.emp-header { margin-bottom: 0; }
+.emp-header h1 { font-size: 28px; font-weight: 700; color: var(--color-oscuro); margin: 0 0 4px 0; }
+.emp-header p { font-size: 15px; color: var(--color-texto-sutil); margin: 0; }
+
+.emp-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    border: 1px solid #e8edf3;
+    padding: 24px;
+}
+
+.emp-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.emp-kpi {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #e8edf3;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.emp-kpi .kpi-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--color-texto-sutil); }
+.emp-kpi .kpi-value { font-size: 26px; font-weight: 700; color: var(--color-oscuro); }
+.emp-kpi .kpi-value.danger { color: var(--color-rojo); }
+.emp-kpi .kpi-value.info { color: var(--color-azul); }
+
+.emp-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.emp-action-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 16px;
+    text-decoration: none;
+    color: var(--color-oscuro);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.emp-action-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07); }
+.emp-action-card.primary { background: var(--color-azul); color: white; border-color: transparent; }
+
+.emp-action-icon {
+    width: 40px; height: 40px; border-radius: 12px; background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center; color: var(--color-azul);
+}
+.emp-action-card.primary .emp-action-icon { background: rgba(255, 255, 255, 0.2); color: white; }
+
+.emp-table { width: 100%; border-collapse: collapse; }
+.emp-table th { padding: 12px 20px; text-align: left; font-size: 13px; color: var(--color-texto-sutil); text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+.emp-table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+
+.emp-badge { display: inline-flex; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.emp-badge.green { background: #dcfce7; color: #166534; }
+.emp-badge.red { background: #fee2e2; color: #991b1b; }
+.emp-badge.blue { background: #dbeafe; color: #1d4ed8; }
+.emp-badge.yellow { background: #fef9c3; color: #854d0e; }
+
+.emp-btn { height: 44px; padding: 0 20px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+.emp-btn-primary { background: var(--color-rojo); color: white; }
+.emp-btn-secondary { background: var(--color-azul); color: white; }
+.emp-btn-outline { background: transparent; border: 1px solid #cbd5e1; color: var(--color-oscuro); }
+
+.emp-input { width: 100%; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 14px; }
+
+.sidebar-empleado .emp-sidebar-profile { display: flex; align-items: center; gap: 12px; padding: 0 8px 16px; border-bottom: 1px solid #f1f5f9; margin-bottom: 8px; }
+.emp-sidebar-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eff6ff; color: var(--color-azul); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+@media (max-width: 768px) {
+    .emp-container { padding: 20px 16px; }
+    .emp-kpi-grid { grid-template-columns: 1fr 1fr; }
+    .emp-actions-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   SISTEMA DE ESTANDARIZACIÓN UI — PANEL RESTAURANTE
+   Identidad: Rápido, operativo, táctil.
+   ========================================================================== */
+
+.res-container { max-width: 800px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.res-header { text-align: center; margin-bottom: 8px; }
+.res-header h1 { font-size: 24px; font-weight: 700; color: var(--color-oscuro); margin: 0 0 4px 0; }
+.res-header p { font-size: 14px; color: var(--color-texto-sutil); margin: 0; }
+
+.res-card { background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05); border: 1px solid #e2e8f0; padding: 20px; }
+
+.res-btn { height: 56px; border-radius: 14px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; cursor: pointer; text-decoration: none; width: 100%; transition: all 0.2s; }
+.res-btn-primary { background: var(--color-azul); color: white; box-shadow: 0 8px 24px rgba(29, 78, 216, 0.25); }
+.res-btn-danger { background: #fee2e2; color: var(--color-rojo); border: 1px solid #fecaca; }
+
+.res-scanner-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; aspect-ratio: 1/1; background: #0f172a; border-radius: 24px; overflow: hidden; border: 4px solid #ffffff; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15); }
+.res-scanner-overlay { position: absolute; inset: 0; border: 2px dashed rgba(255, 255, 255, 0.5); border-radius: 20px; margin: 24px; pointer-events: none; }
+
+.res-feed-list { display: flex; flex-direction: column; gap: 12px; }
+.res-feed-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+.res-feed-info { display: flex; flex-direction: column; gap: 4px; }
+.res-feed-name { font-weight: 600; color: var(--color-oscuro); font-size: 15px; }
+.res-feed-time { font-size: 12px; color: var(--color-texto-sutil); }
+
+.res-badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+.res-badge.success { background: #dcfce7; color: #166534; }
+.res-badge.error { background: #fee2e2; color: #991b1b; }
+
+.sidebar-restaurante { 
+    background: var(--color-oscuro); 
+    color: white; 
+    padding: 24px 16px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+    height: calc(100vh - 90px);
+    position: sticky;
+    top: 90px;
+    width: 280px;
+    min-width: 280px;
+    flex-shrink: 0;
+}
+.sidebar-restaurante a { color: #94a3b8; font-weight: 600; text-decoration: none; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; }
+.sidebar-restaurante a.activo { background: var(--color-azul) !important; color: white !important; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3); }
+
+@media (max-width: 768px) {
+    .res-container { padding: 16px; padding-bottom: 80px; }
 }

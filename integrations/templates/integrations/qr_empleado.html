@@ -3,44 +3,63 @@
 {% block title %}Mi QR - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior" style="max-width: 600px; text-align: center;">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Mi Código QR</h1>
-        <p class="subtitulo">Muestra este código en el restaurante para validar tu almuerzo.</p>
+<div class="emp-container">
+    <div class="emp-header">
+        <h1>Mi Código QR</h1>
+        <p>Muestra este código en el restaurante para validar tu almuerzo.</p>
     </div>
 
-    <div style="background: white; padding: 40px 20px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: inline-block; width: 100%;">
-        {% if empleado_activo %}
-            {% if limite_alcanzado %}
-                <div style="color: var(--color-rojo); background: #fee2e2; padding: 25px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px;">
-                    <h3 style="margin-top: 0; font-size: 18px;">Límite Mensual Alcanzado</h3>
-                    <p style="margin-bottom: 0;">Ya has consumido tus <strong>{{ max_mensual }}</strong> almuerzos permitidos para este mes.</p>
+    {% if empleado_activo %}
+        {% if limite_alcanzado %}
+            <div class="emp-card" style="border-left: 4px solid var(--color-rojo);">
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #fee2e2; color: var(--color-rojo); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0 0 4px; color: var(--color-rojo); font-size: 16px;">Límite Mensual Alcanzado</h3>
+                        <p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">Ya has consumido tus <strong>{{ max_mensual }}</strong> almuerzos permitidos para este mes. Tus tiquetes restantes podrán ser usados el próximo mes.</p>
+                    </div>
                 </div>
-                <div style="color: var(--color-texto-suave); font-size: 15px;">
-                    Tus tiquetes restantes podrán ser usados el próximo mes.
-                </div>
-            {% else %}
-                <div style="background: white; padding: 20px; display: inline-block; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; margin-bottom: 20px;">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" alt="QR" style="display: block; margin: 0 auto;">
-                </div>
-                
-                <div style="color: var(--color-texto-suave); font-size: 16px; margin-bottom: 10px;">
-                    Tiquetes disponibles en saldo: <strong style="color: var(--color-azul); font-size: 20px;">{{ tiquetes_disponibles }}</strong>
-                </div>
-                <div style="font-size: 14px; color: var(--color-texto-sutil);">
-                    Consumos este mes: <strong>{{ consumos_mes }} / {{ max_mensual }}</strong>
-                </div>
-            {% endif %}
-            
+            </div>
         {% else %}
-            <div style="color: var(--color-rojo); background: #fee2e2; padding: 20px; border-radius: 12px; border: 1px solid #fecaca; margin-bottom: 20px;">
-                Tu cuenta está actualmente inactiva. Contacta a administración para poder usar tus tiquetes.
+            <div class="emp-split">
+                <div class="emp-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px;">
+                    <div class="emp-qr-frame">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" alt="QR de almuerzo" style="display: block;">
+                    </div>
+                    <p style="margin: 20px 0 0; font-size: 13px; color: var(--color-texto-sutil); text-align: center;">Escanea este código en el punto de servicio</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="emp-kpi">
+                        <span class="kpi-label">Tiquetes Disponibles</span>
+                        <span class="kpi-value info">{{ tiquetes_disponibles }}</span>
+                        <span class="kpi-sub">En tu saldo actual</span>
+                    </div>
+                    <div class="emp-kpi">
+                        <span class="kpi-label">Consumos este Mes</span>
+                        <span class="kpi-value">{{ consumos_mes }} <span style="font-size: 16px; font-weight: 400; color: var(--color-texto-sutil);">/ {{ max_mensual }}</span></span>
+                        <span class="kpi-sub">Límite mensual</span>
+                    </div>
+                    <a href="{% url 'dashboard_empleado' %}" class="emp-btn emp-btn-outline" style="width: 100%; text-decoration: none;">
+                        ← Volver al Inicio
+                    </a>
+                </div>
             </div>
         {% endif %}
-    </div>
-    
-    <div style="margin-top: 30px;">
-        <a href="{% url 'dashboard_empleado' %}" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Volver al Inicio</a>
-    </div>
+    {% else %}
+        <div class="emp-card" style="border-left: 4px solid var(--color-rojo);">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #fee2e2; color: var(--color-rojo); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 4px; color: var(--color-rojo); font-size: 16px;">Cuenta Inactiva</h3>
+                    <p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">Tu cuenta está actualmente inactiva. Contacta a administración para poder usar tus tiquetes.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
