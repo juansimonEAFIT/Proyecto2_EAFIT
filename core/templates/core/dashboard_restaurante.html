@@ -18,7 +18,7 @@
 
     <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button id="btn-iniciar" onclick="iniciarEscaner()" class="btn-quick primary" style="cursor: pointer; padding: 12px 28px; font-size: 15px; border: none; font-weight: 600;">
-            Iniciar camara
+            Iniciar cámara
         </button>
         <button id="btn-detener" onclick="detenerEscaner()" class="btn-quick" style="cursor: pointer; padding: 12px 28px; font-size: 15px; border: 2px solid #ef4444; color: #ef4444; font-weight: 600; display: none;">
             Detener
@@ -27,7 +27,7 @@
 
     <div id="qr-status" style="margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
         <p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">
-            Presiona <strong>"Iniciar camara"</strong> para comenzar a escanear codigos QR de los empleados.
+            Presiona <strong>"Iniciar cámara"</strong> para comenzar a escanear códigos QR de los empleados.
         </p>
     </div>
 </div>
@@ -95,9 +95,9 @@
             escaneando = true;
             btnIniciar.style.display = 'none';
             btnDetener.style.display = 'inline-block';
-            statusDiv.innerHTML = '<p style="margin: 0; color: #166534; font-weight: 500;">Camara activa. Apunta al codigo QR del empleado.</p>';
+            statusDiv.innerHTML = '<p style="margin: 0; color: #166534; font-weight: 500;">Cámara activa. Apunta al código QR del empleado.</p>';
         }).catch((err) => {
-            statusDiv.innerHTML = '<p style="margin: 0; color: #991b1b; font-weight: 500;">No se pudo acceder a la camara. Verifica los permisos del navegador.</p>';
+            statusDiv.innerHTML = '<p style="margin: 0; color: #991b1b; font-weight: 500;">No se pudo acceder a la cámara. Verifica los permisos del navegador.</p>';
             console.error("Error al iniciar cámara:", err);
         });
     }
@@ -108,7 +108,7 @@
                 escaneando = false;
                 document.getElementById('btn-iniciar').style.display = 'inline-block';
                 document.getElementById('btn-detener').style.display = 'none';
-                document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">Camara detenida. Presiona <strong>"Iniciar camara"</strong> para continuar.</p>';
+                document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">Cámara detenida. Presiona <strong>"Iniciar cámara"</strong> para continuar.</p>';
             });
         }
     }
@@ -148,7 +148,7 @@
             window.location.href = urlConsumo;
         } else {
             document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: #991b1b; font-weight: 500;">El QR escaneado no pertenece a LunchFlow.</p>';
-            mostrarResultado(false, 'QR no valido', 'El codigo escaneado no corresponde a un empleado del sistema LunchFlow.');
+            mostrarResultado(false, 'QR no válido', 'El código escaneado no corresponde a un empleado del sistema LunchFlow.');
         }
     }
 

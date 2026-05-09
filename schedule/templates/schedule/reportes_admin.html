@@ -1,0 +1,603 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Reportes - LunchFlow{% endblock %}
+
+{% block content %}
+<style>
+    .reportes-page {
+        max-width: 1160px;
+    }
+
+    .reportes-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 36px;
+        border-radius: 28px;
+        background:
+            radial-gradient(circle at top right, rgba(255, 94, 87, 0.18), transparent 34%),
+            linear-gradient(135deg, #0f1a34 0%, #16325b 58%, #1f5eff 100%);
+        color: #fff;
+        box-shadow: 0 24px 60px rgba(22, 50, 91, 0.18);
+    }
+
+    .reportes-hero::after {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        right: -60px;
+        top: -80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .reportes-hero__content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+        gap: 24px;
+        align-items: end;
+    }
+
+    .reportes-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        color: #eef3ff;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .reportes-hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(34px, 4.2vw, 48px);
+        line-height: 1.05;
+        color: #fff;
+    }
+
+    .reportes-hero p {
+        margin: 0;
+        max-width: 680px;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 16px;
+        line-height: 1.7;
+    }
+
+    .reportes-kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .reportes-kpi {
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(4px);
+    }
+
+    .reportes-kpi span {
+        display: block;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.72);
+        margin-bottom: 8px;
+    }
+
+    .reportes-kpi strong {
+        display: block;
+        font-size: 28px;
+        color: #fff;
+    }
+
+    .reportes-filtros {
+        margin-top: 26px;
+        padding: 28px;
+        border-radius: 28px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid rgba(214, 224, 245, 0.92);
+        box-shadow: 0 18px 40px rgba(22, 50, 91, 0.10);
+    }
+
+    .reportes-filtros__header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .reportes-filtros__title {
+        margin: 0;
+        font-size: 24px;
+        color: #0f1a34;
+    }
+
+    .reportes-filtros__subtitle {
+        margin: 6px 0 0;
+        color: #587196;
+        line-height: 1.6;
+    }
+
+    .reportes-filtros__actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filtro-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: 14px;
+        border: 1px solid #d6e0f5;
+        background: #fff;
+        color: #16325b;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .filtro-btn.primary {
+        background: linear-gradient(90deg, #1f5eff 0%, #4f8cff 100%);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 14px 24px rgba(31, 94, 255, 0.20);
+    }
+
+    .reportes-filtros__grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .campo-filtro {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .campo-filtro label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #3b557d;
+    }
+
+    .campo-filtro input,
+    .campo-filtro select {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border-radius: 14px;
+        border: 1px solid #d6e0f5;
+        background: #fff;
+        color: #16325b;
+    }
+
+    .campo-filtro--wide {
+        grid-column: span 2;
+    }
+
+    .reportes-filtros__chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+    }
+
+    .reporte-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: #f5f8ff;
+        color: #27456d;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .reportes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 26px;
+    }
+
+    .reporte-card {
+        position: relative;
+        overflow: hidden;
+        padding: 30px;
+        border-radius: 28px;
+        background: #fff;
+        border: 1px solid rgba(214, 224, 245, 0.92);
+        box-shadow: 0 20px 48px rgba(22, 50, 91, 0.12);
+    }
+
+    .reporte-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto auto 0;
+        width: 100%;
+        height: 6px;
+        background: var(--reporte-accent);
+    }
+
+    .reporte-card__icon {
+        width: 56px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        font-size: 28px;
+        background: var(--reporte-soft);
+        margin-bottom: 18px;
+    }
+
+    .reporte-card__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--reporte-accent-text);
+        background: var(--reporte-soft);
+    }
+
+    .reporte-card h2 {
+        margin: 16px 0 10px;
+        font-size: 29px;
+        color: #0f1a34;
+    }
+
+    .reporte-card p {
+        margin: 0;
+        color: #4d6485;
+        line-height: 1.7;
+        min-height: 54px;
+    }
+
+    .reporte-card__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0 24px;
+    }
+
+    .reporte-card__formats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .reporte-format {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid rgba(214, 224, 245, 0.92);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        color: #16325b;
+        text-align: left;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .reporte-format:hover {
+        transform: translateY(-2px);
+        border-color: #1f5eff;
+        box-shadow: 0 18px 30px rgba(31, 94, 255, 0.14);
+    }
+
+    .reporte-format__label {
+        font-size: 16px;
+        font-weight: 800;
+        color: #0f1a34;
+    }
+
+    .reporte-format__hint {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #587196;
+    }
+
+    .reportes-note {
+        margin-top: 24px;
+        padding: 18px 22px;
+        border-radius: 20px;
+        background: #fff7ea;
+        border: 1px solid #ffe3b2;
+        color: #7a5310;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 1080px) {
+        .reportes-hero__content,
+        .reportes-grid,
+        .reportes-filtros__grid {
+            grid-template-columns: 1fr;
+        }
+
+        .campo-filtro--wide {
+            grid-column: span 1;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .reportes-hero,
+        .reportes-filtros,
+        .reporte-card {
+            padding: 24px;
+            border-radius: 24px;
+        }
+
+        .reportes-kpis,
+        .reporte-card__formats {
+            grid-template-columns: 1fr;
+        }
+
+        .reportes-filtros__header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+
+<div class="reportes-page">
+    <section class="reportes-hero">
+        <div class="reportes-hero__content">
+            <div>
+                <div class="reportes-badge">Centro administrativo</div>
+                <h1>Reportes listos para contabilidad y seguimiento</h1>
+                <p>
+                    Filtra por empleado, fechas, área o estado y descarga solo lo que necesites.
+                    Cada exportación reutiliza los criterios que selecciones aquí.
+                </p>
+            </div>
+
+            <div class="reportes-kpis">
+                <div class="reportes-kpi">
+                    <span>Formatos disponibles</span>
+                    <strong>3</strong>
+                </div>
+                <div class="reportes-kpi">
+                    <span>Filtros combinables</span>
+                    <strong>7</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="reportes-filtros">
+        <form id="reportes-filter-form" method="get" action="{% url 'dashboard_reportes' %}">
+            <div class="reportes-filtros__header">
+                <div>
+                    <h2 class="reportes-filtros__title">Ajusta el filtro de descarga</h2>
+                    <p class="reportes-filtros__subtitle">
+                        Los filtros de validación y confirmación aplican sobre todo al reporte de pagos.
+                        En consumos se ignoran automáticamente.
+                    </p>
+                </div>
+
+                <div class="reportes-filtros__actions">
+                    <button type="submit" class="filtro-btn primary">Aplicar filtros</button>
+                    <a href="{% url 'dashboard_reportes' %}" class="filtro-btn">Limpiar</a>
+                </div>
+            </div>
+
+            <div class="reportes-filtros__grid">
+                <div class="campo-filtro campo-filtro--wide">
+                    <label for="buscar">Búsqueda general</label>
+                    <input
+                        type="text"
+                        id="buscar"
+                        name="buscar"
+                        placeholder="Usuario, nombre, documento o área"
+                        value="{{ filtros.buscar }}"
+                    >
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="empleado">Empleado</label>
+                    <select id="empleado" name="empleado">
+                        <option value="">Todos</option>
+                        {% for empleado in empleados_filtro %}
+                            <option value="{{ empleado.id }}"{% if filtros.empleado == empleado.id|stringformat:"s" %} selected{% endif %}>
+                                {{ empleado.user.get_full_name|default:empleado.user.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="departamento">Área</label>
+                    <select id="departamento" name="departamento">
+                        <option value="">Todas</option>
+                        {% for departamento in departamentos_filtro %}
+                            <option value="{{ departamento }}"{% if filtros.departamento == departamento %} selected{% endif %}>
+                                {{ departamento }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="fecha_desde">Fecha desde</label>
+                    <input type="date" id="fecha_desde" name="fecha_desde" value="{{ filtros.fecha_desde }}">
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="fecha_hasta">Fecha hasta</label>
+                    <input type="date" id="fecha_hasta" name="fecha_hasta" value="{{ filtros.fecha_hasta }}">
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="validado">Validado GH</label>
+                    <select id="validado" name="validado">
+                        <option value="">Todos</option>
+                        <option value="si"{% if filtros.validado == "si" %} selected{% endif %}>Si</option>
+                        <option value="no"{% if filtros.validado == "no" %} selected{% endif %}>No</option>
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="confirmado">Confirmado empleado</label>
+                    <select id="confirmado" name="confirmado">
+                        <option value="">Todos</option>
+                        <option value="si"{% if filtros.confirmado == "si" %} selected{% endif %}>Si</option>
+                        <option value="no"{% if filtros.confirmado == "no" %} selected{% endif %}>No</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        <div class="reportes-filtros__chips">
+            {% if filtros.buscar %}<span class="reporte-chip">{{ filtros.buscar }}</span>{% endif %}
+            {% if filtros.empleado %}<span class="reporte-chip">Empleado filtrado</span>{% endif %}
+            {% if filtros.departamento %}<span class="reporte-chip">{{ filtros.departamento }}</span>{% endif %}
+            {% if filtros.fecha_desde %}<span class="reporte-chip">Desde {{ filtros.fecha_desde }}</span>{% endif %}
+            {% if filtros.fecha_hasta %}<span class="reporte-chip">Hasta {{ filtros.fecha_hasta }}</span>{% endif %}
+            {% if filtros.validado %}<span class="reporte-chip">Validado: {{ filtros.validado|title }}</span>{% endif %}
+            {% if filtros.confirmado %}<span class="reporte-chip">Confirmado: {{ filtros.confirmado|title }}</span>{% endif %}
+            {% if not filtros.buscar and not filtros.empleado and not filtros.departamento and not filtros.fecha_desde and not filtros.fecha_hasta and not filtros.validado and not filtros.confirmado %}
+                <span class="reporte-chip">Sin filtros activos</span>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="reportes-grid">
+        <article
+            class="reporte-card"
+            style="--reporte-accent: linear-gradient(90deg, #1f5eff 0%, #57a4ff 100%); --reporte-soft: #eef4ff; --reporte-accent-text: #315aa8;"
+        >
+            <div class="reporte-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            </div>
+            <div class="reporte-card__eyebrow">Consumos</div>
+            <h2>Reporte de consumos</h2>
+            <p>
+                Consolida empleados, usuarios, documentos, áreas y fecha de cada consumo registrado
+                por el restaurante.
+            </p>
+
+            <div class="reporte-card__chips">
+                <span class="reporte-chip">Historial detallado</span>
+                <span class="reporte-chip">Datos de empleado</span>
+                <span class="reporte-chip">Fecha exacta</span>
+            </div>
+
+            <div class="reporte-card__formats">
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_consumos' %}"
+                    name="formato"
+                    value="csv"
+                >
+                    <span class="reporte-format__label">CSV</span>
+                    <span class="reporte-format__hint">Ligero y cómodo para cruces rápidos o carga en otros sistemas.</span>
+                </button>
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_consumos' %}"
+                    name="formato"
+                    value="excel"
+                >
+                    <span class="reporte-format__label">Excel</span>
+                    <span class="reporte-format__hint">Abre una hoja lista para filtros, orden y revisión manual.</span>
+                </button>
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_consumos' %}"
+                    name="formato"
+                    value="pdf"
+                >
+                    <span class="reporte-format__label">PDF</span>
+                    <span class="reporte-format__hint">Genera una tabla organizada para compartir o archivar.</span>
+                </button>
+            </div>
+        </article>
+
+        <article
+            class="reporte-card"
+            style="--reporte-accent: linear-gradient(90deg, #ff4f6d 0%, #ff9f56 100%); --reporte-soft: #fff1ef; --reporte-accent-text: #b84b41;"
+        >
+            <div class="reporte-card__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            </div>
+            <div class="reporte-card__eyebrow">Pagos</div>
+            <h2>Reporte de pagos</h2>
+            <p>
+                Descarga valores pagados, comprobantes y estados de validación para soporte
+                administrativo y conciliación.
+            </p>
+
+            <div class="reporte-card__chips">
+                <span class="reporte-chip">Valor registrado</span>
+                <span class="reporte-chip">Validaciones</span>
+                <span class="reporte-chip">Comprobante</span>
+            </div>
+
+            <div class="reporte-card__formats">
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_pagos' %}"
+                    name="formato"
+                    value="csv"
+                >
+                    <span class="reporte-format__label">CSV</span>
+                    <span class="reporte-format__hint">Ideal para procesos automáticos y conciliaciones rápidas.</span>
+                </button>
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_pagos' %}"
+                    name="formato"
+                    value="excel"
+                >
+                    <span class="reporte-format__label">Excel</span>
+                    <span class="reporte-format__hint">Abre una hoja ordenada para revisar, filtrar y totalizar.</span>
+                </button>
+                <button
+                    type="submit"
+                    class="reporte-format"
+                    form="reportes-filter-form"
+                    formaction="{% url 'exportar_reporte_pagos' %}"
+                    name="formato"
+                    value="pdf"
+                >
+                    <span class="reporte-format__label">PDF</span>
+                    <span class="reporte-format__hint">Presentación limpia en formato documento para compartir.</span>
+                </button>
+            </div>
+        </article>
+    </section>
+
+    <div class="reportes-note">
+        Consejo: usa <strong>Excel</strong> para revisar y filtrar, <strong>CSV</strong> para
+        integraciones rápidas y <strong>PDF</strong> cuando quieras una versión cerrada y ordenada.
+    </div>
+</div>
+{% endblock %}

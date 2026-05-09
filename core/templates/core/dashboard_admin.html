@@ -7,18 +7,49 @@
     .admin-main-content .bento-card {
         border-top: 4px solid var(--color-oscuro);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        /* Softer distinct shadow */
+    }
+
+    .reportes-export-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .reportes-export-card__title {
+        margin: 0;
+        font-size: 20px;
+        color: var(--color-oscuro);
+    }
+
+    .reportes-export-card__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .reportes-export-card__actions .btn-quick {
+        padding: 12px 16px;
+    }
+
+    @media (max-width: 1024px) {
+        .reportes-export-card__actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .reportes-export-card__actions .btn-quick {
+            flex: 1 1 180px;
+        }
     }
 </style>
+
 <div class="dashboard-header" style="margin-bottom: 30px;">
     <h1 style="font-size: 32px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
-    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.
-    </p>
+    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.</p>
 </div>
 
-<!-- Overview Section (Default) -->
 <div id="overview-section" class="tab-content active">
-    <!-- Bento Grid for Quick Stats -->
     <div class="bento-grid">
         <div class="bento-card grande">
             <div class="etiqueta-bento">Estado de Inventario</div>
@@ -27,12 +58,13 @@
                 <div style="color: var(--color-texto-sutil); margin-bottom: 10px; font-weight: 500;">Tiquetes disponibles</div>
             </div>
             <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tiquetes</strong></p>
-            <a href="{% url 'gestionar_inventario' %}" class="boton"
-                style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
+            <a href="{% url 'gestionar_inventario' %}" class="boton" style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
         </div>
 
         <div class="bento-card pequena">
-            <div class="icono">💰</div>
+            <div class="icono">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
             <div class="etiqueta-bento">Costo Tiquete</div>
             <div class="dato">${{ inventario.precio_tiquete|default:"10.000" }}</div>
             <p style="font-size: 13px; color: var(--color-texto-sutil);">Precio unitario vigente este mes.</p>
@@ -40,38 +72,41 @@
 
         <div class="bento-card grande">
             <div class="etiqueta-bento">Acciones Rápidas</div>
-            <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <a href="{% url 'crear_personal' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
+            <div class="acciones-rapidas" style="gap: 15px; margin-top: 20px;">
+                <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
                 </a>
-                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">💵</div>
+                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Pago Manual</div>
                 </a>
-                <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion"
-                    style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">⚙️</div>
+                <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
+                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
                     <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuración</div>
                 </a>
             </div>
         </div>
+
+        <div class="bento-card pequena">
+            {% include 'schedule/includes/reportes_export_card.html' with compact=True %}
+        </div>
     </div>
-
-
 </div>
 
-<!-- Solicitudes Section -->
 <div id="solicitudes-section" class="tab-content">
-
     <div class="tabla-contenedor">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h2 class="subtitulo-izq" style="margin: 0;">Historial Reciente</h2>
             <form method="GET" style="display: flex; gap: 10px; align-items: center;" id="form-filtros-historial">
                 <input type="hidden" name="tab" value="solicitudes-section">
-                
+
                 <label for="mes" style="font-weight: 600; color: var(--color-oscuro);">Mes:</label>
                 <select name="mes" id="mes" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
                     <option value="">-- Todos --</option>
@@ -112,8 +147,7 @@
                     <td>{{ solicitud.cantidad }}</td>
                     <td>{{ solicitud.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
                     <td>
-                        <span
-                            class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                        <span class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
@@ -124,7 +158,6 @@
     </div>
 </div>
 
-<!-- Inventario Section -->
 <div id="inventario-section" class="tab-content">
     <div class="contenedor ancho-medio" style="margin: 0; padding: 40px; text-align: left;">
         <h2 class="titulo-central" style="text-align: left;">Configuración de Inventario</h2>
@@ -140,7 +173,6 @@
     </div>
 </div>
 
-<!-- Personal Section -->
 <div id="personal-section" class="tab-content">
     <div class="tabla-contenedor">
         <h2 class="subtitulo-izq">Gestión de Personal</h2>
@@ -179,16 +211,17 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris"
-                            style="text-decoration: none;">Editar</a>
+                        <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris" style="text-decoration: none; margin-right: 5px;">Editar</a>
+                        {% if p.role == 'empleado' and p.empleado_perfil_id_safe %}
+                        <a href="{% url 'historial_consumos' p.empleado_perfil_id_safe %}" class="insignia insignia-azul" style="text-decoration: none;">Ver Consumos</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <div style="margin-top: 20px;">
-            <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar
-                Nuevo Usuario</a>
+            <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar Nuevo Usuario</a>
         </div>
     </div>
 </div>
@@ -202,18 +235,14 @@
         const sidebarLinks = document.querySelectorAll('.sidebar-admin a');
 
         function showTab(tabId) {
-            // Hide all contents
             tabContents.forEach(content => content.classList.remove('active'));
-            // Remove active class from all links
             sidebarLinks.forEach(link => link.classList.remove('activo'));
 
-            // Show selected content
             const target = document.getElementById(tabId + '-section');
             if (target) {
                 target.classList.add('active');
             }
 
-            // Highlight sidebar link
             const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
             if (activeLink) {
                 activeLink.classList.add('activo');
@@ -225,20 +254,18 @@
                 e.preventDefault();
                 const tabId = this.getAttribute('data-tab');
                 showTab(tabId);
-                // Update URL hash without jumping
                 history.pushState(null, null, '#' + tabId);
             });
         });
 
-        // Check for hash in URL on load
         const hash = window.location.hash.substring(1);
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
-        
-        if (hash) {
+        const hashHasTab = hash && document.querySelector(`.tab-link[data-tab="${hash}"]`);
+
+        if (hashHasTab) {
             showTab(hash);
         } else if (tabParam) {
-            // Remove -section if included
             const cleanId = tabParam.replace('-section', '');
             showTab(cleanId);
         }

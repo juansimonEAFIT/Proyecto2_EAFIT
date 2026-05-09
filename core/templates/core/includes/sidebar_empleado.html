@@ -7,39 +7,43 @@
     </div>
 
     <a href="{% url 'inicio' %}" class="{% if request.resolver_match.url_name == 'inicio' %}activo{% endif %}">
-        <span>🏠</span> Inicio
-    </a>
-    
-    <a href="{% url 'ver_qr_empleado' %}" class="{% if request.resolver_match.url_name == 'ver_qr_empleado' %}activo{% endif %}">
-        <span>📱</span> Mi QR
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
     </a>
 
-    <a href="{% url 'solicitar_tiquete' %}" class="{% if request.resolver_match.url_name == 'solicitar_tiquete' %}activo{% endif %}">
-        <span>🎟️</span> Pedir Tiquete
+    <a href="{% url 'ver_qr_empleado' %}"
+        class="{% if request.resolver_match.url_name == 'ver_qr_empleado' %}activo{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+        Mi QR
     </a>
 
+    <a href="{% url 'solicitar_tiquete' %}"
+        class="{% if request.resolver_match.url_name == 'solicitar_tiquete' %}activo{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
+        Pedir Tiquete
+    </a>
 
     <a href="{% url 'consultar_estado_cuenta' %}"
         class="{% if request.resolver_match.url_name == 'consultar_estado_cuenta' %}activo{% endif %}">
-        <span>📊</span> Consumos
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Estado de cuenta
     </a>
 
     <a href="{% url 'registrar_pago' %}"
         class="{% if request.resolver_match.url_name == 'registrar_pago' %}activo{% endif %}">
-        <span>💰</span> Pagos
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Pagos
     </a>
 
-
-    <div
-        style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; gap: 10px;">
+    <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; gap: 10px;">
         <a href="{% url 'perfil_usuario' %}"
             class="{% if request.resolver_match.url_name == 'perfil_usuario' %}activo{% endif %}">
-            <span>👤</span> Perfil
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Perfil
         </a>
         <form action="{% url 'logout' %}" method="post" style="width: 100%;">
             {% csrf_token %}
-            <button type="submit" class="btn-quick"
-                style="width: 100%; cursor: pointer; background: #fee2e2; color: var(--color-rojo); border: 1px solid #fecaca; font-weight: 700;">
+            <button type="submit" class="btn-quick peligro" style="width: 100%; cursor: pointer; font-weight: 700;">
                 Cerrar sesión
             </button>
         </form>
