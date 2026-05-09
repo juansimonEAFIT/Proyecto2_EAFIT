@@ -24,4 +24,5 @@ urlpatterns = [
     path("", include("schedule.urls")),
     path("", include("integrations.urls")),
     path("", include("core.urls")),
+    path("", include("analytics.urls")),
 ]

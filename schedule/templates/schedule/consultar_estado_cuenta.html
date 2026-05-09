@@ -7,7 +7,7 @@
     <div class="encabezado-interior">
         <h1 class="titulo-central">Estado de cuenta</h1>
         <div class="subtitulo">
-            Consulta el saldo acumulado pendiente del empleado {{ empleado.user.first_name }} {{ empleado.user.last_name }}.
+            Consulta el saldo acumulado pendiente del empleado {{ empleado.user.get_full_name }}.
         </div>
     </div>
 
@@ -20,7 +20,8 @@
         <div class="tarjeta">
             <div class="etiqueta">Tiquetes Disponibles</div>
             <div class="valor-secundario">{{ tiquetes_disponibles }}</div>
-            <div class="subtitulo" style="text-align: left; margin: 5px 0 0;">De {{ tiquetes_comprados }} comprados</div>
+            <div class="subtitulo" style="text-align: left; margin: 5px 0 0;">De {{ tiquetes_comprados }} comprados
+            </div>
         </div>
 
         <div class="tarjeta">
@@ -32,10 +33,13 @@
     <div class="tabla-contenedor" style="margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 class="subtitulo-izq" style="margin: 0;">Historial de Compras (Tiquetes)</h2>
-            <div style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
-                <a href="?mes={{ prev_month }}&anio={{ prev_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
+            <div
+                style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                <a href="?mes={{ prev_month }}&anio={{ prev_year }}"
+                    style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
                 <span style="font-weight: 600; color: var(--color-azul); text-transform: capitalize; min-width: 100px; text-align: center;">{{ mes_nombre }} {{ anio_actual }}</span>
-                <a href="?mes={{ next_month }}&anio={{ next_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
+                <a href="?mes={{ next_month }}&anio={{ next_year }}"
+                    style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
             </div>
         </div>
         <table>
@@ -49,61 +53,26 @@
             </thead>
             <tbody>
                 {% for compra in compras %}
-                    <tr>
-                        <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
-                        <td>{{ compra.cantidad }}</td>
-                        <td>{{ compra.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
-                        <td>
-                            <span class="insignia {% if compra.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
-                                {{ compra.get_estado_display }}
-                            </span>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4" style="text-align: center;">No has realizado compras de tiquetes.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq" style="margin-top: 0;">Historial de Pagos Validados</h2>
-        <table>
-            <thead>
                 <tr>
-                    <th>Fecha Pago</th>
-                    <th>Comprobante</th>
-                    <th>Valor</th>
-                    <th>Confirmación</th>
+                    <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
+                    <td>{{ compra.cantidad }}</td>
+                    <td>{{ compra.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
+                    <td>
+                        <span
+                            class="insignia {% if compra.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                            {{ compra.get_estado_display }}
+                        </span>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos %}
-                    <tr>
-                        <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
-                        <td>{{ pago.comprobante|default:"---" }}</td>
-                        <td>$ {{ pago.valor_pagado }}</td>
-                        <td>
-                            {% if pago.confirmado_por_empleado %}
-                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">Confirmado</span>
-                            {% else %}
-                                <a href="{% url 'confirmar_pago_empleado' pago.id %}" class="insignia insignia-azul" style="text-decoration: none; font-size: 0.8rem; padding: 4px 8px;">Confirmar</a>
-                            {% endif %}
-                        </td>
-                    </tr>
                 {% empty %}
-                    <tr>
-                        <td colspan="4" style="text-align: center;">No se registran pagos validados aún.</td>
-                    </tr>
+                <tr>
+                    <td colspan="4" style="text-align: center;">No has realizado compras de tiquetes.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <div class="actualizacion">
-            Última actualización de saldo: {{ ultima_actualizacion|date:"d/m/Y H:i" }}
-        </div>
     </div>
+
+
 </div>
 {% endblock %}

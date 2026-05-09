@@ -28,11 +28,11 @@
 <div class="dashboard-row">
     <div class="grid-card">
         <h2>Accesos rápidos</h2>
-        <div class="quick-actions" style="grid-template-columns: 1fr 1fr;">
+        <div class="quick-actions">
             <a href="{% url 'ver_qr_empleado' %}" class="btn-quick primary">Ver mi QR</a>
             <a href="{% url 'solicitar_tiquete' %}" class="btn-quick" style="border: 2px solid var(--color-azul); color: var(--color-azul); font-weight: 600;">Pedir tiquete</a>
-            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Ver consumos</a>
-            <a href="{% url 'registrar_pago' %}" class="btn-quick">Ver pagos</a>
+            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Estado de cuenta</a>
+            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Ver pagos</a>
         </div>
     </div>
 
