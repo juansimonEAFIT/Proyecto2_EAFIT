@@ -1283,3 +1283,166 @@ form p {
         gap: 16px;
     }
 }
+
+/* ==========================================================================
+   SISTEMA DE ESTANDARIZACIÓN UI (SAAS)
+   ========================================================================== */
+
+/* 1. Layout Universal y Contenedores */
+.admin-layout-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.admin-page-header {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.admin-page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-oscuro);
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+}
+
+.admin-page-subtitle {
+    font-size: 15px;
+    color: var(--color-texto-sutil);
+    margin: 0;
+}
+
+/* 2. Sistema de Cards */
+.admin-card {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    border: 1px solid var(--color-borde-card);
+    padding: 32px;
+    overflow: hidden;
+}
+
+.admin-card-header {
+    margin-bottom: 24px;
+}
+
+.admin-card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-oscuro);
+    margin: 0;
+}
+
+/* 3. Formularios Modernos */
+.admin-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.admin-input-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-oscuro);
+}
+
+.admin-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-texto-principal);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: var(--color-azul);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+select.admin-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* 4. Sistema de Botones */
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.admin-btn-primary {
+    background-color: var(--color-rojo);
+    color: white;
+}
+
+.admin-btn-primary:hover {
+    background-color: #d11e2f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
+}
+
+.admin-btn-outline {
+    background-color: transparent;
+    border: 1px solid #cbd5e1;
+    color: var(--color-oscuro);
+}
+
+.admin-btn-outline:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.admin-btn-ghost {
+    background-color: transparent;
+    color: var(--color-texto-sutil);
+}
+
+.admin-btn-ghost:hover {
+    color: var(--color-oscuro);
+    background-color: #f1f5f9;
+}
+
+/* Grids Útiles */
+.admin-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .admin-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}

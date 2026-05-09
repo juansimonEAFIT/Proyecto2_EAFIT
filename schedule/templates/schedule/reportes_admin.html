@@ -397,9 +397,9 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                <div class="admin-input-group" style="grid-column: 1 / -1; margin-bottom: 0;">
-                    <label for="buscar">Búsqueda general</label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div class="admin-input-group" style="grid-column: 1 / span 2; margin-bottom: 0;">
+                    <label for="buscar">Búsqueda General</label>
                     <input type="text" id="buscar" name="buscar" class="admin-input" placeholder="Usuario, nombre, documento o área" value="{{ filtros.buscar }}">
                 </div>
 
@@ -428,12 +428,12 @@
                 </div>
 
                 <div class="admin-input-group" style="margin-bottom: 0;">
-                    <label for="fecha_desde">Fecha desde</label>
+                    <label for="fecha_desde">Fecha Desde</label>
                     <input type="date" id="fecha_desde" name="fecha_desde" class="admin-input" value="{{ filtros.fecha_desde }}">
                 </div>
 
                 <div class="admin-input-group" style="margin-bottom: 0;">
-                    <label for="fecha_hasta">Fecha hasta</label>
+                    <label for="fecha_hasta">Fecha Hasta</label>
                     <input type="date" id="fecha_hasta" name="fecha_hasta" class="admin-input" value="{{ filtros.fecha_hasta }}">
                 </div>
 
@@ -447,7 +447,7 @@
                 </div>
 
                 <div class="admin-input-group" style="margin-bottom: 0;">
-                    <label for="confirmado">Confirmado empleado</label>
+                    <label for="confirmado">Confirmado Empleado</label>
                     <select id="confirmado" name="confirmado" class="admin-input">
                         <option value="">Todos</option>
                         <option value="si"{% if filtros.confirmado == "si" %} selected{% endif %}>Si</option>
