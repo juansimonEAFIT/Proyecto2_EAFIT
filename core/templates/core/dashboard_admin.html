@@ -44,71 +44,112 @@
     }
 </style>
 
-<div class="dashboard-header" style="margin-bottom: 30px;">
-    <h1 style="font-size: 32px; margin: 0; color: var(--color-oscuro);">Panel de Control Centralizado</h1>
-    <p style="color: var(--color-texto-sutil); margin: 5px 0 0;">Gestión integral de personal, tiquetes y suministros.</p>
-</div>
-
 <div id="overview-section" class="tab-content active">
-    <div class="bento-grid">
-        <div class="bento-card grande">
-            <div class="etiqueta-bento">Estado de Inventario</div>
-            <div style="display: flex; align-items: flex-end; gap: 10px; margin: 15px 0;">
-                <div class="dato">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
-                <div style="color: var(--color-texto-sutil); margin-bottom: 10px; font-weight: 500;">Tiquetes disponibles</div>
-            </div>
-            <p style="color: var(--color-texto-sutil); font-size: 14px;">Límite por empleado: <strong>{{ inventario.max_tiquetes_por_empleado|default:10 }} tiquetes</strong></p>
-            <a href="{% url 'gestionar_inventario' %}" class="boton" style="width: fit-content; padding: 10px 20px; margin-top: 15px;">Ajustar Inventario</a>
+    <!-- 1. Hero Section -->
+    <div class="hero-operativo">
+        <div>
+            <h1 style="font-size: 24px; color: var(--color-oscuro); margin: 0 0 8px 0;">Hola, Admin 👋</h1>
+            <p style="color: var(--color-texto-sutil); margin: 0; font-size: 15px;">Hoy se han registrado <strong>{{ consumos_hoy }}</strong> consumos. Hay <strong>{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</strong> tiquetes en inventario.</p>
         </div>
+    </div>
 
-        <div class="bento-card pequena">
-            <div class="icono">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <div class="etiqueta-bento">Costo Tiquete</div>
-            <div class="dato">${{ inventario.precio_tiquete|default:"10.000" }}</div>
-            <p style="font-size: 13px; color: var(--color-texto-sutil);">Precio unitario vigente este mes.</p>
+    <!-- 2. KPIs -->
+    <div class="kpi-container">
+        <div class="kpi-card">
+            <div class="etiqueta">Consumos Hoy</div>
+            <div class="valor">{{ consumos_hoy }}</div>
         </div>
+        <div class="kpi-card">
+            <div class="etiqueta">Inventario Actual</div>
+            <div class="valor">{% if inventario %}{{ inventario.cantidad_disponible }}{% else %}0{% endif %}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="etiqueta">Costo Tiquete</div>
+            <div class="valor">${{ inventario.precio_tiquete|default:"0"|floatformat:"0" }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="etiqueta">Empleados Activos</div>
+            <div class="valor">{{ empleados_activos }}</div>
+        </div>
+    </div>
 
-        <div class="bento-card grande">
-            <div class="etiqueta-bento">Acciones Rápidas</div>
-            <div class="acciones-rapidas" style="gap: 15px; margin-top: 20px;">
-                <a href="{% url 'crear_personal' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    </div>
-                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Usuario</div>
-                </a>
-                <a href="{% url 'registrar_pago_efectivo' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </div>
-                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Registrar Pago Manual</div>
-                </a>
-                <a href="{% url 'gestionar_inventario' %}" class="tarjeta-opcion" style="flex: 1; min-height: auto; padding: 20px;">
-                    <div style="margin-bottom: 10px; color: var(--color-rojo);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </div>
-                    <div style="font-size: 16px; font-weight: 700; color: var(--color-rojo);">Configuración</div>
-                </a>
+    <!-- 3. Gráfico y Alertas -->
+    <div class="dashboard-grid-2col">
+        <div class="chart-card">
+            <h3 style="margin-top:0; color:var(--color-oscuro);">Consumo Semanal</h3>
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="weeklyChart"></canvas>
             </div>
         </div>
-
-        <div class="bento-card pequena">
-            {% include 'schedule/includes/reportes_export_card.html' with compact=True %}
+        <div class="alert-card">
+            <h3 style="margin-top:0; color:var(--color-oscuro);">Alertas Operativas</h3>
+            {% if alertas %}
+            {% for alerta in alertas %}
+            <div class="alert-item {{ alerta.tipo }}">
+                <div class="alert-content">
+                    <p>{{ alerta.mensaje }}</p>
+                    <span>{{ alerta.detalle }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align:center; padding: 20px; color:var(--color-texto-sutil);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="margin-bottom:10px;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <p style="margin:0;">Todo bajo control</p>
+            </div>
+            {% endif %}
         </div>
+    </div>
+
+    <!-- 4. Actividad Reciente -->
+    <div class="activity-card">
+        <h3 style="margin-top:0; color:var(--color-oscuro); margin-bottom: 20px;">Actividad Reciente</h3>
+        <ul class="activity-feed">
+            {% for act in actividad_reciente %}
+            <li class="activity-item">
+                <div class="activity-icon">
+                    {% if act.tipo == 'consumo' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="activity-details">
+                    <p><strong>{{ act.usuario }}</strong> {{ act.detalle }}</p>
+                    <span class="activity-time">{{ act.fecha|date:"d M Y, H:i" }}</span>
+                </div>
+            </li>
+            {% empty %}
+            <li style="text-align:center; color:var(--color-texto-sutil); padding: 20px;">No hay actividad reciente.
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 
 <div id="solicitudes-section" class="tab-content">
     <div class="tabla-contenedor">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h2 class="subtitulo-izq" style="margin: 0;">Historial Reciente</h2>
             <form method="GET" style="display: flex; gap: 10px; align-items: center;" id="form-filtros-historial">
                 <input type="hidden" name="tab" value="solicitudes-section">
 
                 <label for="mes" style="font-weight: 600; color: var(--color-oscuro);">Mes:</label>
-                <select name="mes" id="mes" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                <select name="mes" id="mes"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
                     <option value="">-- Todos --</option>
                     {% for m in meses_opciones %}
                     <option value="{{ m.id }}" {% if m.id == filtro_mes %}selected{% endif %}>{{ m.nombre }}</option>
@@ -116,10 +157,12 @@
                 </select>
 
                 <label for="anio" style="font-weight: 600; color: var(--color-oscuro);">Año:</label>
-                <input type="number" name="anio" id="anio" value="{{ filtro_anio }}" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; width: 80px;">
+                <input type="number" name="anio" id="anio" value="{{ filtro_anio }}"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; width: 80px;">
 
                 <label for="empleado" style="font-weight: 600; color: var(--color-oscuro);">Empleado:</label>
-                <select name="empleado" id="empleado" style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                <select name="empleado" id="empleado"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
                     <option value="">-- Todos --</option>
                     {% for emp in solo_empleados %}
                     <option value="{{ emp.id }}" {% if emp.id == filtro_empleado %}selected{% endif %}>{{ emp.user.first_name }} {{ emp.user.last_name }}</option>
@@ -147,7 +190,8 @@
                     <td>{{ solicitud.cantidad }}</td>
                     <td>{{ solicitud.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
                     <td>
-                        <span class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
+                        <span
+                            class="insignia {% if solicitud.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
@@ -174,101 +218,155 @@
 </div>
 
 <div id="personal-section" class="tab-content">
-    <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq">Gestión de Personal</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Saldo Pendiente</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% load humanize %}
-                {% for p in personal %}
-                <tr>
-                    <td>{{ p.get_full_name|default:p.username }}</td>
-                    <td>{{ p.get_role_display }}</td>
-                    <td>
-                        <a href="{% url 'cambiar_estado_usuario' p.id %}" style="text-decoration: none;">
-                            <span class="insignia {% if p.is_active %}insignia-verde{% else %}insignia-roja{% endif %}">
-                                {{ p.is_active|yesno:"Activo,Inactivo" }}
+    <div class="admin-page-header" style="margin-bottom: 24px;">
+        <div>
+            <h2 class="admin-page-title" style="font-size: 28px;">Gestión de Personal</h2>
+            <p class="admin-page-subtitle">Administra roles, accesos y saldos de tu equipo.</p>
+        </div>
+        <a href="{% url 'crear_personal' %}" class="admin-btn admin-btn-primary">
+            + Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="admin-card" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin: 0;">
+                <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <tr>
+                        <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 14px;">Usuario</th>
+                        <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 14px;">Rol</th>
+                        <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 14px;">Estado</th>
+                        <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 14px;">Saldo</th>
+                        <th style="padding: 16px 24px; text-align: right; font-weight: 600; color: var(--color-texto-sutil); font-size: 14px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% load humanize %}
+                    {% for p in personal %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
+                        <td style="padding: 16px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+                                    {{ p.first_name|first|default:p.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--color-oscuro);">{{ p.get_full_name|default:p.username }}</div>
+                                    <div style="font-size: 13px; color: var(--color-texto-sutil);">{{ p.email|default:"Sin correo" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 500;">
+                                {{ p.get_role_display }}
                             </span>
-                        </a>
-                    </td>
-                    <td>
-                        {% if p.role == 'empleado' %}
-                            {% if p.saldo_pendiente > 0 %}
-                                <span class="insignia insignia-roja">${{ p.saldo_pendiente|floatformat:0|intcomma }}</span>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            <a href="{% url 'cambiar_estado_usuario' p.id %}" style="text-decoration: none;">
+                                <span class="insignia {% if p.is_active %}insignia-verde{% else %}insignia-roja{% endif %}" style="margin: 0;">
+                                    {{ p.is_active|yesno:"Activo,Inactivo" }}
+                                </span>
+                            </a>
+                        </td>
+                        <td style="padding: 16px 24px;">
+                            {% if p.role == 'empleado' %}
+                                {% if p.saldo_pendiente > 0 %}
+                                <span style="font-weight: 600; color: var(--color-rojo);">${{ p.saldo_pendiente|floatformat:0|intcomma }}</span>
+                                {% else %}
+                                <span style="color: #10b981; font-weight: 500;">Paz y salvo</span>
+                                {% endif %}
                             {% else %}
-                                <span class="insignia insignia-verde">Paz y salvo</span>
+                                <span style="color: var(--color-texto-sutil);">N/A</span>
                             {% endif %}
-                        {% else %}
-                            <span style="color: var(--color-texto-sutil);">N/A</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'editar_personal' p.id %}" class="insignia insignia-gris" style="text-decoration: none; margin-right: 5px;">Editar</a>
-                        {% if p.role == 'empleado' and p.empleado_perfil_id_safe %}
-                        <a href="{% url 'historial_consumos' p.empleado_perfil_id_safe %}" class="insignia insignia-azul" style="text-decoration: none;">Ver Consumos</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div style="margin-top: 20px;">
-            <a href="{% url 'crear_personal' %}" class="boton" style="width: fit-content; padding: 10px 20px;">Registrar Nuevo Usuario</a>
+                        </td>
+                        <td style="padding: 16px 24px; text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <a href="{% url 'editar_personal' p.id %}" class="admin-btn admin-btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px;">Editar</a>
+                                {% if p.role == 'empleado' and p.empleado_perfil_id_safe %}
+                                <a href="{% url 'historial_consumos' p.empleado_perfil_id_safe %}" class="admin-btn admin-btn-ghost" style="height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; color: var(--color-azul);">Historial</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const tabLinks = document.querySelectorAll('.tab-link');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const sidebarLinks = document.querySelectorAll('.sidebar-admin a');
-
-        function showTab(tabId) {
-            tabContents.forEach(content => content.classList.remove('active'));
-            sidebarLinks.forEach(link => link.classList.remove('activo'));
-
-            const target = document.getElementById(tabId + '-section');
-            if (target) {
-                target.classList.add('active');
-            }
-
-            const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
-            if (activeLink) {
-                activeLink.classList.add('activo');
-            }
+        // --- Integración Chart.js para consumo semanal ---
+        const ctx = document.getElementById('weeklyChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [{
+                        label: 'Tiquetes',
+                        data: {{ chart_data|safe }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } },
+            x: { grid: { display: false } }
         }
-
-        tabLinks.forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                const tabId = this.getAttribute('data-tab');
-                showTab(tabId);
-                history.pushState(null, null, '#' + tabId);
+    }
             });
-        });
-
-        const hash = window.location.hash.substring(1);
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        const hashHasTab = hash && document.querySelector(`.tab-link[data-tab="${hash}"]`);
-
-        if (hashHasTab) {
-            showTab(hash);
-        } else if (tabParam) {
-            const cleanId = tabParam.replace('-section', '');
-            showTab(cleanId);
         }
+    // --- Manejo de Tabs ---
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const sidebarLinks = document.querySelectorAll('.sidebar-admin a');
+
+    function showTab(tabId) {
+        tabContents.forEach(content => content.classList.remove('active'));
+        sidebarLinks.forEach(link => link.classList.remove('activo'));
+
+        const target = document.getElementById(tabId + '-section');
+        if (target) {
+            target.classList.add('active');
+        }
+
+        const activeLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('activo');
+        }
+    }
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            showTab(tabId);
+            history.pushState(null, null, '#' + tabId);
+        });
+    });
+
+    const hash = window.location.hash.substring(1);
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const hashHasTab = hash && document.querySelector(`.tab-link[data-tab="${hash}"]`);
+
+    if (hashHasTab) {
+        showTab(hash);
+    } else if (tabParam) {
+        const cleanId = tabParam.replace('-section', '');
+        showTab(cleanId);
+    }
     });
 </script>
 {% endblock %}

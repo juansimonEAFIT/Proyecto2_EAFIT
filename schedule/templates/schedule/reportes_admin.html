@@ -357,8 +357,8 @@
     }
 </style>
 
-<div class="reportes-page">
-    <section class="reportes-hero">
+<div class="admin-layout-container">
+    <section class="reportes-hero" style="margin-bottom: 24px;">
         <div class="reportes-hero__content">
             <div>
                 <div class="reportes-badge">Centro administrativo</div>
@@ -382,38 +382,30 @@
         </div>
     </section>
 
-    <section class="reportes-filtros">
+    <div class="admin-card" style="margin-bottom: 24px;">
         <form id="reportes-filter-form" method="get" action="{% url 'dashboard_reportes' %}">
-            <div class="reportes-filtros__header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 24px; flex-wrap: wrap;">
                 <div>
-                    <h2 class="reportes-filtros__title">Ajusta el filtro de descarga</h2>
-                    <p class="reportes-filtros__subtitle">
-                        Los filtros de validación y confirmación aplican sobre todo al reporte de pagos.
-                        En consumos se ignoran automáticamente.
+                    <h2 class="admin-card-title">Ajusta el filtro de descarga</h2>
+                    <p style="font-size: 14px; color: var(--color-texto-sutil); margin: 4px 0 0;">
+                        Los filtros de validación y confirmación aplican sobre todo al reporte de pagos. En consumos se ignoran.
                     </p>
                 </div>
-
-                <div class="reportes-filtros__actions">
-                    <button type="submit" class="filtro-btn primary">Aplicar filtros</button>
-                    <a href="{% url 'dashboard_reportes' %}" class="filtro-btn">Limpiar</a>
+                <div style="display: flex; gap: 12px; flex-shrink: 0;">
+                    <a href="{% url 'dashboard_reportes' %}" class="admin-btn admin-btn-outline" style="text-decoration: none;">Limpiar</a>
+                    <button type="submit" class="admin-btn admin-btn-primary">Aplicar filtros</button>
                 </div>
             </div>
 
-            <div class="reportes-filtros__grid">
-                <div class="campo-filtro campo-filtro--wide">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div class="admin-input-group" style="grid-column: 1 / -1; margin-bottom: 0;">
                     <label for="buscar">Búsqueda general</label>
-                    <input
-                        type="text"
-                        id="buscar"
-                        name="buscar"
-                        placeholder="Usuario, nombre, documento o área"
-                        value="{{ filtros.buscar }}"
-                    >
+                    <input type="text" id="buscar" name="buscar" class="admin-input" placeholder="Usuario, nombre, documento o área" value="{{ filtros.buscar }}">
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="empleado">Empleado</label>
-                    <select id="empleado" name="empleado">
+                    <select id="empleado" name="empleado" class="admin-input">
                         <option value="">Todos</option>
                         {% for empleado in empleados_filtro %}
                             <option value="{{ empleado.id }}"{% if filtros.empleado == empleado.id|stringformat:"s" %} selected{% endif %}>
@@ -423,9 +415,9 @@
                     </select>
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="departamento">Área</label>
-                    <select id="departamento" name="departamento">
+                    <select id="departamento" name="departamento" class="admin-input">
                         <option value="">Todas</option>
                         {% for departamento in departamentos_filtro %}
                             <option value="{{ departamento }}"{% if filtros.departamento == departamento %} selected{% endif %}>
@@ -435,28 +427,28 @@
                     </select>
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="fecha_desde">Fecha desde</label>
-                    <input type="date" id="fecha_desde" name="fecha_desde" value="{{ filtros.fecha_desde }}">
+                    <input type="date" id="fecha_desde" name="fecha_desde" class="admin-input" value="{{ filtros.fecha_desde }}">
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="fecha_hasta">Fecha hasta</label>
-                    <input type="date" id="fecha_hasta" name="fecha_hasta" value="{{ filtros.fecha_hasta }}">
+                    <input type="date" id="fecha_hasta" name="fecha_hasta" class="admin-input" value="{{ filtros.fecha_hasta }}">
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="validado">Validado GH</label>
-                    <select id="validado" name="validado">
+                    <select id="validado" name="validado" class="admin-input">
                         <option value="">Todos</option>
                         <option value="si"{% if filtros.validado == "si" %} selected{% endif %}>Si</option>
                         <option value="no"{% if filtros.validado == "no" %} selected{% endif %}>No</option>
                     </select>
                 </div>
 
-                <div class="campo-filtro">
+                <div class="admin-input-group" style="margin-bottom: 0;">
                     <label for="confirmado">Confirmado empleado</label>
-                    <select id="confirmado" name="confirmado">
+                    <select id="confirmado" name="confirmado" class="admin-input">
                         <option value="">Todos</option>
                         <option value="si"{% if filtros.confirmado == "si" %} selected{% endif %}>Si</option>
                         <option value="no"{% if filtros.confirmado == "no" %} selected{% endif %}>No</option>
@@ -465,7 +457,7 @@
             </div>
         </form>
 
-        <div class="reportes-filtros__chips">
+        <div class="reportes-filtros__chips" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
             {% if filtros.buscar %}<span class="reporte-chip">{{ filtros.buscar }}</span>{% endif %}
             {% if filtros.empleado %}<span class="reporte-chip">Empleado filtrado</span>{% endif %}
             {% if filtros.departamento %}<span class="reporte-chip">{{ filtros.departamento }}</span>{% endif %}
@@ -474,10 +466,10 @@
             {% if filtros.validado %}<span class="reporte-chip">Validado: {{ filtros.validado|title }}</span>{% endif %}
             {% if filtros.confirmado %}<span class="reporte-chip">Confirmado: {{ filtros.confirmado|title }}</span>{% endif %}
             {% if not filtros.buscar and not filtros.empleado and not filtros.departamento and not filtros.fecha_desde and not filtros.fecha_hasta and not filtros.validado and not filtros.confirmado %}
-                <span class="reporte-chip">Sin filtros activos</span>
+                <span class="reporte-chip" style="background: #f1f5f9; color: #64748b;">Sin filtros activos</span>
             {% endif %}
         </div>
-    </section>
+    </div>
 
     <section class="reportes-grid">
         <article
