@@ -34,8 +34,8 @@ RUN sed -i 's/\r$//' /app/docker/entrypoint.sh && chmod +x /app/docker/entrypoin
 
 # USER appuser
 
-EXPOSE 8000
+EXPOSE ${PORT:-8000}
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
-CMD ["gunicorn", "Proyecto.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "60"]
+CMD gunicorn Proyecto.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 60
