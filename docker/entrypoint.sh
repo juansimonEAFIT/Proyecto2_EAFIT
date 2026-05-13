@@ -12,6 +12,18 @@ fi
 echo "Aplicando migraciones..."
 python manage.py migrate --noinput
 
+echo "Creando superusuario por defecto si no existe..."
+python manage.py shell -c "
+from django.contrib.auth import get_user_model
+User = get_user_model()
+u, created = User.objects.get_or_create(username='admin', defaults={'email':'admin@lunchflow.com', 'role':'administrador'})
+if created:
+    u.set_password('admin123')
+    u.save()
+    from users.models import Administrador
+    Administrador.objects.get_or_create(user=u, cargo='Super Admin')
+"
+
 echo "Obteniendo contenido estatico..."
 python manage.py collectstatic --noinput
 
