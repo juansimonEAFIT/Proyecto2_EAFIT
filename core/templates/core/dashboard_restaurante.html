@@ -104,13 +104,20 @@
 
     function obtenerUrlConsumoQr(decodedText) {
         try {
-            const urlEscaneada = new URL(decodedText, window.location.origin);
-            const patronRuta = /^\/almuerzo\/consumir\/[0-9a-f-]+\/[a-z0-9]+\/?$/i;
-
-            if (urlEscaneada.origin !== window.location.origin) return null;
-            if (!patronRuta.test(urlEscaneada.pathname)) return null;
-
-            return `${urlEscaneada.pathname}${urlEscaneada.search}${urlEscaneada.hash}`;
+            // Intentar parsear como URL
+            let urlEscaneada;
+            try {
+                urlEscaneada = new URL(decodedText);
+            } catch(e) {
+                // Si no es una URL completa, intentar como relativa
+                urlEscaneada = new URL(decodedText, window.location.origin);
+            }
+            
+            // Flexibilizar el patrón de ruta: solo necesita contener /almuerzo/consumir/UUID
+            if (urlEscaneada.pathname.includes('/almuerzo/consumir/')) {
+                return `${urlEscaneada.pathname}${urlEscaneada.search}${urlEscaneada.hash}`;
+            }
+            return null;
         } catch (error) {
             return null;
         }
@@ -130,7 +137,7 @@
             document.getElementById('qr-status').innerHTML = '<span style="color: #1d4ed8;">Procesando...</span>';
             window.location.href = urlConsumo;
         } else {
-            mostrarResultado(false, 'QR no válido', 'El código escaneado no corresponde a un empleado de LunchFlow.');
+            mostrarResultado(false, 'QR no válido', 'El código escaneado no corresponde a un empleado de LunchFlow. Leído: ' + decodedText);
         }
     }
 

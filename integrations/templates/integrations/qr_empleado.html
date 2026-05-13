@@ -26,7 +26,7 @@
             <div class="emp-split">
                 <div class="emp-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px;">
                     <div class="emp-qr-frame">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo }}" alt="QR de almuerzo" style="display: block;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ url_consumo|urlencode }}" alt="QR de almuerzo" style="display: block;">
                     </div>
                     <p style="margin: 20px 0 0; font-size: 13px; color: var(--color-texto-sutil); text-align: center;">Escanea este código en el punto de servicio</p>
                 </div>

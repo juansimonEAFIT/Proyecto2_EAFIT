@@ -13,8 +13,8 @@ WORKDIR /app
 # Paquetes del sistema necesarios
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      netcat-openbsd \
-      ca-certificates && \
+    netcat-openbsd \
+    ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # =========
