@@ -11,10 +11,10 @@
 <body>
     <div class="pantalla">
         <div class="barra-superior">
-            <a href="/" class="logo">LunchFlow</a>
+            <a href="{% url 'inicio' %}" class="logo">LunchFlow</a>
 
             <div class="acciones-superiores">
-                <a href="/" class="boton-icono" title="Volver al inicio">
+                <a href="{% url 'inicio' %}" class="boton-icono" title="Volver al inicio">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </a>
                 {% if request.user.is_authenticated and request.user.role %}
