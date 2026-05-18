@@ -3,6 +3,9 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from users.models import Empleado, Restaurante
+from schedule.views import RegistroPago
+
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -443,3 +446,21 @@ class UserActionsTest(UserTestBase):
         form = response.context["formulario"]
 
         self.assertTrue(form.errors)
+
+    def test_confirmar_pago_exitoso(self):
+        self.pago = RegistroPago.objects.create(
+            empleado=self.user.empleado_perfil,
+            valor_pagado=Decimal("5000"),
+            validado_por_gh=True,
+            confirmado_por_empleado=False
+        )
+
+        url = reverse("confirmar_pago_empleado", args=[self.pago.id])
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 302)
+
+        self.pago.refresh_from_db()
+
+        self.assertTrue(self.pago.confirmado_por_empleado)

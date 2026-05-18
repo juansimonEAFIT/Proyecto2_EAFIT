@@ -3,10 +3,12 @@ name: Run tests
 on:
   pull_request:
     branches:
-      - EGS3D-branch # Recordar quitar esta mamada despues por main
+      - main # Recordar quitar esta mamada despues por main
+      - EGS3D-branch
 
   push:
     branches:
+      - main
       - EGS3D-branch
 
   workflow_dispatch:
