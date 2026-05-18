@@ -2,12 +2,16 @@ import csv
 from decimal import Decimal
 from io import StringIO
 
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
 from schedule.models import Consumo, RegistroPago
 from users.models import User
-
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from decimal import Decimal
+from schedule.models import SolicitudTiquete
+from django.utils import timezone
 
 class ExportacionReportesTests(TestCase):
     def setUp(self):
@@ -190,3 +194,117 @@ class ExportacionReportesTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("dashboard_empleado"))
+
+
+class ConsumosTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+        self.admin_user = User.objects.create_user(
+            username="admin_consumos",
+            password="ClaveSegura123",
+            role="administrador",
+            first_name="Ana",
+            last_name="Admin",
+        )
+        self.empleado_user = User.objects.create_user(
+            username="empleado_consumos",
+            password="ClaveSegura123",
+            role="empleado",
+            first_name="Eva",
+            last_name="Empleado",
+        )
+        self.empleado = self.empleado_user.empleado_perfil
+        self.empleado.numero_documento = "123456789"
+        # self.empleado.departamento = "Finanzas"
+        self.empleado.save()
+
+        # Tiquetes aprobados (deuda)
+        SolicitudTiquete.objects.create(
+            empleado=self.empleado,
+            estado="aprobado",
+            cantidad=2,
+            precio_unitario=Decimal("10000")
+        )
+
+        # Pago validado
+        RegistroPago.objects.create(
+            empleado=self.empleado,
+            valor_pagado=Decimal("5000"),
+            validado_por_gh=True
+        )
+
+        self.client.login(username="empleado_consumos", password="ClaveSegura123")
+
+    def test_calculo_saldo(self):
+        response = self.client.get(reverse("consultar_estado_cuenta"))
+
+        self.assertEqual(response.status_code, 200)
+
+        saldo = response.context["saldo_pendiente"]
+
+        # deuda = 2 * 10000 = 20000
+        # pagos = 5000
+        # saldo esperado = 15000
+        self.assertEqual(saldo, Decimal("15000"))
+
+    def test_ver_consumos_por_empleado(self):
+        Consumo.objects.create(
+            empleado=self.empleado,
+            fecha_consumo=timezone.now()
+        )
+
+        Consumo.objects.create(
+            empleado=self.empleado,
+            fecha_consumo=timezone.now()
+        )
+
+        self.client.login(username="admin_consumos", password="ClaveSegura123")
+
+        url = reverse("historial_consumos", args=[self.empleado.id])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        consumos = response.context["consumos"]
+
+        self.assertEqual(consumos.count(), 2)
+
+        self.assertEqual(
+            response.context["empleado_obj"],
+            self.empleado
+        )
+
+    def test_registro_pago_exitoso(self):
+        response = self.client.post(reverse("registrar_pago_efectivo"), {
+            "empleado": self.empleado.id,
+            "valor_pagado": "10000"
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            RegistroPago.objects.filter(empleado=self.empleado).exists()
+        )
+
+    def test_pago_excede_deuda(self):
+        self.client.login(username="admin_consumos", password="ClaveSegura123")
+        response = self.client.post(
+            reverse("registrar_pago_efectivo"),
+            {
+                "empleado": self.empleado.id,
+                "valor_pagado": "20000"  # mayor a deuda
+            }
+        )
+
+        # ❗ Aquí cambia:
+        # no redirige porque el form falla
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["formulario"]
+
+        self.assertTrue(form.errors)
+
+        self.assertIn("excede la deuda", str(form.errors))

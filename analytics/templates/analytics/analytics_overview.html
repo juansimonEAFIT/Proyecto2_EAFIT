@@ -41,9 +41,11 @@
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    #analyticsChart {
         cursor: grab;
     }
-    .graph-card:active {
+    #analyticsChart:active {
         cursor: grabbing;
     }
     .btn-apply, .btn-secondary {
@@ -164,6 +166,10 @@
 
     <div class="graph-card">
         <canvas id="analyticsChart" height="100"></canvas>
+        <p id="zoom-tip" style="font-size: 0.85rem; color: #64748b; margin-top: 10px; text-align: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <strong>Tip:</strong> Arrastra el gráfico para mover la vista. Usa la rueda del ratón para zoom. <em>(Shift + Arrastrar para seleccionar área)</em>.
+        </p>
     </div>
 </div>
 {% endblock %}
@@ -352,14 +358,21 @@
                                 wheel: {
                                     enabled: true,
                                 },
+                                drag: {
+                                    enabled: true,
+                                    backgroundColor: 'rgba(225,225,225,0.3)',
+                                    modifierKey: 'shift',
+                                },
                                 pinch: {
                                     enabled: true
                                 },
-                                mode: 'xy',
+                                mode: 'x',
                             },
                             pan: {
                                 enabled: true,
-                                mode: 'xy',
+                                mode: 'x',
+                                threshold: 10,
+                                modifierKey: null, // Ensure no modifier key is needed for pan
                             }
                         }
                     }
@@ -389,14 +402,21 @@
                                 wheel: {
                                     enabled: true,
                                 },
+                                drag: {
+                                    enabled: true,
+                                    backgroundColor: 'rgba(225,225,225,0.3)',
+                                    modifierKey: 'shift',
+                                },
                                 pinch: {
                                     enabled: true
                                 },
-                                mode: 'xy',
+                                mode: 'x',
                             },
                             pan: {
                                 enabled: true,
-                                mode: 'xy',
+                                mode: 'x',
+                                threshold: 10,
+                                modifierKey: null, // Ensure no modifier key is needed for pan
                             }
                         }
                     }

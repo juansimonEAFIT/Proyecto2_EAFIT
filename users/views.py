@@ -25,11 +25,6 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Verificar que el usuario esté activo (is_active)
-            if not user.is_active:
-                messages.error(request, "Tu cuenta ha sido desactivada. Contacta con administración.")
-                return render(request, "registration/login.html")
-
             # Iniciar sesión
             login(request, user)
 
@@ -41,7 +36,13 @@ def login_view(request):
             else:  # empleado
                 return redirect("dashboard_empleado")
         else:
-            messages.error(request, "Contraseña incorrecta. Por favor intenta de nuevo.")
+            # Si el usuario existe pero la contraseña es incorrecta O el usuario está inactivo
+            # NOTA: authenticate() devuelve None si el usuario está inactivo (is_active=False)
+            user_obj = User.objects.get(username=username)
+            if not user_obj.is_active:
+                messages.error(request, "Tu cuenta ha sido desactivada. Contacta con administración.")
+            else:
+                messages.error(request, "Contraseña incorrecta. Por favor intenta de nuevo.")
             return render(request, "registration/login.html")
 
     return render(request, "registration/login.html")

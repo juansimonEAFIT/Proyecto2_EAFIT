@@ -13,7 +13,7 @@ class FormularioPersonal(forms.ModelForm):
     email = forms.EmailField(label="Correo electrónico")
     username = forms.CharField(label="Nombre de usuario", max_length=150)
     password = forms.CharField(label="Contraseña", widget=forms.PasswordInput, required=False)
-    role = forms.ChoiceField(label="Rol en el sistema", choices=[('empleado', 'Empleado'), ('restaurante', 'Restaurante')])
+    role = forms.ChoiceField(label="Rol en el sistema", choices=User.ROLES)
     
     # Campos comunes/especificos de perfil (los manejaremos en la vista)
     numero_documento = forms.CharField(
@@ -117,38 +117,41 @@ class FormularioPersonal(forms.ModelForm):
         with transaction.atomic():
             user = super().save(commit=False)
             
-            # Gestionar contraseña si se proporcionó
+            # Si hay una contraseña (no vacía), la ciframos
             password = self.cleaned_data.get("password")
-            if password:
+            if password and password.strip():
                 user.set_password(password)
             
             if commit:
                 user.save()
+            
+            # Lógica de perfiles
+            role = self.cleaned_data.get("role")
+            
+            if role == 'empleado':
+                # Crear o actualizar perfil de empleado
+                Empleado.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'numero_documento': self.cleaned_data.get('numero_documento'),
+                        'departamento': self.cleaned_data.get('departamento'),
+                        'telefono': self.cleaned_data.get('telefono'),
+                    }
+                )
+                # Opcional: Eliminar otros perfiles si existen
+                Restaurante.objects.filter(user=user).delete()
                 
-                # Gestión de perfiles según el rol
-                nuevo_rol = self.cleaned_data.get("role")
-                
-                if nuevo_rol == 'empleado':
-                    # Eliminar perfil de restaurante si existiera (cambio de rol)
-                    Restaurante.objects.filter(user=user).delete()
-                    
-                    # Crear o actualizar perfil de empleado
-                    empleado_perfil, _ = Empleado.objects.get_or_create(user=user)
-                    empleado_perfil.numero_documento = self.cleaned_data.get("numero_documento")
-                    empleado_perfil.departamento = self.cleaned_data.get("departamento")
-                    empleado_perfil.telefono = self.cleaned_data.get("telefono")
-                    empleado_perfil.esta_activo = True
-                    empleado_perfil.save()
-                    
-                elif nuevo_rol == 'restaurante':
-                    # Eliminar perfil de empleado si existiera (cambio de rol)
-                    Empleado.objects.filter(user=user).delete()
-                    
-                    # Crear o actualizar perfil de restaurante
-                    restaurante_perfil, _ = Restaurante.objects.get_or_create(user=user)
-                    restaurante_perfil.nombre_sede = self.cleaned_data.get("nombre_sede", "Sede Principal")
-                    restaurante_perfil.telefono = self.cleaned_data.get("telefono")
-                    restaurante_perfil.save()
+            elif role == 'restaurante':
+                # Crear o actualizar perfil de restaurante
+                Restaurante.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'nombre_sede': self.cleaned_data.get('nombre_sede'),
+                        'telefono': self.cleaned_data.get('telefono'),
+                    }
+                )
+                # Opcional: Eliminar otros perfiles si existen
+                Empleado.objects.filter(user=user).delete()
             
             return user
 

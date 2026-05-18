@@ -43,10 +43,7 @@ docker-compose.override.yml
 
 # Gunicorn
 gunicorn.ctl
-
 .env
-
- gunicorn.ctl
 
 # Claude Code
 CLAUDE.md
