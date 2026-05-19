@@ -24,7 +24,8 @@ class AdminReportesViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Centro administrativo")
-        self.assertContains(response, "Busqueda general")
+        #self.assertContains(response, "Busqueda general")
+        self.assertIn('name="buscar"', response.content.decode())
         self.assertContains(response, "Reporte de consumos")
         self.assertContains(response, "Reporte de pagos")
         self.assertContains(response, reverse("exportar_reporte_consumos"))
