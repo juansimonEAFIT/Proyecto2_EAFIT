@@ -8,7 +8,7 @@ from users.models import User
 from django.utils import timezone
 from datetime import timedelta
 import json
-import google.generativeai as genai
+from google import genai
 from django.core.cache import cache
 
 def is_admin(user):
