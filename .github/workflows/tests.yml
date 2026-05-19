@@ -14,14 +14,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
   tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 30  # Explicit timeout
 
     steps:
-      - name: SetMemoryLimits
-      - run: ulimit -v 6000000  # Limit virtual memory
+      - name: Set Memory Limits
+        run: ulimit -v 6000000  # Limit virtual memory
 
       - name: Checkout
         uses: actions/checkout@v3
