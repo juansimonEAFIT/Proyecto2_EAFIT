@@ -5,7 +5,11 @@ from django.db.models import Count, Sum, Q
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from schedule.models import Consumo, SolicitudTiquete
 from users.models import User
+from django.utils import timezone
+from datetime import timedelta
 import json
+import google.generativeai as genai
+from django.core.cache import cache
 
 def is_admin(user):
     return user.is_authenticated and (user.role == 'administrador' or user.is_superuser)
@@ -137,8 +141,76 @@ def analytics_overview(request):
             writer.writerow(row)
         return response
 
+    # Calculate Estimated Demand & Insights
+    hoy = timezone.now().date()
+    hace_30_dias = hoy - timedelta(days=30)
+    consumos_recientes = Consumo.objects.filter(fecha_consumo__date__gte=hace_30_dias)
+    conteo_por_dia = consumos_recientes.values('fecha_consumo__date').annotate(total=Count('id'))
+    
+    dias_con_datos = conteo_por_dia.count()
+    total_consumos = sum(item['total'] for item in conteo_por_dia) if dias_con_datos > 0 else 0
+    estimated_demand = total_consumos / dias_con_datos if dias_con_datos > 0 else 0
+
+    # Smart Insights Logic
+    solicitudes_recientes = SolicitudTiquete.objects.filter(fecha_solicitud__date__gte=hace_30_dias, estado='aprobado').aggregate(total=Sum('cantidad'))
+    total_solicitudes_recientes = solicitudes_recientes['total'] or 0
+    
+    used_ratio = total_consumos / total_solicitudes_recientes if total_solicitudes_recientes > 0 else 1.0
+
+    if total_consumos == 0:
+        ai_insight = "Recopilando datos... No hay registros suficientes de consumo en los últimos 30 días para generar predicciones."
+    elif used_ratio < 0.6:
+        ai_insight = f"⚠️ Alerta de Eficiencia: Se han consumido muy pocos tiquetes ({total_consumos}) comparado con los solicitados y aprobados ({total_solicitudes_recientes}). Considera enviar un recordatorio a los empleados o ajustar la cantidad máxima permitida."
+    elif used_ratio > 0.95:
+        ai_insight = f"🔥 Alta Demanda: El consumo ({total_consumos}) es casi igual a las solicitudes ({total_solicitudes_recientes}). ¡Excelente aprovechamiento de recursos y planificación!"
+    else:
+        ai_insight = f"📈 Operación Estable: Se estima un volumen constante de {estimated_demand:.1f} almuerzos diarios con una eficiencia de consumo del {used_ratio*100:.0f}%. Todo marcha según lo previsto."
+
+    # --- Integración con Gemini AI con Caché ---
+    API_KEY = "AIzaSyBcjbJyUUJN3OZkFi4QVtz7YG1Pxr_ib_M" 
+    
+    # Creamos una clave única para la caché basada en los datos actuales
+    # Si los consumos y el promedio son los mismos, usamos la misma respuesta
+    cache_key = f"ai_insight_{total_consumos}_{round(estimated_demand, 1)}"
+    cached_insight = cache.get(cache_key)
+
+    if cached_insight:
+        ai_insight = cached_insight
+    elif API_KEY and API_KEY != "TU_API_KEY_AQUÍ":
+        try:
+            genai.configure(api_key=API_KEY, transport='rest')
+            model = genai.GenerativeModel('gemini-flash-latest')
+            
+            prompt = f"""
+            Actúa como el asistente de Inteligencia Artificial de LunchFlow, una plataforma corporativa de beneficios de almuerzos.
+            El usuario que lee esto es el Administrador de Recursos Humanos (RRHH), quien gestiona el presupuesto y la compra de tiquetes para los empleados. NO es el chef ni el dueño del restaurante.
+            
+            Dale un insight estratégico basado en el uso real del beneficio en los últimos 30 días:
+            - Total de tiquetes consumidos por empleados: {total_consumos}
+            - Promedio proyectado: {estimated_demand:.1f} tiquetes usados por día
+            
+            Tu tarea: Dale un consejo administrativo útil sobre la planificación del inventario de tiquetes para el próximo mes o sobre la adopción del sistema por parte de los empleados. 
+            Reglas críticas: 
+            - NO hables de cocina, ingredientes, comida o preparación. 
+            - Enfócate 100% en la gestión administrativa, la compra de tiquetes y el presupuesto de RRHH.
+            - Responde en máximo 2 o 3 líneas con un tono profesional, analítico y corporativo.
+            """
+            response = model.generate_content(prompt)
+            ai_insight = response.text.strip()
+            
+            # Guardamos en caché por 1 hora (3600 segundos)
+            cache.set(cache_key, ai_insight, 3600)
+            
+        except Exception as e:
+            # Si falla la IA, no sobreescribimos con el error. 
+            # Se queda el mensaje predeterminado (ai_insight) definido arriba.
+            pass
+    # ---------------------------------
+
     context = {
         'chart_data_json': json.dumps(data),
+        'estimated_demand': estimated_demand,
+        'ai_insight': ai_insight,
         'filters': {
             'user_search': user_search,
             'use_user_filter': use_user_filter,

@@ -4,53 +4,75 @@
 {% block title %}Dashboard Empleado - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="header-seccion" style="align-items: center;">
-    <div>
-        <h1 style="color: var(--color-oscuro); font-size: 32px; margin: 0;">Hola, {{ request.user.first_name }} {{ request.user.last_name }}</h1>
+<div class="emp-container">
+    <div class="emp-header">
+        <h1>Hola, {{ request.user.first_name }} 👋</h1>
+        <p>Aquí tienes el resumen de tu actividad y accesos rápidos.</p>
     </div>
-</div>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="label">Saldo pendiente</div>
-        <div class="value">$ {{ saldo_pendiente }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="label">Almuerzos (mes)</div>
-        <div class="value">{{ tiquetes_consumidos_mes }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="label">Último consumo</div>
-        <div class="value">{{ ultimo_consumo_fecha }}</div>
-    </div>
-</div>
-
-<div class="dashboard-row">
-    <div class="grid-card">
-        <h2>Accesos rápidos</h2>
-        <div class="quick-actions">
-            <a href="{% url 'ver_qr_empleado' %}" class="btn-quick primary">Ver mi QR</a>
-            <a href="{% url 'solicitar_tiquete' %}" class="btn-quick" style="border: 2px solid var(--color-azul); color: var(--color-azul); font-weight: 600;">Pedir tiquete</a>
-            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Estado de cuenta</a>
-            <a href="{% url 'consultar_estado_cuenta' %}" class="btn-quick">Ver pagos</a>
+    <div class="emp-kpi-grid">
+        <div class="emp-kpi">
+            <span class="kpi-label">Saldo Pendiente</span>
+            <span class="kpi-value danger">$ {{ saldo_pendiente }}</span>
+        </div>
+        <div class="emp-kpi">
+            <span class="kpi-label">Almuerzos este Mes</span>
+            <span class="kpi-value info">{{ tiquetes_consumidos_mes }}</span>
+        </div>
+        <div class="emp-kpi">
+            <span class="kpi-label">Último Consumo</span>
+            <span class="kpi-value">{{ ultimo_consumo_fecha|default:"—" }}</span>
+            <span class="kpi-sub">Fecha más reciente</span>
         </div>
     </div>
 
-    <div class="card-resumen-lateral">
-        <h2>Resumen</h2>
-
-        <div class="resumen-item">
-            <span class="label">Costo por almuerzo</span>
-            <span class="value">$ {{ precio_tiquete }}</span>
+    <div class="emp-split" style="grid-template-columns: 1.6fr 1fr;">
+        <div class="emp-card">
+            <h2 class="emp-card-title">Accesos Rápidos</h2>
+            <div class="emp-actions-grid" style="grid-template-columns: 1fr 1fr;">
+                <a href="{% url 'ver_qr_empleado' %}" class="emp-action-card primary">
+                    <div class="emp-action-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/></svg>
+                    </div>
+                    Ver mi QR
+                </a>
+                <a href="{% url 'solicitar_tiquete' %}" class="emp-action-card">
+                    <div class="emp-action-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
+                    </div>
+                    Pedir Tiquete
+                </a>
+                <a href="{% url 'consultar_estado_cuenta' %}" class="emp-action-card">
+                    <div class="emp-action-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </div>
+                    Estado de Cuenta
+                </a>
+                <a href="{% url 'registrar_pago' %}" class="emp-action-card">
+                    <div class="emp-action-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    Mis Pagos
+                </a>
+            </div>
         </div>
 
-        <div class="resumen-item">
-            <span class="label">Estado</span>
-            {% if empleado_activo %}
-            <span class="status-badge active">Activo</span>
-            {% else %}
-            <span class="status-badge" style="background: #f1f5f9; color: var(--color-texto-sutil);">Inactivo</span>
-            {% endif %}
+        <div class="emp-card">
+            <h2 class="emp-card-title">Resumen</h2>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                    <span style="font-size: 14px; color: var(--color-texto-sutil);">Costo por almuerzo</span>
+                    <span style="font-weight: 700; color: var(--color-oscuro); font-size: 15px;">$ {{ precio_tiquete }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; color: var(--color-texto-sutil);">Estado</span>
+                    {% if empleado_activo %}
+                    <span class="emp-badge green">Activo</span>
+                    {% else %}
+                    <span class="emp-badge gray">Inactivo</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

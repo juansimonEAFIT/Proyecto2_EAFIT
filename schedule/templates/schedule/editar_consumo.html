@@ -3,86 +3,108 @@
 {% block title %}Editar Consumo #{{ consumo.id }} - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior">
+<div class="admin-layout-container">
 
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Editar registro de consumo</h1>
-        <p class="subtitulo">
-            ID #{{ consumo.id }} &mdash; Empleado: <strong>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</strong>
-        </p>
+    <div class="admin-page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1 class="admin-page-title">Editar Consumo</h1>
+            <p class="admin-page-subtitle">Modificando registro #{{ consumo.id }} de {{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</p>
+        </div>
+        <a href="{% url 'historial_consumos' empleado_id_original %}" class="admin-btn admin-btn-outline">&larr; Volver al Historial</a>
     </div>
 
-    <div class="contenedor ancho-medio" style="margin: 0 auto 24px; text-align: left;">
-        <h2 style="margin: 0 0 20px; font-size: 16px; color: var(--color-oscuro); border-bottom: 1px solid var(--color-borde-card); padding-bottom: 12px;">
-            Datos del consumo
-        </h2>
+    <div class="admin-grid-2">
+        <!-- Izquierda: Formulario de Corrección -->
+        <div class="admin-card">
+            <h2 class="admin-card-title" style="margin-bottom: 24px;">Datos del Consumo</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in formulario %}
+                <div class="admin-input-group">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}{% if field.field.required %} <span style="color: var(--color-rojo);">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small style="color: var(--color-texto-sutil); font-size: 13px; margin-top: 4px;">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div style="color: var(--color-rojo); font-size: 13px; margin-top: 4px;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
 
-        <form method="post">
-            {% csrf_token %}
-            {% for field in formulario %}
-            <div class="campo">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}{% if field.field.required %} <span style="color: var(--color-rojo);">*</span>{% endif %}
-                </label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small style="display: block; color: var(--color-texto-sutil); font-size: 12px; margin-top: 4px;">{{ field.help_text }}</small>
+                <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                    <button type="submit" class="admin-btn admin-btn-primary" style="flex: 1;">Guardar Corrección</button>
+                    <a href="{% url 'historial_consumos' empleado_id_original %}" class="admin-btn admin-btn-outline" style="flex: 1; text-align: center; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Derecha: Historial Auditoría -->
+        <div class="admin-card" style="background: #f8fafc; border: none; padding: 0;">
+            <div style="padding: 32px 32px 24px; border-bottom: 1px solid #e2e8f0;">
+                <h2 class="admin-card-title" style="margin: 0;">Historial de Auditoría</h2>
+                <p style="color: var(--color-texto-sutil); font-size: 14px; margin: 8px 0 0;">Registro de ediciones de este consumo.</p>
+            </div>
+            
+            <div style="padding: 0;">
+                {% if logs %}
+                <table style="width: 100%; border-collapse: collapse; margin: 0; font-size: 14px;">
+                    <thead style="background: white;">
+                        <tr>
+                            <th style="padding: 12px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); border-bottom: 1px solid #e2e8f0;">Fecha</th>
+                            <th style="padding: 12px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); border-bottom: 1px solid #e2e8f0;">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 16px 24px; vertical-align: top; width: 140px;">
+                                <div style="font-weight: 600; color: var(--color-oscuro);">{{ log.fecha_edicion|date:"d/m/y H:i" }}</div>
+                                <div style="font-size: 12px; color: var(--color-texto-sutil);">por {{ log.editado_por.get_full_name|default:log.editado_por.username }}</div>
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div style="margin-bottom: 6px;">
+                                    <span style="background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-right: 8px;">{{ log.campo|title }}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                                    <span style="color: var(--color-rojo); text-decoration: line-through;">{{ log.valor_anterior }}</span>
+                                    <span style="color: #94a3b8;">&rarr;</span>
+                                    <span style="color: #10b981; font-weight: 600;">{{ log.valor_nuevo }}</span>
+                                </div>
+                                {% if log.motivo %}
+                                <div style="font-size: 12px; color: var(--color-texto-sutil); font-style: italic; margin-top: 8px; padding-left: 8px; border-left: 2px solid #cbd5e1;">
+                                    "{{ log.motivo }}"
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="padding: 60px 32px; text-align: center; color: #94a3b8;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px; opacity: 0.5;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <p style="margin: 0; font-size: 14px;">Este registro no tiene modificaciones previas.</p>
+                </div>
                 {% endif %}
-                {% for error in field.errors %}
-                    <div class="mensaje mensaje-error" style="padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
-                {% endfor %}
             </div>
-            {% endfor %}
-
-            <div style="display: flex; gap: 12px; margin-top: 20px;">
-                <button type="submit" class="boton" style="width: auto; padding: 12px 24px; background: var(--color-azul); color: white;">
-                    Guardar corrección
-                </button>
-                <a href="{% url 'historial_consumos' empleado_id_original %}" class="boton"
-                   style="width: auto; padding: 12px 24px; background: #f1f5f9; color: var(--color-texto-suave); text-decoration: none; text-align: center;">
-                    Cancelar
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
-
-    <div class="tabla-contenedor">
-        <h2 class="subtitulo-izq" style="margin: 0 0 20px;">Historial de cambios</h2>
-        {% if logs %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Campo</th>
-                    <th>Antes</th>
-                    <th>Despues</th>
-                    <th>Editado por</th>
-                    <th>Motivo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log.fecha_edicion|date:"d/m/Y H:i" }}</td>
-                    <td><span class="insignia insignia-gris">{{ log.campo }}</span></td>
-                    <td style="color: var(--color-rojo); text-decoration: line-through;">{{ log.valor_anterior }}</td>
-                    <td style="color: #166534; font-weight: 600;">{{ log.valor_nuevo }}</td>
-                    <td>{{ log.editado_por.get_full_name|default:log.editado_por.username }}</td>
-                    <td style="color: var(--color-texto-sutil); font-style: italic;">{{ log.motivo|default:"&mdash;" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p style="color: var(--color-texto-sutil); text-align: center; padding: 20px 0;">Este consumo no ha sido editado previamente.</p>
-        {% endif %}
-    </div>
-
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'historial_consumos' empleado_id_original %}" style="color: var(--color-texto-sutil); font-size: 14px;">
-            &larr; Volver al historial
-        </a>
-    </div>
-
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.admin-input-group input, .admin-input-group select, .admin-input-group textarea');
+    inputs.forEach(input => input.classList.add('admin-input'));
+    
+    const textareas = document.querySelectorAll('textarea.admin-input');
+    textareas.forEach(ta => {
+        ta.style.height = '100px';
+        ta.style.padding = '12px 16px';
+        ta.style.resize = 'vertical';
+    });
+});
+</script>
 {% endblock %}

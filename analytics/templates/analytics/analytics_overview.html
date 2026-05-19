@@ -41,11 +41,9 @@
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    #analyticsChart {
         cursor: grab;
     }
-    #analyticsChart:active {
+    .graph-card:active {
         cursor: grabbing;
     }
     .btn-apply, .btn-secondary {
@@ -79,97 +77,144 @@
 {% endblock %}
 
 {% block content %}
-<div class="analytics-container">
-    <h1 style="color: var(--color-oscuro); margin-bottom: 20px;">Analíticas del Sistema</h1>
+<div class="admin-layout-container">
+    <div class="admin-page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1 class="admin-page-title">Analíticas del Sistema</h1>
+            <p class="admin-page-subtitle">Visualiza tendencias de uso, peticiones y métricas operativas globales.</p>
+        </div>
+    </div>
 
-    <div class="filters-card">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
+        <!-- Proyección de Demanda Card -->
+        <div class="admin-card" style="padding: 24px; background: linear-gradient(135deg, #2563eb 0%, var(--color-oscuro, #0f172a) 100%); color: white; display: flex; align-items: center; justify-content: space-between; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); border: none;">
+            <div>
+                <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.9);">Proyección de Demanda Diaria</h2>
+                <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 4px;">
+                    {{ estimated_demand|floatformat:1 }} <span style="font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.8);">almuerzos / día</span>
+                </div>
+                <p style="font-size: 0.875rem; color: rgba(255,255,255,0.7); margin: 0; font-style: italic;">
+                    * Estimación automática basada en registros históricos de consumo de los últimos 30 días.
+                </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+        </div>
+
+        <!-- AI Insights Card -->
+        <div class="admin-card" style="padding: 24px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden;">
+            <!-- Glow effect -->
+            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: #8b5cf6; filter: blur(60px); opacity: 0.4; border-radius: 50%;"></div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; position: relative; z-index: 2;">
+                <div style="background: rgba(139, 92, 246, 0.2); padding: 8px; border-radius: 12px; color: #a78bfa;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+                </div>
+                <h2 style="font-size: 1.1rem; font-weight: 600; margin: 0; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                    LunchFlow AI Insights
+                    <span style="font-size: 0.7rem; background: rgba(139, 92, 246, 0.3); color: #c4b5fd; padding: 2px 8px; border-radius: 999px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(139, 92, 246, 0.5);">BETA</span>
+                </h2>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); position: relative; z-index: 2;">
+                <p style="font-size: 0.95rem; color: #e2e8f0; margin: 0; line-height: 1.5; font-weight: 400;">
+                    {{ ai_insight }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 24px;">
         <form method="GET" id="analytics-filters">
-            <div class="filter-group">
-                <!-- User Filter -->
-                <div class="filter-item">
-                    <label>
-                        <input type="checkbox" name="use_user_filter" id="use_user_filter" {% if filters.use_user_filter %}checked{% endif %}>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <!-- Filtro de Usuario -->
+                <div class="admin-input-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="use_user_filter" id="use_user_filter" {% if filters.use_user_filter %}checked{% endif %} style="width: 16px; height: 16px;">
                         Filtrar por Usuario
                     </label>
                     <input type="text" name="user_search" id="user_search" value="{{ filters.user_search }}" 
                            placeholder="ID, Nombre o Email"
-                           class="{% if not filters.use_user_filter %}user-input-gray{% endif %}"
-                           {% if not filters.use_user_filter %}disabled{% endif %}
-                           style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                           class="admin-input {% if not filters.use_user_filter %}user-input-gray{% endif %}"
+                           {% if not filters.use_user_filter %}disabled{% endif %}>
                 </div>
 
-                <!-- Metrics -->
-                <div class="filter-item">
-                    <label><input type="checkbox" name="show_used" {% if filters.show_used %}checked{% endif %}> Tiquetes Usados</label>
-                    <label><input type="checkbox" name="show_petitions" {% if filters.show_petitions %}checked{% endif %}> Peticiones de Tiquetes</label>
-                    <label><input type="checkbox" name="show_accepted" {% if filters.show_accepted %}checked{% endif %}> Tiquetes Aceptados</label>
+                <!-- Métricas -->
+                <div class="admin-input-group">
+                    <label>Métricas a Mostrar</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px;">
+                        <label style="font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="show_used" {% if filters.show_used %}checked{% endif %} style="width: 16px; height: 16px;"> Tiquetes Usados
+                        </label>
+                        <label style="font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="show_petitions" {% if filters.show_petitions %}checked{% endif %} style="width: 16px; height: 16px;"> Peticiones de Tiquetes
+                        </label>
+                        <label style="font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="show_accepted" {% if filters.show_accepted %}checked{% endif %} style="width: 16px; height: 16px;"> Tiquetes Aceptados
+                        </label>
+                    </div>
                 </div>
 
-                <!-- Timeframe -->
-                <div class="filter-item">
+                <!-- Temporalidad y Rango -->
+                <div class="admin-input-group">
                     <label for="timeframe">Temporalidad</label>
-                    <select name="timeframe" id="timeframe" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <select name="timeframe" id="timeframe" class="admin-input">
                         <option value="day" {% if filters.timeframe == 'day' %}selected{% endif %}>Día</option>
                         <option value="month" {% if filters.timeframe == 'month' %}selected{% endif %}>Mes</option>
                         <option value="year" {% if filters.timeframe == 'year' %}selected{% endif %}>Año</option>
                     </select>
                 </div>
-
-                <!-- Date Range -->
-                <div class="filter-item">
-                    <label for="start_date">Fecha Inicio</label>
-                    <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                </div>
-                <div class="filter-item">
-                    <label for="end_date">Fecha Fin</label>
-                    <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                </div>
-
-                <div class="filter-item">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-apply">Aplicar Cambios</button>
-                </div>
-            </div>
-
-            <div class="axis-selector">
-                <div class="filter-item">
-                    <input type="hidden" name="x_axis" id="x_axis_input" value="{{ filters.x_axis }}">
-                    <input type="hidden" name="y_axis" id="y_axis_input" value="{{ filters.y_axis }}">
-                    <button type="button" id="btn-switch-axes" class="btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
-                        Intercambiar Ejes (X: <span id="x_axis_label">{% if filters.x_axis == 'time' %}Tiempo{% else %}Cantidad{% endif %}</span>, Y: <span id="y_axis_label">{% if filters.y_axis == 'count' %}Cantidad{% else %}Tiempo{% endif %}</span>)
-                    </button>
-                </div>
-                <div class="filter-item">
-                    <button type="button" id="btn-reset-zoom" class="btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                        Restablecer Zoom
-                    </button>
-                </div>
-                <div class="filter-item" style="border-left: 1px solid #e2e8f0; padding-left: 20px; margin-left: 10px;">
-                    <label for="export_format" style="font-size: 0.8rem; color: #64748b;">Formato de Exportación</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="export_format" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: white;">
-                            <option value="png">Imagen (PNG)</option>
-                            <option value="csv">Datos (CSV)</option>
-                            <option value="both">CSV + PNG</option>
-                        </select>
-                        <button type="button" id="btn-export" class="btn-apply" style="padding: 8px 15px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Exportar
-                        </button>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;">
+                    <div class="admin-input-group" style="flex: 1 1 140px; margin-bottom: 0;">
+                        <label for="start_date">Fecha Inicio</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ filters.start_date }}" class="admin-input" style="width: 100%;">
+                    </div>
+                    <div class="admin-input-group" style="flex: 1 1 140px; margin-bottom: 0;">
+                        <label for="end_date">Fecha Fin</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ filters.end_date }}" class="admin-input" style="width: 100%;">
                     </div>
                 </div>
             </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="admin-btn admin-btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-5v5h5"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 5v-5h-5"/></svg>
+                        Aplicar Cambios
+                    </button>
+                    
+                    <input type="hidden" name="x_axis" id="x_axis_input" value="{{ filters.x_axis }}">
+                    <input type="hidden" name="y_axis" id="y_axis_input" value="{{ filters.y_axis }}">
+                    <button type="button" id="btn-switch-axes" class="admin-btn admin-btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+                        Intercambiar Ejes (X: <span id="x_axis_label">{% if filters.x_axis == 'time' %}Tiempo{% else %}Cantidad{% endif %}</span>, Y: <span id="y_axis_label">{% if filters.y_axis == 'count' %}Cantidad{% else %}Tiempo{% endif %}</span>)
+                    </button>
+                    
+                    <button type="button" id="btn-reset-zoom" class="admin-btn admin-btn-outline" title="Restablecer Zoom">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 8px 16px; border-radius: 16px; border: 1px solid #e2e8f0;">
+                    <span style="font-size: 13px; font-weight: 600; color: var(--color-texto-sutil);">Exportar:</span>
+                    <select id="export_format" class="admin-input" style="height: 36px; padding: 0 32px 0 12px; font-size: 13px; width: 140px; border-radius: 10px;">
+                        <option value="png">Imagen (PNG)</option>
+                        <option value="csv">Datos (CSV)</option>
+                        <option value="both">CSV + PNG</option>
+                    </select>
+                    <button type="button" id="btn-export" class="admin-btn admin-btn-primary" style="height: 36px; padding: 0 16px; font-size: 13px; border-radius: 10px; background: var(--color-oscuro);">
+                        Generar
+                    </button>
+                </div>
+            </div>
+            {% csrf_token %}
         </form>
     </div>
 
-    <div class="graph-card">
-        <canvas id="analyticsChart" height="100"></canvas>
-        <p id="zoom-tip" style="font-size: 0.85rem; color: #64748b; margin-top: 10px; text-align: center;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <strong>Tip:</strong> Arrastra el gráfico para mover la vista. Usa la rueda del ratón para zoom. <em>(Shift + Arrastrar para seleccionar área)</em>.
-        </p>
+    <div class="admin-card" style="padding: 32px;">
+        <canvas id="analyticsChart" style="max-height: 500px;"></canvas>
     </div>
 </div>
 {% endblock %}
@@ -358,21 +403,14 @@
                                 wheel: {
                                     enabled: true,
                                 },
-                                drag: {
-                                    enabled: true,
-                                    backgroundColor: 'rgba(225,225,225,0.3)',
-                                    modifierKey: 'shift',
-                                },
                                 pinch: {
                                     enabled: true
                                 },
-                                mode: 'x',
+                                mode: 'xy',
                             },
                             pan: {
                                 enabled: true,
-                                mode: 'x',
-                                threshold: 10,
-                                modifierKey: null, // Ensure no modifier key is needed for pan
+                                mode: 'xy',
                             }
                         }
                     }
@@ -402,21 +440,14 @@
                                 wheel: {
                                     enabled: true,
                                 },
-                                drag: {
-                                    enabled: true,
-                                    backgroundColor: 'rgba(225,225,225,0.3)',
-                                    modifierKey: 'shift',
-                                },
                                 pinch: {
                                     enabled: true
                                 },
-                                mode: 'x',
+                                mode: 'xy',
                             },
                             pan: {
                                 enabled: true,
-                                mode: 'x',
-                                threshold: 10,
-                                modifierKey: null, // Ensure no modifier key is needed for pan
+                                mode: 'xy',
                             }
                         }
                     }

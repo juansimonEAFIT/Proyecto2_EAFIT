@@ -184,6 +184,57 @@ def dashboard_admin(request):
         {"id": 12, "nombre": "Diciembre"},
     ]
 
+    # --- DATOS REDISEÑO DASHBOARD ---
+    from datetime import timedelta
+    
+    # 1. KPIs
+    consumos_hoy = Consumo.objects.filter(fecha_consumo__date=hoy).count()
+    empleados_activos = User.objects.filter(role="empleado", is_active=True).count() - 1
+    
+    # 2. Gráfico (Últimos 7 días)
+    chart_labels = []
+    chart_data = []
+    for i in range(6, -1, -1):
+        fecha = hoy - timedelta(days=i)
+        chart_labels.append(fecha.strftime("%d %b"))
+        chart_data.append(Consumo.objects.filter(fecha_consumo__date=fecha).count())
+        
+    # 3. Alertas
+    alertas = []
+    if inventario and inventario.cantidad_disponible < 30:
+        alertas.append({
+            'tipo': 'warning', 'mensaje': 'Inventario bajo', 
+            'detalle': f'Solo quedan {inventario.cantidad_disponible} tiquetes'
+        })
+    pagos_por_confirmar = RegistroPago.objects.filter(confirmado_por_empleado=False).select_related('empleado__user').order_by('-fecha_pago')[:5]
+    for pago in pagos_por_confirmar:
+        nombre = pago.empleado.user.get_full_name() or pago.empleado.user.username
+        alertas.append({
+            'tipo': 'info', 
+            'mensaje': 'Pago sin confirmar', 
+            'detalle': f'{nombre} no ha confirmado su pago de ${pago.valor_pagado:,.0f}'.replace(',', '.')
+        })
+        
+    # 4. Actividad
+    act_consumos = Consumo.objects.select_related('empleado__user').order_by('-fecha_consumo')[:5]
+    act_pagos = RegistroPago.objects.select_related('empleado__user').order_by('-fecha_pago')[:5]
+    
+    actividad_reciente = []
+    for c in act_consumos:
+        actividad_reciente.append({
+            'tipo': 'consumo', 'fecha': c.fecha_consumo,
+            'usuario': c.empleado.user.get_full_name() or c.empleado.user.username,
+            'detalle': 'Reclamó almuerzo'
+        })
+    for p in act_pagos:
+        actividad_reciente.append({
+            'tipo': 'pago', 'fecha': p.fecha_pago,
+            'usuario': p.empleado.user.get_full_name() or p.empleado.user.username,
+            'detalle': f'Registró pago de ${p.valor_pagado:,.0f}'.replace(',', '.')
+        })
+    actividad_reciente.sort(key=lambda x: x['fecha'], reverse=True)
+    actividad_reciente = actividad_reciente[:6]
+
     return render(
         request,
         "core/dashboard_admin.html",
@@ -196,6 +247,13 @@ def dashboard_admin(request):
             "filtro_mes": int(mes_str) if mes_str else None,
             "filtro_anio": int(anio_str),
             "filtro_empleado": int(empleado_id) if empleado_id else None,
+            # Nuevas variables:
+            "consumos_hoy": consumos_hoy,
+            "empleados_activos": empleados_activos,
+            "chart_labels": chart_labels,
+            "chart_data": chart_data,
+            "alertas": alertas,
+            "actividad_reciente": actividad_reciente,
         },
     )
 
