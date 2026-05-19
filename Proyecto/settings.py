@@ -111,6 +111,13 @@ else:
         }
     }
 
+if "GITHUB_ACTIONS" in os.environ:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",  # o BASE_DIR / "test_db.sqlite3"
+        }
+    }
 
 
 # Password validation
