@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  test_core:
     runs-on: ubuntu-24.04
     timeout-minutes: 30  # Explicit timeout
 
@@ -34,4 +34,97 @@ jobs:
         run: docker compose up -d
 
       - name: Run tests
-        run: docker compose exec web python manage.py test --parallel=1
+        run: docker compose exec web python manage.py test core --parallel=1
+
+    strategy:
+      matrix:
+        runner: [ ubuntu-22.04, ubuntu-24.04 ]
+      fail-fast: false
+
+  test_schedule:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30  # Explicit timeout
+
+    steps:
+      - name: Set Memory Limits
+        run: ulimit -v 6000000  # Limit virtual memory
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Run tests
+        run: docker compose exec web python manage.py test schedule --parallel=1
+
+  test_integrations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30  # Explicit timeout
+
+    steps:
+      - name: Set Memory Limits
+        run: ulimit -v 6000000  # Limit virtual memory
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Run tests
+        run: docker compose exec web python manage.py test integrations --parallel=1
+
+  test_users:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30  # Explicit timeout
+
+    steps:
+      - name: Set Memory Limits
+        run: ulimit -v 6000000  # Limit virtual memory
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Run tests
+        run: docker compose exec web python manage.py test users --parallel=1
+
+  test_analytics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30  # Explicit timeout
+
+    steps:
+      - name: Set Memory Limits
+        run: ulimit -v 6000000  # Limit virtual memory
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Run tests
+        run: docker compose exec web python manage.py test analytics --parallel=1
