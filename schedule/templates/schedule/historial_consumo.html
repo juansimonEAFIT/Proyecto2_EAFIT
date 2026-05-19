@@ -3,63 +3,81 @@
 {% block title %}Historial de Consumos - {{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior">
+<div class="admin-layout-container">
 
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Historial de consumos</h1>
-        <p class="subtitulo">
-            Empleado: <strong>{{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}</strong>
-        </p>
+    <div class="admin-page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1 class="admin-page-title">Historial de Consumos</h1>
+            <p class="admin-page-subtitle">Revisa y administra los tickets utilizados por este empleado.</p>
+        </div>
+        <a href="{% url 'dashboard_admin' %}" class="admin-btn admin-btn-outline">&larr; Volver al Panel</a>
     </div>
 
-    <div class="tabla-contenedor">
-        {% if consumos %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Empleado</th>
-                    <th>Ediciones</th>
-                    <th style="text-align: center;">Accion</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for consumo in consumos %}
-                <tr>
-                    <td>{{ consumo.fecha_consumo|date:"d/m/Y" }}</td>
-                    <td>{{ consumo.fecha_consumo|date:"h:i A" }}</td>
-                    <td>{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</td>
-                    <td>
-                        {% with num_logs=consumo.logs.count %}
-                            {% if num_logs > 0 %}
-                                <span class="insignia insignia-azul">{{ num_logs }} edicion{{ num_logs|pluralize:"es" }}</span>
-                            {% else %}
-                                <span style="color: var(--color-texto-sutil);">&mdash;</span>
-                            {% endif %}
-                        {% endwith %}
-                    </td>
-                    <td style="text-align: center;">
-                        <a href="{% url 'editar_consumo' consumo.id %}" class="insignia insignia-gris" style="text-decoration: none;">
-                            Editar
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p style="color: var(--color-texto-sutil); text-align: center; padding: 2rem 0;">
-            Este empleado no tiene consumos registrados.
-        </p>
-        {% endif %}
-    </div>
+    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start;">
+        
+        <!-- Perfil Resumido -->
+        <div class="admin-card" style="text-align: center; padding: 32px 24px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; margin: 0 auto 16px;">
+                {{ empleado_obj.user.first_name|first|default:empleado_obj.user.username|first|upper }}
+            </div>
+            <h2 style="margin: 0 0 4px; font-size: 18px; color: var(--color-oscuro);">{{ empleado_obj.user.get_full_name|default:empleado_obj.user.username }}</h2>
+            <p style="margin: 0 0 16px; font-size: 14px; color: var(--color-texto-sutil);">{{ empleado_obj.user.email|default:"Sin correo" }}</p>
+            
+            <div style="background: #f8fafc; border-radius: 8px; padding: 12px; text-align: left;">
+                <div style="font-size: 12px; color: var(--color-texto-sutil); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Departamento</div>
+                <div style="font-size: 14px; color: var(--color-oscuro); margin-bottom: 12px;">{{ empleado_obj.departamento|default:"No especificado" }}</div>
+                
+                <div style="font-size: 12px; color: var(--color-texto-sutil); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Documento</div>
+                <div style="font-size: 14px; color: var(--color-oscuro);">{{ empleado_obj.numero_documento|default:"No especificado" }}</div>
+            </div>
+        </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_admin' %}" style="color: var(--color-texto-sutil); font-size: 14px;">
-            &larr; Volver al panel
-        </a>
+        <!-- Lista de Consumos -->
+        <div class="admin-card" style="padding: 0;">
+            <div style="padding: 24px 24px 16px; border-bottom: 1px solid #e2e8f0;">
+                <h2 class="admin-card-title" style="margin: 0;">Registros de Uso</h2>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                {% if consumos %}
+                <table style="width: 100%; border-collapse: collapse; margin: 0;">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase;">Fecha</th>
+                            <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase;">Hora</th>
+                            <th style="padding: 16px 24px; text-align: left; font-weight: 600; color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase;">Auditoría</th>
+                            <th style="padding: 16px 24px; text-align: right; font-weight: 600; color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consumo in consumos %}
+                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
+                            <td style="padding: 16px 24px; color: var(--color-oscuro); font-weight: 500;">{{ consumo.fecha_consumo|date:"d/m/Y" }}</td>
+                            <td style="padding: 16px 24px; color: var(--color-texto-sutil);">{{ consumo.fecha_consumo|date:"h:i A" }}</td>
+                            <td style="padding: 16px 24px;">
+                                {% with num_logs=consumo.logs.count %}
+                                    {% if num_logs > 0 %}
+                                        <span style="background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;">{{ num_logs }} edición{{ num_logs|pluralize:"es" }}</span>
+                                    {% else %}
+                                        <span style="color: #cbd5e1;">&mdash;</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td style="padding: 16px 24px; text-align: right;">
+                                <a href="{% url 'editar_consumo' consumo.id %}" class="admin-btn admin-btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Editar Registro</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="padding: 60px 24px; text-align: center; color: #94a3b8;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px; opacity: 0.5;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                    <p style="margin: 0; font-size: 15px;">Este empleado no tiene consumos registrados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-
 </div>
 {% endblock %}

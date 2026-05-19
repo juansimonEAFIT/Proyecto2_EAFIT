@@ -1,78 +1,69 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Estado de cuenta{% endblock %}
+{% block title %}Estado de Cuenta - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Estado de cuenta</h1>
-        <div class="subtitulo">
-            Consulta el saldo acumulado pendiente del empleado {{ empleado.user.get_full_name }}.
+<div class="emp-container">
+    <div class="emp-header">
+        <h1>Estado de Cuenta</h1>
+        <p>Consulta tu saldo acumulado, tiquetes disponibles y el historial de compras.</p>
+    </div>
+
+    <div class="emp-kpi-grid">
+        <div class="emp-kpi">
+            <span class="kpi-label">Saldo Total Pendiente</span>
+            <span class="kpi-value danger">$ {{ saldo_pendiente }}</span>
+        </div>
+        <div class="emp-kpi">
+            <span class="kpi-label">Tiquetes Disponibles</span>
+            <span class="kpi-value info">{{ tiquetes_disponibles }}</span>
+            <span class="kpi-sub">De {{ tiquetes_comprados }} comprados</span>
+        </div>
+        <div class="emp-kpi">
+            <span class="kpi-label">Valor Tiquete</span>
+            <span class="kpi-value">$ {{ precio_tiquete }}</span>
         </div>
     </div>
 
-    <div class="resumen">
-        <div class="tarjeta">
-            <div class="etiqueta">Saldo Total Pendiente</div>
-            <div class="valor-principal">$ {{ saldo_pendiente }}</div>
-        </div>
-
-        <div class="tarjeta">
-            <div class="etiqueta">Tiquetes Disponibles</div>
-            <div class="valor-secundario">{{ tiquetes_disponibles }}</div>
-            <div class="subtitulo" style="text-align: left; margin: 5px 0 0;">De {{ tiquetes_comprados }} comprados
+    <div class="emp-card" style="padding: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9;">
+            <h2 class="emp-card-title" style="margin: 0;">Historial de Compras</h2>
+            <div class="emp-nav-month">
+                <a href="?mes={{ prev_month }}&anio={{ prev_year }}">&lt;</a>
+                <span class="month-label">{{ mes_nombre }} {{ anio_actual }}</span>
+                <a href="?mes={{ next_month }}&anio={{ next_year }}">&gt;</a>
             </div>
         </div>
-
-        <div class="tarjeta">
-            <div class="etiqueta">Valor Tiquete</div>
-            <div class="valor-secundario">$ {{ precio_tiquete }}</div>
+        <div class="emp-table-wrap">
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>Fecha Solicitud</th>
+                        <th>Cant.</th>
+                        <th>Fecha Reclamo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
+                        <td><strong>{{ compra.cantidad }}</strong></td>
+                        <td>{{ compra.fecha_reclamo|date:"d/m/Y"|default:"—" }}</td>
+                        <td>
+                            <span class="emp-badge {% if compra.estado == 'aprobado' %}green{% else %}red{% endif %}">
+                                {{ compra.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px 20px; color: var(--color-texto-sutil);">No has realizado compras de tiquetes este mes.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="tabla-contenedor" style="margin-bottom: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 class="subtitulo-izq" style="margin: 0;">Historial de Compras (Tiquetes)</h2>
-            <div
-                style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
-                <a href="?mes={{ prev_month }}&anio={{ prev_year }}"
-                    style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
-                <span style="font-weight: 600; color: var(--color-azul); text-transform: capitalize; min-width: 100px; text-align: center;">{{ mes_nombre }} {{ anio_actual }}</span>
-                <a href="?mes={{ next_month }}&anio={{ next_year }}"
-                    style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
-            </div>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha Solicitud</th>
-                    <th>Cant.</th>
-                    <th>Fecha Reclamo</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for compra in compras %}
-                <tr>
-                    <td>{{ compra.fecha_solicitud|date:"d/m/Y" }}</td>
-                    <td>{{ compra.cantidad }}</td>
-                    <td>{{ compra.fecha_reclamo|date:"d/m/Y"|default:"---" }}</td>
-                    <td>
-                        <span
-                            class="insignia {% if compra.estado == 'aprobado' %}insignia-verde{% else %}insignia-roja{% endif %}">
-                            {{ compra.get_estado_display }}
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center;">No has realizado compras de tiquetes.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-
 </div>
 {% endblock %}

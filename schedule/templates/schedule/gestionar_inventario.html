@@ -1,73 +1,90 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Gestionar Inventario y Límites - LunchFlow{% endblock %}
+{% block title %}Gestionar Inventario - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor ancho-medio">
-    <h1 class="titulo-central">Configuración de Tiquetes</h1>
-    
-    {% if ya_existe %}
-    <div class="tarjeta-info" style="margin-bottom: 30px; text-align: left; background: #f8fafc; border-left: 4px solid var(--color-rojo);">
-        <h3 style="margin-top: 0; color: var(--color-oscuro);">Estado Actual del Mes ({{ inventario.mes|date:"F Y" }})</h3>
-        <div class="grid-2col" style="gap: 15px; margin-top: 10px;">
-            <div>
-                <span style="font-size: 13px; color: var(--color-texto-sutil); display: block;">Stock Disponible</span>
-                <strong style="font-size: 24px; color: var(--color-rojo);">{{ inventario.cantidad_disponible }}</strong>
-            </div>
-            <div>
-                <span style="font-size: 13px; color: var(--color-texto-sutil); display: block;">Total del Mes</span>
-                <strong style="font-size: 24px; color: var(--color-oscuro);">{{ inventario.cantidad_inicial }}</strong>
-            </div>
+<div class="admin-layout-container">
+    <div class="admin-page-header">
+        <div>
+            <h1 class="admin-page-title">Configuración de Tiquetes</h1>
+            <p class="admin-page-subtitle">Gestiona el inventario mensual, precios y límites operativos.</p>
         </div>
+        <a href="{% url 'dashboard_admin' %}" class="admin-btn admin-btn-outline">Volver al Panel</a>
     </div>
 
-    <!-- Sección para aumentar stock -->
-    <div style="background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-        <h3 style="margin-top: 0; font-size: 18px;">Aumentar Tiquetes Disponibles</h3>
-        <p style="font-size: 14px; color: var(--color-texto-sutil); margin-bottom: 20px;">Use esta opción para añadir tiquetes al stock actual sin reiniciar el conteo mensual.</p>
-        
-        <form action="{% url 'aumentar_inventario' %}" method="post" class="form-fila">
-            {% csrf_token %}
-            <div class="campo" style="flex: 1; margin-bottom: 0;">
-                <label for="{{ form_aumentar.cantidad_a_adicionar.id_for_label }}">{{ form_aumentar.cantidad_a_adicionar.label }}</label>
-                {{ form_aumentar.cantidad_a_adicionar }}
+    {% if ya_existe %}
+    <div class="admin-grid-2" style="margin-bottom: 24px;">
+        <!-- Card de Estado -->
+        <div class="admin-card">
+            <h2 class="admin-card-title" style="margin-bottom: 24px;">Estado del Mes ({{ inventario.mes|date:"F Y" }})</h2>
+            <div style="display: flex; gap: 40px;">
+                <div>
+                    <div style="font-size: 14px; color: var(--color-texto-sutil); font-weight: 600; margin-bottom: 8px;">Stock Disponible</div>
+                    <div style="font-size: 40px; font-weight: 700; color: var(--color-rojo); line-height: 1;">{{ inventario.cantidad_disponible }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: var(--color-texto-sutil); font-weight: 600; margin-bottom: 8px;">Total del Mes</div>
+                    <div style="font-size: 40px; font-weight: 700; color: var(--color-oscuro); line-height: 1;">{{ inventario.cantidad_inicial }}</div>
+                </div>
             </div>
-            <button type="submit" class="boton" style="margin: 0; white-space: nowrap;">Añadir al Stock</button>
-        </form>
+        </div>
+
+        <!-- Card de Aumento Rápido -->
+        <div class="admin-card">
+            <h2 class="admin-card-title" style="margin-bottom: 8px;">Aumentar Tiquetes</h2>
+            <p style="font-size: 14px; color: var(--color-texto-sutil); margin-bottom: 24px;">Añade tiquetes al stock sin reiniciar el mes.</p>
+            <form action="{% url 'aumentar_inventario' %}" method="post" style="display: flex; gap: 16px; align-items: flex-end;">
+                {% csrf_token %}
+                <div class="admin-input-group" style="flex: 1; margin: 0;">
+                    <label for="{{ form_aumentar.cantidad_a_adicionar.id_for_label }}">{{ form_aumentar.cantidad_a_adicionar.label }}</label>
+                    {{ form_aumentar.cantidad_a_adicionar }}
+                </div>
+                <button type="submit" class="admin-btn admin-btn-outline" style="white-space: nowrap; height: 48px;">Añadir Stock</button>
+            </form>
+        </div>
     </div>
     {% endif %}
 
-    <div style="background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-        <h3 style="margin-top: 0; font-size: 18px;">Configuración Mensual</h3>
-        <p style="font-size: 14px; color: var(--color-texto-sutil); margin-bottom: 20px;">
+    <div class="admin-card">
+        <h2 class="admin-card-title" style="margin-bottom: 8px;">Ajustes Mensuales</h2>
+        <p style="font-size: 14px; color: var(--color-texto-sutil); margin-bottom: 32px;">
             {% if ya_existe %}
-            El inventario inicial y el mes ya están bloqueados para este periodo. Solo puede ajustar límites y precios.
+            El inventario inicial está bloqueado. Solo puedes ajustar límites y precios.
             {% else %}
-            Configure el inventario base para el nuevo mes.
+            Configura el inventario base y parámetros para el nuevo mes.
             {% endif %}
         </p>
 
         <form method="post">
             {% csrf_token %}
+            <div class="admin-grid-2">
             {% for field in formulario %}
-            <div class="campo">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                <small class="subtitulo" style="display: block; text-align: left; margin: 4px 0 10px;">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                <div class="mensaje" style="background: #fee2e2; border-color: #ef4444; color: #991b1b; padding: 5px 10px; margin-top: 4px;">{{ error }}</div>
-                {% endfor %}
-            </div>
+                <div class="admin-input-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small style="color: var(--color-texto-sutil); font-size: 13px; margin-top: 6px;">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div style="color: var(--color-rojo); font-size: 13px; margin-top: 6px;">{{ error }}</div>
+                    {% endfor %}
+                </div>
             {% endfor %}
+            </div>
             
-            <button type="submit" class="boton">Guardar Cambios</button>
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                <button type="submit" class="admin-btn admin-btn-primary">Guardar Configuración</button>
+            </div>
         </form>
     </div>
-    
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_admin' %}" style="color: #64748b; font-size: 14px;">Volver al panel de admin</a>
-    </div>
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.admin-input-group input, .admin-input-group select');
+    inputs.forEach(input => input.classList.add('admin-input'));
+});
+</script>
+{% endblock %}
 {% endblock %}

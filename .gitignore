@@ -30,6 +30,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
+static/
 
 # IDEs
 .idea/
@@ -43,10 +44,7 @@ docker-compose.override.yml
 
 # Gunicorn
 gunicorn.ctl
-
 .env
-
- gunicorn.ctl
 
 # Claude Code
 CLAUDE.md

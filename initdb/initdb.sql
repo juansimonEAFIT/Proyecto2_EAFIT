@@ -24,8 +24,10 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'lunchflow')\gexec
 -- Asegurar propietario del esquema público para que la app pueda crear objetos
 ALTER SCHEMA public OWNER TO p2usr;
 
+ALTER USER p2usr CREATEDB;
+
 -- (Opcional) Conceder privilegios por defecto para objetos futuros creados por el superusuario
 -- Esto afecta solo objetos creados por el rol que ejecuta estas sentencias.
--- ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO p2usr;
--- ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO p2usr;
--- ALTER DEFAULT PRIVILEGES GRANT ALL ON FUNCTIONS TO p2usr;
+ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO p2usr;
+ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO p2usr;
+ALTER DEFAULT PRIVILEGES GRANT ALL ON FUNCTIONS TO p2usr;

@@ -2,12 +2,17 @@ import csv
 from decimal import Decimal
 from io import StringIO
 
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
 from schedule.models import Consumo, RegistroPago
 from users.models import User
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from schedule.models import SolicitudTiquete
+from django.utils import timezone
 
+from schedule.models import InventarioTiquetes
 
 class ExportacionReportesTests(TestCase):
     def setUp(self):
@@ -190,3 +195,194 @@ class ExportacionReportesTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("dashboard_empleado"))
+
+
+class InventarioTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username="admin_inventario",
+            password="adminpassword",
+            email="admin@test.com"
+        )
+        self.admin.role = "administrador"
+        self.admin.save()
+        self.client.force_login(self.admin)
+
+    def test_crear_inventario_mensual(self):
+        """Verifica que se puede crear un inventario si no existe para el mes."""
+        url = reverse("gestionar_inventario")
+        hoy = timezone.now().date()
+
+        response = self.client.post(url, {
+            "mes": hoy.isoformat(),
+            "cantidad_inicial": 100,
+            "max_tiquetes_por_empleado": 20,
+            "precio_tiquete": "10000.00"
+        })
+
+        self.assertEqual(response.status_code, 302)
+        inv = InventarioTiquetes.objects.get(mes__month=hoy.month, mes__year=hoy.year)
+        self.assertEqual(inv.cantidad_inicial, 100)
+        self.assertEqual(inv.cantidad_disponible, 100)
+
+    def test_bloqueo_campos_si_ya_existe(self):
+        """Verifica que si ya existe el inventario, no se puede cambiar cantidad_inicial desde el form principal."""
+        hoy = timezone.now().date()
+        inv_existente = InventarioTiquetes.objects.create(
+            mes=hoy,
+            cantidad_inicial=100,
+            cantidad_disponible=100,
+            max_tiquetes_por_empleado=20,
+            precio_tiquete=Decimal("10000.00")
+        )
+
+        url = reverse("gestionar_inventario")
+        # Intentamos cambiar cantidad_inicial a 500
+        response = self.client.post(url, {
+            "mes": hoy.isoformat(),
+            "cantidad_inicial": 500,
+            "max_tiquetes_por_empleado": 25,
+            "precio_tiquete": "12000.00"
+        })
+
+        inv_existente.refresh_from_db()
+        # cantidad_inicial no debe haber cambiado
+        self.assertEqual(inv_existente.cantidad_inicial, 100)
+        # Otros campos sí pueden cambiar
+        self.assertEqual(inv_existente.max_tiquetes_por_empleado, 25)
+        self.assertEqual(inv_existente.precio_tiquete, Decimal("12000.00"))
+
+    def test_aumentar_inventario(self):
+        """Verifica que la vista de aumento funciona correctamente."""
+        hoy = timezone.now().date()
+        inv = InventarioTiquetes.objects.create(
+            mes=hoy,
+            cantidad_inicial=100,
+            cantidad_disponible=80,
+            max_tiquetes_por_empleado=20,
+            precio_tiquete=Decimal("10000.00")
+        )
+
+        url = reverse("aumentar_inventario")
+        response = self.client.post(url, {
+            "cantidad_a_adicionar": 50
+        })
+
+        self.assertEqual(response.status_code, 302)
+        inv.refresh_from_db()
+        self.assertEqual(inv.cantidad_disponible, 130)  # 80 + 50
+        self.assertEqual(inv.cantidad_inicial, 150)  # 100 + 50
+
+
+class ConsumosTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+        self.admin_user = User.objects.create_user(
+            username="admin_consumos",
+            password="ClaveSegura123",
+            role="administrador",
+            first_name="Ana",
+            last_name="Admin",
+        )
+        self.empleado_user = User.objects.create_user(
+            username="empleado_consumos",
+            password="ClaveSegura123",
+            role="empleado",
+            first_name="Eva",
+            last_name="Empleado",
+        )
+        self.empleado = self.empleado_user.empleado_perfil
+        self.empleado.numero_documento = "123456789"
+        # self.empleado.departamento = "Finanzas"
+        self.empleado.save()
+
+        # Tiquetes aprobados (deuda)
+        SolicitudTiquete.objects.create(
+            empleado=self.empleado,
+            estado="aprobado",
+            cantidad=2,
+            precio_unitario=Decimal("10000")
+        )
+
+        # Pago validado
+        RegistroPago.objects.create(
+            empleado=self.empleado,
+            valor_pagado=Decimal("5000"),
+            validado_por_gh=True
+        )
+
+        self.client.login(username="empleado_consumos", password="ClaveSegura123")
+
+    def test_calculo_saldo(self):
+        response = self.client.get(reverse("consultar_estado_cuenta"))
+
+        self.assertEqual(response.status_code, 200)
+
+        saldo = response.context["saldo_pendiente"]
+
+        # deuda = 2 * 10000 = 20000
+        # pagos = 5000
+        # saldo esperado = 15000
+        self.assertEqual(saldo, Decimal("15000"))
+
+    def test_ver_consumos_por_empleado(self):
+        Consumo.objects.create(
+            empleado=self.empleado,
+            fecha_consumo=timezone.now()
+        )
+
+        Consumo.objects.create(
+            empleado=self.empleado,
+            fecha_consumo=timezone.now()
+        )
+
+        self.client.login(username="admin_consumos", password="ClaveSegura123")
+
+        url = reverse("historial_consumos", args=[self.empleado.id])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        consumos = response.context["consumos"]
+
+        self.assertEqual(consumos.count(), 2)
+
+        self.assertEqual(
+            response.context["empleado_obj"],
+            self.empleado
+        )
+
+    def test_registro_pago_exitoso(self):
+        response = self.client.post(reverse("registrar_pago_efectivo"), {
+            "empleado": self.empleado.id,
+            "valor_pagado": "10000"
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            RegistroPago.objects.filter(empleado=self.empleado).exists()
+        )
+
+    def test_pago_excede_deuda(self):
+        self.client.login(username="admin_consumos", password="ClaveSegura123")
+        response = self.client.post(
+            reverse("registrar_pago_efectivo"),
+            {
+                "empleado": self.empleado.id,
+                "valor_pagado": "20000"  # mayor a deuda
+            }
+        )
+
+        # ❗ Aquí cambia:
+        # no redirige porque el form falla
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["formulario"]
+
+        self.assertTrue(form.errors)
+
+        self.assertIn("excede la deuda", str(form.errors))

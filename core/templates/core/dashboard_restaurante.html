@@ -1,59 +1,49 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Dashboard Restaurante - LunchFlow{% endblock %}
-
-{% block main_container_class %}dashboard-empleado-contenedor{% endblock %}
+{% block title %}Validar Almuerzos - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="header-seccion" style="justify-content: center; text-align: center; display: block; margin-bottom: 30px;">
-    <h1 style="color: var(--color-oscuro);">Panel del Restaurante</h1>
-    <p class="subtitulo-izq" style="text-align: center; font-size: 16px;">Escanea el código QR del empleado para registrar su almuerzo.</p>
-</div>
-
-<!-- Escáner QR -->
-<div class="bento-card" style="margin: 0 auto; max-width: 600px; text-align: center; border: 1px solid #eff6ff; padding: 30px;">
-    <div id="qr-reader-container">
-        <div id="qr-reader" style="width: 100%; border-radius: 16px; overflow: hidden;"></div>
+<div class="res-container">
+    <div class="res-header">
+        <h1>Validación de Almuerzos</h1>
+        <p>Apunta la cámara al código QR del empleado</p>
     </div>
 
-    <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-        <button id="btn-iniciar" onclick="iniciarEscaner()" class="btn-quick primary" style="cursor: pointer; padding: 12px 28px; font-size: 15px; border: none; font-weight: 600;">
-            Iniciar camara
-        </button>
-        <button id="btn-detener" onclick="detenerEscaner()" class="btn-quick" style="cursor: pointer; padding: 12px 28px; font-size: 15px; border: 2px solid #ef4444; color: #ef4444; font-weight: 600; display: none;">
-            Detener
-        </button>
-    </div>
+    <!-- Escáner QR -->
+    <div class="res-card" style="display: flex; flex-direction: column; gap: 24px;">
+        <div id="qr-reader-container">
+            <div class="res-scanner-wrapper">
+                <div id="qr-reader" style="width: 100%; height: 100%; border-radius: 20px; overflow: hidden; background: #0f172a;"></div>
+                <div class="res-scanner-overlay" id="qr-overlay"></div>
+            </div>
+        </div>
 
-    <div id="qr-status" style="margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">
-            Presiona <strong>"Iniciar camara"</strong> para comenzar a escanear codigos QR de los empleados.
-        </p>
-    </div>
-</div>
-
-<!-- Resultado del escaneo -->
-<div id="resultado-escaneo" style="margin: 30px auto; max-width: 600px; display: none;">
-    <div class="bento-card" id="resultado-card" style="text-align: center; padding: 30px; border: 2px solid transparent;">
-        <div id="resultado-icono" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 40px;"></div>
-        <h2 id="resultado-titulo" style="margin-bottom: 10px; font-size: 1.5rem;"></h2>
-        <p id="resultado-mensaje" style="margin: 0; font-weight: 500;"></p>
-
-        <div style="margin-top: 20px;">
-            <button onclick="escanearOtro()" class="btn-quick primary" style="cursor: pointer; padding: 10px 24px; font-size: 14px; border: none; font-weight: 600;">
-                Escanear otro
+        <div style="display: flex; gap: 12px;">
+            <button id="btn-iniciar" onclick="iniciarEscaner()" class="res-btn res-btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                Iniciar Escáner
+            </button>
+            <button id="btn-detener" onclick="detenerEscaner()" class="res-btn res-btn-danger" style="display: none;">
+                Detener
             </button>
         </div>
+
+        <div id="qr-status" style="text-align: center; font-size: 14px; font-weight: 600; color: var(--color-texto-sutil);">
+            Cámara inactiva
+        </div>
     </div>
-</div>
 
+    <!-- Resultado del escaneo -->
+    <div id="resultado-escaneo" style="display: none;">
+        <div class="res-card" id="resultado-card" style="text-align: center; border-width: 2px;">
+            <div id="resultado-icono" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; font-weight: 700;"></div>
+            <h2 id="resultado-titulo" style="margin: 0 0 8px 0; font-size: 20px;"></h2>
+            <p id="resultado-mensaje" style="margin: 0 0 24px 0; font-weight: 500; font-size: 15px;"></p>
 
-<!-- Info del rol -->
-<div class="bento-card" style="margin: 20px auto; max-width: 600px; border: 1px solid #eff6ff;">
-    <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-        <p style="color: var(--color-texto-suave); font-size: 14px; margin: 0;">
-            Acceso concedido con el rol: <strong style="color: var(--color-oscuro);">Restaurante</strong>
-        </p>
+            <button onclick="escanearOtro()" class="res-btn res-btn-primary">
+                Escanear Siguiente QR
+            </button>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -65,14 +55,13 @@
     let escaneando = false;
 
     function iniciarEscaner() {
-        if (escaneando) {
-            return;
-        }
+        if (escaneando) return;
 
         const btnIniciar = document.getElementById('btn-iniciar');
         const btnDetener = document.getElementById('btn-detener');
         const statusDiv = document.getElementById('qr-status');
         const resultadoDiv = document.getElementById('resultado-escaneo');
+        const overlay = document.getElementById('qr-overlay');
 
         resultadoDiv.style.display = 'none';
 
@@ -88,17 +77,16 @@
                 aspectRatio: 1.0,
             },
             onQrEscaneado,
-            (errorMessage) => {
-                // Errores de escaneo continuo (ignorar)
-            }
+            (errorMessage) => { }
         ).then(() => {
             escaneando = true;
             btnIniciar.style.display = 'none';
-            btnDetener.style.display = 'inline-block';
-            statusDiv.innerHTML = '<p style="margin: 0; color: #166534; font-weight: 500;">Camara activa. Apunta al codigo QR del empleado.</p>';
+            btnDetener.style.display = 'flex';
+            statusDiv.innerHTML = '<span style="color: #166534;">Buscando código QR...</span>';
+            overlay.style.borderColor = 'rgba(255, 255, 255, 0.8)';
         }).catch((err) => {
-            statusDiv.innerHTML = '<p style="margin: 0; color: #991b1b; font-weight: 500;">No se pudo acceder a la camara. Verifica los permisos del navegador.</p>';
-            console.error("Error al iniciar cámara:", err);
+            statusDiv.innerHTML = '<span style="color: #991b1b;">Error al acceder a la cámara</span>';
+            console.error("Error:", err);
         });
     }
 
@@ -106,29 +94,31 @@
         if (html5QrCode && escaneando) {
             html5QrCode.stop().then(() => {
                 escaneando = false;
-                document.getElementById('btn-iniciar').style.display = 'inline-block';
+                document.getElementById('btn-iniciar').style.display = 'flex';
                 document.getElementById('btn-detener').style.display = 'none';
-                document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: var(--color-texto-sutil); font-size: 14px;">Camara detenida. Presiona <strong>"Iniciar camara"</strong> para continuar.</p>';
+                document.getElementById('qr-status').innerHTML = 'Cámara inactiva';
+                document.getElementById('qr-overlay').style.borderColor = 'rgba(255, 255, 255, 0.5)';
             });
         }
     }
 
     function obtenerUrlConsumoQr(decodedText) {
         try {
-            const urlEscaneada = new URL(decodedText, window.location.origin);
-            const patronRuta = /^\/almuerzo\/consumir\/[0-9a-f-]+\/[a-z0-9]+\/?$/i;
-
-            if (urlEscaneada.origin !== window.location.origin) {
-                return null;
+            // Intentar parsear como URL
+            let urlEscaneada;
+            try {
+                urlEscaneada = new URL(decodedText);
+            } catch(e) {
+                // Si no es una URL completa, intentar como relativa
+                urlEscaneada = new URL(decodedText, window.location.origin);
             }
-
-            if (!patronRuta.test(urlEscaneada.pathname)) {
-                return null;
+            
+            // Flexibilizar el patrón de ruta: solo necesita contener /almuerzo/consumir/UUID
+            if (urlEscaneada.pathname.includes('/almuerzo/consumir/')) {
+                return `${urlEscaneada.pathname}${urlEscaneada.search}${urlEscaneada.hash}`;
             }
-
-            return `${urlEscaneada.pathname}${urlEscaneada.search}${urlEscaneada.hash}`;
+            return null;
         } catch (error) {
-            console.error("QR con formato no válido:", error);
             return null;
         }
     }
@@ -137,18 +127,17 @@
         if (html5QrCode && escaneando) {
             html5QrCode.stop().then(() => {
                 escaneando = false;
-                document.getElementById('btn-iniciar').style.display = 'inline-block';
+                document.getElementById('btn-iniciar').style.display = 'flex';
                 document.getElementById('btn-detener').style.display = 'none';
             });
         }
 
         const urlConsumo = obtenerUrlConsumoQr(decodedText);
         if (urlConsumo) {
-            document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: #166534; font-weight: 500;">QR detectado. Procesando...</p>';
+            document.getElementById('qr-status').innerHTML = '<span style="color: #1d4ed8;">Procesando...</span>';
             window.location.href = urlConsumo;
         } else {
-            document.getElementById('qr-status').innerHTML = '<p style="margin: 0; color: #991b1b; font-weight: 500;">El QR escaneado no pertenece a LunchFlow.</p>';
-            mostrarResultado(false, 'QR no valido', 'El codigo escaneado no corresponde a un empleado del sistema LunchFlow.');
+            mostrarResultado(false, 'QR no válido', 'El código escaneado no corresponde a un empleado de LunchFlow. Leído: ' + decodedText);
         }
     }
 
@@ -162,19 +151,19 @@
         if (exito) {
             iconoDiv.style.background = '#dcfce7';
             iconoDiv.style.color = '#166534';
-            iconoDiv.style.border = '4px solid #22c55e';
-            iconoDiv.textContent = 'OK';
+            iconoDiv.textContent = '✓';
             tituloEl.style.color = '#166534';
             mensajeEl.style.color = '#166534';
             card.style.borderColor = '#22c55e';
+            card.style.background = '#f0fdf4';
         } else {
             iconoDiv.style.background = '#fee2e2';
             iconoDiv.style.color = '#991b1b';
-            iconoDiv.style.border = '4px solid #ef4444';
-            iconoDiv.textContent = 'X';
+            iconoDiv.textContent = '✕';
             tituloEl.style.color = '#991b1b';
             mensajeEl.style.color = '#991b1b';
             card.style.borderColor = '#ef4444';
+            card.style.background = '#fef2f2';
         }
 
         tituloEl.textContent = titulo;

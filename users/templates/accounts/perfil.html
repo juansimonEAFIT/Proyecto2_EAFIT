@@ -3,71 +3,80 @@
 {% block title %}Mi Perfil - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior" style="max-width: 700px;">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Información de Perfil</h1>
-        <p class="subtitulo">Consulta tus datos registrados en el sistema.</p>
+<div class="admin-layout-container" style="max-width: 800px;">
+    <div class="admin-page-header" style="margin-bottom: 24px;">
+        <div>
+            <h1 class="admin-page-title">Configuración de Perfil</h1>
+            <p class="admin-page-subtitle">Gestiona tu información personal y datos de contacto en la plataforma.</p>
+        </div>
+        <a href="/" class="admin-btn admin-btn-outline" style="text-decoration: none;">&larr; Volver al Inicio</a>
     </div>
 
-    <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div class="avatar-perfil">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="admin-card">
+        <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #f1f5f9;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: #eff6ff; color: var(--color-azul); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700;">
+                {{ view_user.first_name|first|default:view_user.username|first|upper }}
             </div>
-            <h2 style="color: #1e293b; margin: 0; font-size: 20px;">{{ view_user.get_full_name|default:view_user.username }}</h2>
-            <span class="insignia" style="background: #f1f5f9; color: #475569; margin-top: 5px;">{{ view_user.get_role_display }}</span>
+            <div>
+                <h2 style="color: var(--color-oscuro); margin: 0 0 4px 0; font-size: 24px; font-weight: 700;">{{ view_user.get_full_name|default:view_user.username }}</h2>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;">
+                        {{ view_user.get_role_display }}
+                    </span>
+                    <span class="insignia {% if view_user.is_active %}insignia-verde{% else %}insignia-roja{% endif %}" style="margin: 0; font-size: 12px;">
+                        {{ view_user.is_active|yesno:"Cuenta Activa,Cuenta Inactiva" }}
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Usuario</label>
-                <div style="font-weight: 500; color: #1e293b;">@{{ view_user.username }}</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Nombre de Usuario</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">@{{ view_user.username }}</div>
             </div>
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Correo</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.email|default:"---" }}</div>
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Correo Electrónico</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">{{ view_user.email|default:"No registrado" }}</div>
             </div>
             
             {% if view_user.role == 'empleado' %}
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Documento</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.empleado_perfil.numero_documento }}</div>
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Documento de Identidad</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">{{ view_user.empleado_perfil.numero_documento|default:"---" }}</div>
             </div>
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Departamento</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.empleado_perfil.departamento|default:"---" }}</div>
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Departamento / Área</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">{{ view_user.empleado_perfil.departamento|default:"General" }}</div>
             </div>
             {% elif view_user.role == 'restaurante' %}
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Sede</label>
-                <div style="font-weight: 500; color: #1e293b;">{{ view_user.restaurante_perfil.nombre_sede }}</div>
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Sede del Restaurante</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">{{ view_user.restaurante_perfil.nombre_sede }}</div>
             </div>
             {% endif %}
 
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Teléfono</label>
-                <div style="font-weight: 500; color: #1e293b;">
+            <div class="admin-input-group">
+                <label style="color: var(--color-texto-sutil); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Teléfono de Contacto</label>
+                <div style="font-size: 16px; font-weight: 600; color: var(--color-oscuro); padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
                     {% if view_user.role == 'empleado' %}
-                        {{ view_user.empleado_perfil.telefono|default:"---" }}
+                        {{ view_user.empleado_perfil.telefono|default:"No registrado" }}
                     {% elif view_user.role == 'restaurante' %}
-                        {{ view_user.restaurante_perfil.telefono|default:"---" }}
+                        {{ view_user.restaurante_perfil.telefono|default:"No registrado" }}
                     {% else %}
                         ---
                     {% endif %}
                 </div>
             </div>
-            <div>
-                <label style="color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Estado de cuenta</label>
-                <div style="font-weight: 500; color: #1e293b;">{% if view_user.is_active %}Activo{% else %}Inactivo{% endif %}</div>
-            </div>
         </div>
 
-        <div style="margin-top: 25px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; display: flex; justify-content: center; gap: 15px;">
-            <a href="/" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none; background: #f1f5f9; color: #475569;">Volver al Inicio</a>
-            {% if view_user == request.user and view_user.role == 'empleado' %}
-                <a href="{% url 'editar_perfil' %}" class="boton" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">Editar Perfil</a>
-            {% endif %}
+        {% if view_user == request.user and view_user.role == 'empleado' %}
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <a href="{% url 'editar_perfil' %}" class="admin-btn admin-btn-primary" style="text-decoration: none; padding: 0 32px;">
+                Editar mi Información
+            </a>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

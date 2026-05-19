@@ -3,146 +3,126 @@
 {% block title %}Registrar Pago Manual - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor ancho-medio">
-    <div style="margin-bottom: 30px; text-align: center;">
-        <h1 class="titulo-central" style="margin-bottom: 10px;">Registrar Pago en Efectivo</h1>
-        <p class="subtitulo-izq" style="text-align: center; max-width: 600px; margin: 0 auto;">
-            Registra el pago recibido de un empleado y actualiza automáticamente su saldo en el sistema.
-        </p>
+<div class="admin-layout-container">
+    <div class="admin-page-header">
+        <div>
+            <h1 class="admin-page-title">Registrar Pago</h1>
+            <p class="admin-page-subtitle">Gestiona pagos manuales y actualiza balances de empleados.</p>
+        </div>
     </div>
 
-    <div class="tarjeta-formulario">
-        <form method="post">
-            {% csrf_token %}
-            {% if formulario.non_field_errors %}
-                <div style="background-color: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                    {{ formulario.non_field_errors }}
+    <div class="admin-grid-2">
+        <!-- Izquierda: Formulario -->
+        <div class="admin-card">
+            <h2 class="admin-card-title" style="margin-bottom: 24px;">Detalles del Pago</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% if formulario.non_field_errors %}
+                    <div style="background-color: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        {{ formulario.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in formulario %}
+                <div class="admin-input-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small style="color: var(--color-texto-sutil); font-size: 13px;">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div style="color: var(--color-rojo); font-size: 13px; margin-top: 4px;">{{ field.errors.0 }}</div>
+                    {% endif %}
                 </div>
-            {% endif %}
+                {% endfor %}
 
-            {% for field in formulario %}
-            <div class="grupo-formulario">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small style="color: var(--color-texto-sutil); display: block; margin-top: 5px;">{{ field.help_text }}</small>
-                {% endif %}
-                {% if field.errors %}
-                    <div style="color: var(--color-rojo); font-size: 13px; margin-top: 5px;">{{ field.errors }}</div>
-                {% endif %}
-            </div>
-            {% endfor %}
+                <div style="margin-top: 32px; display: flex; gap: 12px;">
+                    <button type="submit" class="admin-btn admin-btn-primary" style="flex: 1;">Registrar Pago</button>
+                    <a href="{% url 'dashboard_admin' %}" class="admin-btn admin-btn-outline" style="flex: 1; text-decoration: none; justify-content: center;">Cancelar</a>
+                </div>
+            </form>
+        </div>
 
-            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
-                <button type="submit" class="boton" style="flex: 1; min-width: 150px; background-color: var(--color-rojo); color: white;">Registrar Pago</button>
-                <a href="{% url 'dashboard_admin' %}" class="boton" style="flex: 1; min-width: 150px; background-color: #e2e8f0; color: var(--color-texto-suave); display: flex; justify-content: center; align-items: center; align-content: center; text-decoration: none;">Cancelar</a>
+        <!-- Derecha: Resumen Contextual -->
+        <div class="admin-card" style="background: #f8fafc; border: none;">
+            <h2 class="admin-card-title" style="margin-bottom: 16px;">Estado del Empleado</h2>
+            <p style="color: var(--color-texto-sutil); font-size: 15px; margin-bottom: 24px;">Selecciona un empleado para ver su saldo actual y contexto operativo.</p>
+            
+            <div id="panel-contextual-vacio" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; color: #94a3b8; text-align: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <p style="margin: 0; font-weight: 500;">Esperando selección...</p>
             </div>
-        </form>
+
+            <div id="panel-contextual-datos" style="display: none; background: white; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+                    <div id="avatar-empleado" style="width: 48px; height: 48px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">
+                        ?
+                    </div>
+                    <div>
+                        <div id="nombre-empleado" style="font-weight: 600; color: var(--color-oscuro); font-size: 16px;">Nombre Empleado</div>
+                        <div style="font-size: 13px; color: var(--color-texto-sutil);">Perfil activo</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 14px; color: var(--color-texto-sutil); font-weight: 600;">Saldo actual:</div>
+                <div id="deuda-empleado" style="font-size: 32px; font-weight: 700; color: var(--color-oscuro); line-height: 1;">$0</div>
+                <div id="estado-deuda" style="margin-top: 12px;"></div>
+            </div>
+        </div>
     </div>
 </div>
-
-<style>
-    .tarjeta-formulario {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
-    }
-    .grupo-formulario {
-        margin-bottom: 20px;
-    }
-    .grupo-formulario label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: var(--color-oscuro);
-    }
-    /* Estilizar inputs de Django */
-    .grupo-formulario input,
-    .grupo-formulario select {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 16px;
-        transition: border-color 0.2s;
-        box-sizing: border-box;
-    }
-    .grupo-formulario input:focus,
-    .grupo-formulario select:focus {
-        outline: none;
-        border-color: var(--color-principal);
-        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
-    }
-</style>
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Añadir clase global a los inputs del form
+    const inputs = document.querySelectorAll('.admin-input-group input, .admin-input-group select');
+    inputs.forEach(input => input.classList.add('admin-input'));
+
     const empleadoSelect = document.querySelector('select[name="empleado"]');
-    let deudaBadge = document.getElementById('deuda-badge');
+    const panelVacio = document.getElementById('panel-contextual-vacio');
+    const panelDatos = document.getElementById('panel-contextual-datos');
+    const nombreEmpleado = document.getElementById('nombre-empleado');
+    const avatarEmpleado = document.getElementById('avatar-empleado');
+    const deudaEmpleado = document.getElementById('deuda-empleado');
+    const estadoDeuda = document.getElementById('estado-deuda');
 
     if (empleadoSelect) {
-        // Garantizar layout inyectándolo directamente vía JS
-        if (!deudaBadge) {
-            const selectContainer = document.createElement('div');
-            selectContainer.style.display = 'flex';
-            selectContainer.style.gap = '15px';
-            selectContainer.style.alignItems = 'center';
-            
-            empleadoSelect.parentNode.insertBefore(selectContainer, empleadoSelect);
-            
-            const badgeContainer = document.createElement('div');
-            badgeContainer.style.minWidth = '130px';
-            badgeContainer.style.textAlign = 'center';
-            
-            deudaBadge = document.createElement('span');
-            deudaBadge.id = 'deuda-badge';
-            deudaBadge.style.display = 'none';
-            deudaBadge.style.fontSize = '15px';
-            deudaBadge.style.margin = '0';
-            deudaBadge.style.width = '100%';
-            deudaBadge.style.boxSizing = 'border-box';
-            
-            badgeContainer.appendChild(deudaBadge);
-            
-            const wrapper = document.createElement('div');
-            wrapper.style.flex = '1';
-            wrapper.appendChild(empleadoSelect);
-            
-            selectContainer.appendChild(wrapper);
-            selectContainer.appendChild(badgeContainer);
-        }
-
-        // La opción ya trae `data-deuda` gracias al Widget de Django (EmpleadoSelectWidget)
-        
-        // Función para actualizar la insignia azul/roja al lado del input
-        function updateDeudaBadge() {
-            if (!deudaBadge || empleadoSelect.selectedIndex < 0) return;
+        function updatePanelContextual() {
+            if (empleadoSelect.selectedIndex <= 0) {
+                panelVacio.style.display = 'flex';
+                panelDatos.style.display = 'none';
+                return;
+            }
 
             const selectedOption = empleadoSelect.options[empleadoSelect.selectedIndex];
             const deudaText = selectedOption.getAttribute('data-deuda');
+            const nombre = selectedOption.text.split(' (')[0]; // Limpiar nombre si tiene info extra
+            
+            panelVacio.style.display = 'none';
+            panelDatos.style.display = 'block';
+            
+            nombreEmpleado.textContent = nombre;
+            avatarEmpleado.textContent = nombre.charAt(0).toUpperCase();
 
             if (deudaText) {
-                deudaBadge.textContent = deudaText;
-                deudaBadge.style.display = 'inline-block';
-                
                 if (deudaText.includes('Paz y salvo')) {
-                    deudaBadge.className = 'insignia insignia-verde';
+                    deudaEmpleado.textContent = '$0';
+                    estadoDeuda.innerHTML = '<span style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;">Al día</span>';
                 } else {
-                    deudaBadge.className = 'insignia insignia-roja';
+                    // Extraer solo el número
+                    const monto = deudaText.match(/\$[0-9,.]+/);
+                    deudaEmpleado.textContent = monto ? monto[0] : deudaText;
+                    estadoDeuda.innerHTML = '<span style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;">Con Deuda</span>';
                 }
-            } else {
-                deudaBadge.style.display = 'none';
             }
         }
 
-        empleadoSelect.addEventListener('change', updateDeudaBadge);
-        // Llamar inicialmente para el valor cargado por defecto (si hay alguno)
-        updateDeudaBadge();
+        empleadoSelect.addEventListener('change', updatePanelContextual);
+        updatePanelContextual();
     }
 });
 </script>
 {% endblock %}
 {% endblock %}
+

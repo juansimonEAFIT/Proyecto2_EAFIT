@@ -1,65 +1,68 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Historial de Consumos - LunchFlow{% endblock %}
-
-{% block main_container_class %}dashboard-empleado-contenedor{% endblock %}
+{% block title %}Feed de Consumos - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="header-seccion" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
-    <div>
-        <h1 style="color: var(--color-oscuro); margin: 0;">{% if es_hoy %}Consumos Registrados Hoy{% else %}Consumos del {{ fecha_filtro|date:"d M Y" }}{% endif %}</h1>
-        <p class="subtitulo-izq" style="font-size: 16px; margin-top: 5px; margin-bottom: 0;">Lista detallada de los almuerzos entregados en la fecha seleccionada.</p>
-    </div>
-    <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-        <label for="fecha" style="font-weight: 600; color: var(--color-oscuro);">Fecha:</label>
-        <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|date:'Y-m-d' }}" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit;">
-        <button type="submit" class="boton" style="padding: 8px 15px;">Filtrar</button>
-    </form>
-</div>
-
-{% if consumos_hoy %}
-<div class="bento-card" style="margin: 0 auto; max-width: 800px; border: 1px solid #eff6ff;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9;">
-        <h2 style="color: var(--color-oscuro); margin: 0; font-size: 18px;">Registro del día</h2>
-        <div style="background: #eff6ff; color: var(--color-azul); padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">
-            Total: {{ total_consumos_hoy }}
-        </div>
+<div class="res-container">
+    <div class="res-header">
+        <h1>{% if es_hoy %}Consumos de Hoy{% else %}Consumos del {{ fecha_filtro|date:"d M Y" }}{% endif %}</h1>
+        <p>Historial de almuerzos validados</p>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-        {% for consumo in consumos_hoy %}
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: transform 0.2s ease;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; color: var(--color-azul);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-                <div>
-                    <strong style="color: var(--color-oscuro); font-size: 16px; display: block;">{{ consumo.empleado.user.get_full_name }}</strong>
-                    <span style="color: var(--color-texto-sutil); font-size: 13px;">Usuario: {{ consumo.empleado.user.username }}</span>
-                </div>
+    <!-- Filtro de Fecha -->
+    <div class="res-card" style="padding: 16px; margin-bottom: 8px;">
+        <form method="GET" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label for="fecha" style="font-size: 13px; font-weight: 600; color: var(--color-texto-sutil); margin-bottom: 6px; display: block;">Filtrar por fecha</label>
+                <input type="date" id="fecha" name="fecha" value="{{ fecha_filtro|date:'Y-m-d' }}" style="width: 100%; height: 44px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 0 16px; background: #f8fafc; font-family: inherit;">
             </div>
-            <div style="text-align: right;">
-                <span style="color: var(--color-oscuro); font-weight: 600; font-size: 15px; display: block;">{{ consumo.fecha_consumo|time:"h:i A" }}</span>
-                <span style="color: var(--color-texto-suave); font-size: 12px;">Registrado</span>
+            <button type="submit" class="res-btn res-btn-primary" style="height: 44px; width: auto; padding: 0 24px; font-size: 14px;">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    {% if consumos_hoy %}
+    <div class="res-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="res-card-title" style="margin: 0;">Lista de Registros</h2>
+            <div class="res-badge success">
+                Total: {{ total_consumos_hoy }}
             </div>
         </div>
-        {% endfor %}
-    </div>
 
-    <div style="margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #f1f5f9; color: var(--color-texto-sutil); font-size: 14px;">
-        <p>Mostrando consumos para el día: <strong>{{ fecha_filtro|date:"d/m/Y" }}</strong></p>
+        <div class="res-feed-list">
+            {% for consumo in consumos_hoy %}
+            <div class="res-feed-item">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 44px; height: 44px; background: #eff6ff; color: var(--color-azul); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;">
+                        {{ consumo.empleado.user.first_name|first|default:consumo.empleado.user.username|first|upper }}
+                    </div>
+                    <div class="res-feed-info">
+                        <span class="res-feed-name">{{ consumo.empleado.user.get_full_name|default:consumo.empleado.user.username }}</span>
+                        <span style="font-size: 13px; color: var(--color-texto-sutil);">Validado exitosamente</span>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="display: block; font-weight: 700; color: var(--color-oscuro); font-size: 15px;">{{ consumo.fecha_consumo|time:"h:i A" }}</span>
+                    <span class="res-feed-time">Hoy</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+    {% else %}
+    <div class="res-card" style="text-align: center; padding: 48px 24px; border: 2px dashed #cbd5e1; background: transparent; box-shadow: none;">
+        <div style="color: #94a3b8; margin-bottom: 16px; display: flex; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+        </div>
+        <h2 style="font-size: 18px; color: var(--color-oscuro); margin: 0 0 8px 0;">Sin consumos registrados</h2>
+        <p style="color: var(--color-texto-sutil); font-size: 14px; margin: 0 0 24px 0;">No se encontraron validaciones para la fecha: <strong>{{ fecha_filtro|date:"d/m/Y" }}</strong></p>
+        
+        <a href="{% url 'dashboard_restaurante' %}" class="res-btn res-btn-primary" style="max-width: 200px; margin: 0 auto; height: 48px;">
+            Ir a Escanear QR
+        </a>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="bento-card" style="margin: 0 auto; max-width: 600px; text-align: center; padding: 40px; border: 2px dashed #e2e8f0; background: transparent;">
-    <div style="margin-bottom: 20px; color: #cbd5e1; display: flex; justify-content: center;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-    </div>
-    <h2 style="color: var(--color-texto-sutil); margin-bottom: 10px;">No hay consumos registrados en esta fecha</h2>
-    <p style="color: var(--color-texto-suave); margin: 0;">Los almuerzos correspondientes a este día aparecerán listados aquí.</p>
-    <div style="margin-top: 25px;">
-        <a href="{% url 'dashboard_restaurante' %}" class="btn-quick primary">Ir a Escanear QR</a>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

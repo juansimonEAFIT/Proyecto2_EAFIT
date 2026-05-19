@@ -3,86 +3,76 @@
 {% block title %}Historial de Pagos - LunchFlow{% endblock %}
 
 {% block content %}
-<div class="contenedor-interior">
-    <div class="encabezado-interior">
-        <h1 class="titulo-central">Historial de Pagos</h1>
-        <div class="subtitulo" style="text-align: center;">
-            Consulta tus pagos realizados y confirma aquellos que ya han sido validados por Gestión Humana.
-        </div>
+<div class="emp-container">
+    <div class="emp-header">
+        <h1>Historial de Pagos</h1>
+        <p>Consulta tus pagos realizados y confirma aquellos que ya han sido validados por Gestión Humana.</p>
     </div>
 
-    <div class="tabla-contenedor">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 class="subtitulo-izq" style="margin: 0;">Detalle de Pagos</h2>
-            <div style="display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;">
-                <a href="?mes={{ prev_month }}&anio={{ prev_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&lt;</a>
-                <span style="font-weight: 600; color: var(--color-azul); text-transform: capitalize; min-width: 100px; text-align: center;">{{ mes_nombre }} {{ anio_actual }}</span>
-                <a href="?mes={{ next_month }}&anio={{ next_year }}" style="color: var(--color-oscuro); text-decoration: none; font-weight: bold; font-size: 18px; padding: 0 5px;">&gt;</a>
+    <div class="emp-card" style="padding: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9;">
+            <h2 class="emp-card-title" style="margin: 0;">Detalle de Pagos</h2>
+            <div class="emp-nav-month">
+                <a href="?mes={{ prev_month }}&anio={{ prev_year }}">&lt;</a>
+                <span class="month-label">{{ mes_nombre }} {{ anio_actual }}</span>
+                <a href="?mes={{ next_month }}&anio={{ next_year }}">&gt;</a>
             </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha Pago</th>
-                    <th>Comprobante</th>
-                    <th>Valor</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos %}
+        <div class="emp-table-wrap">
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>Fecha Pago</th>
+                        <th>Comprobante</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos %}
                     <tr>
                         <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
-                        <td>{{ pago.comprobante|default:"---" }}</td>
-                        <td>$ {{ pago.valor_pagado }}</td>
+                        <td>{{ pago.comprobante|default:"—" }}</td>
+                        <td><strong>$ {{ pago.valor_pagado }}</strong></td>
                         <td>
                             {% if not pago.validado_por_gh %}
-                                <span class="insignia insignia-roja" style="font-size: 0.8rem; padding: 4px 8px;">
-                                    Pendiente validación GH
-                                </span>
+                                <span class="emp-badge yellow">Pendiente GH</span>
                             {% elif pago.validado_por_gh and not pago.confirmado_por_empleado %}
-                                <span class="insignia insignia-azul" style="font-size: 0.8rem; padding: 4px 8px;">
-                                    Validado por GH
-                                </span>
+                                <span class="emp-badge blue">Validado por GH</span>
                             {% else %}
-                                <span class="insignia insignia-verde" style="font-size: 0.8rem; padding: 4px 8px;">
-                                    Confirmado
-                                </span>
+                                <span class="emp-badge green">Confirmado</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if pago.validado_por_gh and not pago.confirmado_por_empleado %}
                                 <form method="post" action="{% url 'confirmar_pago_empleado' pago.id %}" style="margin: 0;">
                                     {% csrf_token %}
-                                    <button type="submit" class="insignia insignia-azul" style="border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 8px;">
+                                    <button type="submit" class="emp-btn emp-btn-secondary" style="height: 32px; padding: 0 14px; font-size: 12px; border-radius: 8px;">
                                         Confirmar
                                     </button>
                                 </form>
                             {% elif pago.confirmado_por_empleado %}
-                                <span style="color: #64748b;">Sin acciones</span>
+                                <span style="color: var(--color-texto-sutil); font-size: 13px;">Sin acciones</span>
                             {% else %}
-                                <span style="color: #64748b;">Esperando GH</span>
+                                <span style="color: var(--color-texto-sutil); font-size: 13px;">Esperando GH</span>
                             {% endif %}
                         </td>
                     </tr>
-                {% empty %}
+                    {% empty %}
                     <tr>
-                        <td colspan="5" style="text-align: center;">No se registran pagos aún.</td>
+                        <td colspan="5" style="text-align: center; padding: 40px 20px; color: var(--color-texto-sutil);">No se registran pagos para este periodo.</td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="actualizacion">
-            Última actualización de pagos: {{ ultima_actualizacion|date:"d/m/Y H:i" }}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'dashboard_empleado' %}" style="color: #64748b; font-size: 14px;">
-            Volver al dashboard
-        </a>
+        {% if ultima_actualizacion %}
+        <div style="padding: 12px 24px; border-top: 1px solid #f1f5f9; font-size: 13px; color: var(--color-texto-sutil);">
+            Última actualización: {{ ultima_actualizacion|date:"d/m/Y H:i" }}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
