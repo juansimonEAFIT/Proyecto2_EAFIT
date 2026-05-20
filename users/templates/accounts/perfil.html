@@ -70,6 +70,14 @@
             </div>
         </div>
 
+        {% if view_user.role == 'restaurante' %}
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <div style="margin-top: 24px; padding: 18px 22px; border-radius: 20px; background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; line-height: 1.7; font-size: 14px;">
+                <strong>Nota importante:</strong> La edición de los datos del perfil del restaurante (nombre de la sede, teléfono, entre otros) es un poder administrativo que solo puede ser realizado por un administrador del sistema. Si necesitas realizar cambios en esta información, ponte en contacto con el equipo de administración.
+            </div>
+        </div>
+        {% endif %}
+
         {% if view_user == request.user and view_user.role == 'empleado' %}
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
             <a href="{% url 'editar_perfil' %}" class="admin-btn admin-btn-primary" style="text-decoration: none; padding: 0 32px;">
