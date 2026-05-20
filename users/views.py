@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth import get_user_model, authenticate, login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
@@ -130,3 +130,37 @@ def cambiar_estado_usuario(request, user_id):
         messages.success(request, f"Usuario {user_to_change.username} {estado} correctamente.")
 
     return redirect("dashboard_admin")
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def cambiar_contrasena(request):
+    """Permite a cualquier usuario cambiar su contraseña desde su perfil."""
+    if request.method == "POST":
+        contrasena_actual = request.POST.get("contrasena_actual", "")
+        nueva_contrasena = request.POST.get("nueva_contrasena", "")
+        confirmar_contrasena = request.POST.get("confirmar_contrasena", "")
+
+        # Validar contraseña actual
+        if not request.user.check_password(contrasena_actual):
+            messages.error(request, "La contraseña actual es incorrecta.")
+            return render(request, "accounts/cambiar_contrasena.html")
+
+        # Validar que las nuevas coincidan
+        if nueva_contrasena != confirmar_contrasena:
+            messages.error(request, "Las contraseñas nuevas no coinciden.")
+            return render(request, "accounts/cambiar_contrasena.html")
+
+        # Validar longitud mínima
+        if len(nueva_contrasena) < 8:
+            messages.error(request, "La contraseña debe tener al menos 8 caracteres.")
+            return render(request, "accounts/cambiar_contrasena.html")
+
+        # Cambiar contraseña y mantener sesión
+        request.user.set_password(nueva_contrasena)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+        messages.success(request, "Tu contraseña ha sido actualizada correctamente.")
+        return redirect("perfil_usuario")
+
+    return render(request, "accounts/cambiar_contrasena.html")

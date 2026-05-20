@@ -78,13 +78,16 @@
         </div>
         {% endif %}
 
-        {% if view_user == request.user and view_user.role == 'empleado' %}
-        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
+            <a href="{% url 'cambiar_contrasena' %}" class="admin-btn admin-btn-outline" style="text-decoration: none; padding: 0 24px;">
+                &#128274; Cambiar Contraseña
+            </a>
+            {% if view_user == request.user and view_user.role == 'empleado' %}
             <a href="{% url 'editar_perfil' %}" class="admin-btn admin-btn-primary" style="text-decoration: none; padding: 0 32px;">
                 Editar mi Información
             </a>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

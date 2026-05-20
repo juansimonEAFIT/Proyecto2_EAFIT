@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Cambiar Contraseña - LunchFlow{% endblock %}
+
+{% block content %}
+<div class="contenedor-interior" style="max-width: 520px;">
+    <div class="encabezado-interior">
+        <h1 class="titulo-central">Cambiar Contraseña</h1>
+        <p class="subtitulo">Ingresa tu contraseña actual y define una nueva contraseña segura.</p>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" style="
+        background-color: {% if message.tags == 'error' %}#fee2e2{% elif message.tags == 'success' %}#dcfce7{% else %}#fef3c7{% endif %};
+        border-left: 4px solid {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'success' %}#22c55e{% else %}#f59e0b{% endif %};
+        padding: 15px; margin-bottom: 20px; border-radius: 8px;
+        color: {% if message.tags == 'error' %}#b91c1c{% elif message.tags == 'success' %}#166534{% else %}#92400e{% endif %};
+        font-weight: 600;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="formulario">
+        {% csrf_token %}
+
+        <div class="grupo-formulario">
+            <label for="contrasena_actual" class="etiqueta-formulario">Contraseña Actual</label>
+            <input type="password" name="contrasena_actual" id="contrasena_actual" required
+                   placeholder="Ingresa tu contraseña actual"
+                   style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;"
+                   onfocus="this.style.borderColor='var(--color-azul)'; this.style.background='#fff'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
+                   onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'; this.style.boxShadow='none'">
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;">
+
+        <div class="grupo-formulario">
+            <label for="nueva_contrasena" class="etiqueta-formulario">Nueva Contraseña</label>
+            <input type="password" name="nueva_contrasena" id="nueva_contrasena" required minlength="8"
+                   placeholder="Mínimo 8 caracteres"
+                   style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;"
+                   onfocus="this.style.borderColor='var(--color-azul)'; this.style.background='#fff'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
+                   onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'; this.style.boxShadow='none'">
+        </div>
+
+        <div class="grupo-formulario">
+            <label for="confirmar_contrasena" class="etiqueta-formulario">Confirmar Nueva Contraseña</label>
+            <input type="password" name="confirmar_contrasena" id="confirmar_contrasena" required minlength="8"
+                   placeholder="Repite la nueva contraseña"
+                   style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;"
+                   onfocus="this.style.borderColor='var(--color-azul)'; this.style.background='#fff'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
+                   onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'; this.style.boxShadow='none'">
+        </div>
+
+        <div style="margin-top: 8px; padding: 14px 18px; border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; font-size: 13px; line-height: 1.6;">
+            <strong>Requisitos de la contraseña:</strong>
+            <ul style="margin: 6px 0 0 0; padding-left: 18px;">
+                <li>Mínimo 8 caracteres</li>
+                <li>Evita contraseñas comunes o predecibles</li>
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <a href="{% url 'perfil_usuario' %}" class="boton" style="flex: 1; background: #f1f5f9; color: #475569; text-align: center; text-decoration: none;">Cancelar</a>
+            <button type="submit" class="boton" style="flex: 1;">Cambiar Contraseña</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
