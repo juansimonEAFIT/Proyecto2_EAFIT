@@ -4,7 +4,7 @@ Solucion web para la gestion de almuerzos corporativos. LunchFlow centraliza la 
 
 ## Acceso rapido
 
-- Aplicacion desplegada: `https://web-production-de81d.up.railway.app/`
+- Aplicacion desplegada: `https://lunchflow-web.onrender.com/gestion-humana/`
 
 ## Contexto del proyecto
 
@@ -25,20 +25,19 @@ En esta etapa, el proyecto se presenta como una solucion funcional, desplegada y
 
 - Backend en Django.
 - Base de datos PostgreSQL.
-- Despliegue y hosting en Railway.
+- Despliegue y hosting en Render.
 - Contenedorizacion con Docker y orquestacion con Docker Compose.
 - Archivos estaticos servidos con WhiteNoise.
 
 ## Acceso a la aplicacion
 
-La version principal del sistema se encuentra disponible en Railway:
+La version principal del sistema se encuentra disponible en Render:
 
 `https://web-production-de81d.up.railway.app`
 
 Puntos de acceso relevantes:
 
-- Aplicacion web: `https://web-production-de81d.up.railway.app/`
-- Panel administrativo: `https://web-production-de81d.up.railway.app/admin/`
+- Aplicacion web: `https://lunchflow-web.onrender.com/gestion-humana/`
 
 ## Como ejecutar la solucion localmente
 
