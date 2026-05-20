@@ -1,177 +1,126 @@
-# Proyecto2_EAFIT
-Aplicación web para la gestión integral de almuerzos corporativos, que automatiza el registro de consumo mediante códigos QR, el control de pagos y saldos, y la visualización de métricas administrativas, apoyando la toma de decisiones a través de analítica básica y estimación de demanda.
+# LunchFlow
 
----
+Solucion web para la gestion de almuerzos corporativos. LunchFlow centraliza la entrega de beneficios de alimentacion para empleados mediante registro de consumos con codigo QR, control de pagos y saldos, administracion por roles y visualizacion de metricas para apoyar la operacion y la toma de decisiones.
 
-## Requerimientos previos
+## Acceso rapido
 
-Para ejecutar correctamente el proyecto, asegúrate de tener instalado:
+- Aplicacion desplegada: `https://web-production-de81d.up.railway.app/`
 
-### 1. Docker Desktop o Docker Engine + Docker Compose
-Verifica la instalación con:
+## Contexto del proyecto
+
+LunchFlow fue desarrollado como una entrega academica final orientada a resolver la gestion de almuerzos corporativos para una empresa cliente. El proyecto busca digitalizar tareas que normalmente se manejan de forma manual, como la validacion de consumos, el seguimiento de pagos y la consulta del estado de cuenta por parte de empleados, administradores y personal del restaurante.
+
+En esta etapa, el proyecto se presenta como una solucion funcional, desplegada y lista para evaluacion, demostracion y continuidad operativa.
+
+## Funcionalidades principales
+
+- Registro de consumos mediante codigos QR para agilizar la validacion de almuerzos.
+- Gestion de pagos, saldos y estado de cuenta para el seguimiento financiero del beneficio.
+- Paneles diferenciados por rol para empleados, administradores y restaurante.
+- Herramientas administrativas para gestion de personal, inventario y reportes.
+- Analitica basica y estimacion de demanda para apoyar decisiones operativas.
+- Integracion de vistas operativas para consultar historial de consumos y movimientos del sistema.
+
+## Arquitectura y stack
+
+- Backend en Django.
+- Base de datos PostgreSQL.
+- Despliegue y hosting en Railway.
+- Contenedorizacion con Docker y orquestacion con Docker Compose.
+- Archivos estaticos servidos con WhiteNoise.
+
+## Acceso a la aplicacion
+
+La version principal del sistema se encuentra disponible en Railway:
+
+`https://web-production-de81d.up.railway.app`
+
+Puntos de acceso relevantes:
+
+- Aplicacion web: `https://web-production-de81d.up.railway.app/`
+- Panel administrativo: `https://web-production-de81d.up.railway.app/admin/`
+
+## Como ejecutar la solucion localmente
+
+### Requisitos previos
+
+Antes de ejecutar el proyecto localmente, asegurese de tener instalado:
+
+- Docker Desktop o Docker Engine con Docker Compose
+- Python 3.10 o superior
+
+Puede verificarlo con:
 
 ```bash
 docker --version
 docker compose version
-```
-
-### 2. Python 3.10+ (opcional, solo si deseas usar venv fuera de Docker)
-```bash
 python --version
 ```
 
----
+### Levantar el entorno con Docker
 
-## (Opcional) Crear entorno virtual
-
-Si deseas ejecutar scripts o herramientas fuera de Docker, puedes crear un entorno virtual:
-
-```bash
-python -m venv .venv
-```
-
-Activación:
-
-**Windows (PowerShell):**
-```bash
-.venv\Scripts\Activate.ps1
-```
-
-**Linux/Mac:**
-```bash
-source .venv/bin/activate
-```
-
-Instalar dependencias manualmente (opcional):
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Ejecutar la aplicación con Docker
-
-### 1. Construir y levantar los contenedores
-
-En el directorio raíz del proyecto:
+Desde la raiz del proyecto ejecute:
 
 ```bash
 docker compose up --build
 ```
 
-Esto:
-- Construye la imagen de la aplicación  
-- Instala dependencias  
-- Levanta el servidor web y la base de datos  
-- Inicia el backend en puerto 8000  
+Este comando construye la imagen de la aplicacion, levanta el contenedor web y el servicio de PostgreSQL, y expone la aplicacion en el puerto `8000`.
 
----
+### Migraciones
 
-### 2. Aplicar migraciones (si tu entrypoint no lo hace automáticamente)
+Si necesita aplicar migraciones manualmente:
 
 ```bash
-docker compose exec web python manage.py makemigrations
 docker compose exec web python manage.py migrate
 ```
 
-> Nota: si tu servicio no se llama `web` en docker-compose.yml, ajusta el nombre en los comandos.
+### Crear un superusuario
 
----
-
-### 3. Crear un superusuario
+Para acceder al panel administrativo local:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-O si necesitas hacerlo sin interacción:
+### Rutas locales
 
-```bash
-docker compose exec web python manage.py shell
-```
+- Aplicacion local: `http://localhost:8000`
+- Administracion Django: `http://localhost:8000/admin`
+- Adminer: `http://localhost:8080`
 
-```python
-from django.contrib.auth import get_user_model
-User = get_user_model()
-User.objects.create_superuser("admin", "admin@example.com", "admin123")
-exit()
-```
+### Operacion basica
 
----
+- Ver logs del contenedor web:
 
-## Acceso a la aplicación
-
-### Aplicación principal:
-```
-http://localhost:8000
-```
-
-### Administrador de Django:
-```
-http://localhost:8000/admin
-```
-
-Inicia sesión con the superusuario que creaste.
-
----
-
-## Comandos útiles
-
-### Entrar al shell interactivo de Django
-```bash
-docker compose exec web python manage.py shell
-```
-
-### Ver logs del contenedor
 ```bash
 docker compose logs -f web
 ```
 
-### Reiniciar contenedores
+- Detener los servicios:
+
 ```bash
 docker compose down
-docker compose up --build
 ```
 
----
+La base de datos local corre en un contenedor PostgreSQL separado y el entorno fue preparado para ejecutarse principalmente mediante Docker Compose.
 
-## Resetear completamente la base de datos (solo desarrollo)
+## Estado actual y continuidad
 
-Si las migraciones fallan o la base de datos está inconsistente:
+La fase academica del proyecto se considera finalizada y el sistema cuenta con una version desplegada y funcional. Aun asi, la base del proyecto permite continuar con mantenimiento correctivo, ajustes operativos y nuevas mejoras si la empresa cliente decide extender su uso o evolucion.
 
-```bash
-docker compose down -v
-docker compose up --build
-```
+## Equipo y cliente
 
-Esto borra los volúmenes y la base de datos, luego la reconstruye desde cero.
+Este repositorio corresponde a una entrega academica de `Proyecto2_EAFIT` orientada al desarrollo de LunchFlow para la empresa UDP SA.
 
----
+Integrantes del desarrollo:
 
-## Notas para desarrollo
+- Juan Simon Ospina
+- Sebastian Duran
+- Juan Nicolas Vasquez
+- Juan Jose Gomez
+- Valeria Aguilar
 
-- Ejecuta siempre comandos de Django desde el contenedor usando:  
-  `docker compose exec web ...`
-- Si eliminas apps o cambias modelos de forma importante, borra migraciones y resetea la base con `docker compose down -v`.
-- Los roles se manejan desde `User.role`.
-- Los perfiles se crean automáticamente mediante signals.
+Cliente beneficiario:
 
----
-
-## Errores comunes (solo desarrollo)
-
- - Un posible error que puede recibir en el momento de ejecucion es uno relacionado al archivo entrypoint.sh del programa y se veria de esta forma:
-```bash
-env: ‘bash\r’: No such file or directory
-env: use -[v]S to pass options in shebang lines
-```
-En el caso que esto suceda no se preocupe, todo lo que tiene que hacer es lo siguiente:
-
-1. En la linea de comandos escribir el siguiente comando:
-```bash
-git config core.autocrlf false
-```
-esto configurara a git para que no vuelva a pasar este problema en esta maquina
-
-2. En tu editor de texto simplemente selecciona el archivo entrypoint.sh y busca como se cambia el tipo de espaciado en tu editor de preferencia. Para vscode, PyCharm y AntiGravity esto esta en la esquina derecha abajo al lado de una opcion UTF-8, simplemente dar click a CRLF(o el que aparezca) y cambiar a LF
+- Empresa UDP SA.
